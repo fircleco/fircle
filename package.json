@@ -2,43 +2,7 @@
   "name": "fircle",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
-  "scripts": {
-    "build": "next build",
-    "dev": "next dev",
-    "lint": "next lint",
-    "start": "next start",
-    "db:push": "prisma db push",
-    "db:studio": "prisma studio",
-    "db:generate": "prisma generate"
-  },
   "keywords": [],
   "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "@prisma/client": "^6.12.0",
-    "@supabase/ssr": "^0.6.1",
-    "@supabase/supabase-js": "^2.53.0",
-    "@tailwindcss/postcss": "^4.1.11",
-    "@tanstack/react-query": "^5.83.0",
-    "@trpc/client": "^11.4.3",
-    "@trpc/next": "^11.4.3",
-    "@trpc/react-query": "^11.4.3",
-    "@trpc/server": "^11.4.3",
-    "@types/node": "^24.1.0",
-    "@types/react": "^19.1.8",
-    "@types/react-dom": "^19.1.6",
-    "next": "^15.4.4",
-    "prisma": "^6.12.0",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "superjson": "^2.2.2",
-    "typescript": "^5.8.3",
-    "zod": "^4.0.10"
-  },
-  "devDependencies": {
-    "autoprefixer": "^10.4.21",
-    "postcss": "^8.5.6",
-    "tailwindcss": "^4.1.11"
-  }
+  "license": "ISC"
 }
