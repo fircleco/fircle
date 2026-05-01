@@ -1,6 +1,8 @@
 import { PrismaAdapter } from "@auth/prisma-adapter";
+import bcrypt from "bcryptjs";
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
-import DiscordProvider from "next-auth/providers/discord";
+import Credentials from "next-auth/providers/credentials";
+import { z } from "zod";
 
 import { db } from "~/server/db";
 
@@ -25,6 +27,11 @@ declare module "next-auth" {
   // }
 }
 
+const signInSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(1),
+});
+
 /**
  * Options for NextAuth.js used to configure adapters, providers, callbacks, etc.
  *
@@ -32,24 +39,34 @@ declare module "next-auth" {
  */
 export const authConfig = {
   providers: [
-    DiscordProvider,
-    /**
-     * ...add more providers here.
-     *
-     * Most other providers require a bit more work than the Discord provider. For example, the
-     * GitHub provider requires you to add the `refresh_token_expires_in` field to the Account
-     * model. Refer to the NextAuth.js docs for the provider you want to use. Example:
-     *
-     * @see https://next-auth.js.org/providers/github
-     */
+    Credentials({
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      authorize: async (credentials) => {
+        const parsed = signInSchema.safeParse(credentials);
+        if (!parsed.success) return null;
+
+        const { email, password } = parsed.data;
+        const user = await db.user.findUnique({ where: { email } });
+        if (!user?.password) return null;
+
+        const valid = await bcrypt.compare(password, user.password);
+        if (!valid) return null;
+
+        return user;
+      },
+    }),
   ],
   adapter: PrismaAdapter(db),
+  session: { strategy: "jwt" },
   callbacks: {
-    session: ({ session, user }) => ({
+    session: ({ session, token }) => ({
       ...session,
       user: {
         ...session.user,
-        id: user.id,
+        id: token.sub!,
       },
     }),
   },

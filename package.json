@@ -28,6 +28,7 @@
     "@trpc/client": "^11.0.0",
     "@trpc/react-query": "^11.0.0",
     "@trpc/server": "^11.0.0",
+    "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.14.0",
@@ -46,6 +47,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
     "@tailwindcss/postcss": "^4.0.15",
+    "@types/bcryptjs": "^3.0.0",
     "@types/node": "^20.14.10",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
