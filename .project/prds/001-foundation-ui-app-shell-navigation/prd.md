@@ -80,7 +80,7 @@ This is purely structural and cosmetic UI. No auth gating, no real data, no page
 #### Tasks
 
 **Mobile Header** (`src/components/nav/mobile-header.tsx`)
-- [ ] Create component — renders only on `< md`
+- [x] Create component — renders only on `< md`
 - [ ] Left: ghost icon button with `Menu` icon (hamburger) — no action needed yet, placeholder for future drawer
 - [ ] Center: **fircle** wordmark (text-based logo, `font-bold text-xl tracking-tight`)
 - [ ] Right: notification bell with a red badge (hardcoded count `2` for static UI) + avatar placeholder circle
@@ -88,7 +88,7 @@ This is purely structural and cosmetic UI. No auth gating, no real data, no page
 - [ ] Reference: left hamburger + centered logo + right badges in `9976932dc7b2fef4363661166abe5f28.webp`
 
 **Mobile Bottom Nav** (`src/components/nav/mobile-bottom-nav.tsx`)
-- [ ] Create component — renders only on `< md`
+- [x] Create component — renders only on `< md`
 - [ ] Fixed bottom, full width, `bg-background border-t border-border`
 - [ ] 5 items evenly distributed: Feed (`House`), Members (`Users`), Create (`PlusCircle`), Notifications (`Bell`), Profile (`UserCircle`)
 - [ ] Create item is visually larger/prominent (slightly bigger icon, filled circle background)
@@ -98,7 +98,7 @@ This is purely structural and cosmetic UI. No auth gating, no real data, no page
 - [ ] Reference: bottom bar with 5 icons in `9976932dc7b2fef4363661166abe5f28.webp`
 
 **Desktop Sidebar** (`src/components/nav/desktop-sidebar.tsx`)
-- [ ] Create component — renders only on `md+`
+- [x] Create component — renders only on `md+`
 - [ ] Fixed left, full height, narrow width (`w-16`), `bg-background border-r border-border`
 - [ ] Top: **fircle** logomark (single letter `F` or circle icon, bold)
 - [ ] Middle: vertically stacked nav icon buttons — Feed (`House`), Members (`Users`), Notifications (`Bell`), Profile (`UserCircle`)
