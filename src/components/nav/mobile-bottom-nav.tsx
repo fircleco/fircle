@@ -50,9 +50,9 @@ export function MobileBottomNav() {
                       : "size-8"
                   )}
                 >
-                  <Icon className={cn(item.prominent ? "size-5" : "size-[18px]")} />
+                  <Icon className={cn(item.prominent ? "size-6" : "size-5")} />
                 </span>
-                <span>{item.label}</span>
+                {/* <span>{item.label}</span> */}
               </Link>
             </li>
           );
