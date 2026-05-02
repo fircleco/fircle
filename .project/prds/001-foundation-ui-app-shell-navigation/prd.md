@@ -1,6 +1,6 @@
 ---
 title: "Foundation UI — App Shell & Navigation"
-status: draft
+status: in-progress
 references:
   - type: doc
     url: .project/brief.md
@@ -57,8 +57,8 @@ This is purely structural and cosmetic UI. No auth gating, no real data, no page
 
 #### Tasks
 
-- [ ] Install `next-themes`: `pnpm add next-themes`
-- [ ] Create `src/components/theme-provider.tsx`:
+- [x] Install `next-themes`: `pnpm add next-themes`
+- [x] Create `src/components/theme-provider.tsx`:
   ```tsx
   "use client";
   import { ThemeProvider as NextThemesProvider } from "next-themes";
@@ -66,10 +66,10 @@ This is purely structural and cosmetic UI. No auth gating, no real data, no page
     return <NextThemesProvider {...props}>{children}</NextThemesProvider>;
   }
   ```
-- [ ] Update `src/app/layout.tsx`:
+- [x] Update `src/app/layout.tsx`:
   - Import and wrap `<TRPCReactProvider>` with `<ThemeProvider attribute="class" defaultTheme="dark" disableTransitionOnChange>`
   - Add `suppressHydrationWarning` to the `<html>` tag
-- [ ] Create `src/components/theme-toggle.tsx` — a ghost icon button that calls `setTheme` from `useTheme`, rendering `Sun` on dark and `Moon` on light (lucide-react icons)
+- [x] Create `src/components/theme-toggle.tsx` — a ghost icon button that calls `setTheme` from `useTheme`, rendering `Sun` on dark and `Moon` on light (lucide-react icons)
 
 ---
 
