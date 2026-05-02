@@ -1,6 +1,6 @@
 ---
 title: "Foundation UI — App Shell & Navigation"
-status: in-progress
+status: completed
 references:
   - type: doc
     url: .project/brief.md
@@ -81,31 +81,31 @@ This is purely structural and cosmetic UI. No auth gating, no real data, no page
 
 **Mobile Header** (`src/components/nav/mobile-header.tsx`)
 - [x] Create component — renders only on `< md`
-- [ ] Left: ghost icon button with `Menu` icon (hamburger) — no action needed yet, placeholder for future drawer
-- [ ] Center: **fircle** wordmark (text-based logo, `font-bold text-xl tracking-tight`)
-- [ ] Right: notification bell with a red badge (hardcoded count `2` for static UI) + avatar placeholder circle
-- [ ] Sticky top, full width, `bg-background/80 backdrop-blur-sm border-b border-border`
-- [ ] Reference: left hamburger + centered logo + right badges in `9976932dc7b2fef4363661166abe5f28.webp`
+- [x] Left: ghost icon button with `Menu` icon (hamburger) — no action needed yet, placeholder for future drawer
+- [x] Center: **fircle** wordmark (text-based logo, `font-bold text-xl tracking-tight`)
+- [x] Right: notification bell with a red badge (hardcoded count `2` for static UI) + avatar placeholder circle
+- [x] Sticky top, full width, `bg-background/80 backdrop-blur-sm border-b border-border`
+- [x] Reference: left hamburger + centered logo + right badges in `9976932dc7b2fef4363661166abe5f28.webp`
 
 **Mobile Bottom Nav** (`src/components/nav/mobile-bottom-nav.tsx`)
 - [x] Create component — renders only on `< md`
-- [ ] Fixed bottom, full width, `bg-background border-t border-border`
-- [ ] 5 items evenly distributed: Feed (`House`), Members (`Users`), Create (`PlusCircle`), Notifications (`Bell`), Profile (`UserCircle`)
-- [ ] Create item is visually larger/prominent (slightly bigger icon, filled circle background)
-- [ ] Active item: `text-foreground`; inactive: `text-muted-foreground`
-- [ ] Use Next.js `<Link>` with `usePathname()` to derive active state
-- [ ] Routes: `/` → Feed, `/members` → Members, `/create` → Create, `/notifications` → Notifications, `/profile` → Profile
-- [ ] Reference: bottom bar with 5 icons in `9976932dc7b2fef4363661166abe5f28.webp`
+- [x] Fixed bottom, full width, `bg-background border-t border-border`
+- [x] 5 items evenly distributed: Feed (`House`), Members (`Users`), Create (`PlusCircle`), Notifications (`Bell`), Profile (`UserCircle`)
+- [x] Create item is visually larger/prominent (slightly bigger icon, filled circle background)
+- [x] Active item: `text-foreground`; inactive: `text-muted-foreground`
+- [x] Use Next.js `<Link>` with `usePathname()` to derive active state
+- [x] Routes: `/` → Feed, `/members` → Members, `/create` → Create, `/notifications` → Notifications, `/profile` → Profile
+- [x] Reference: bottom bar with 5 icons in `9976932dc7b2fef4363661166abe5f28.webp`
 
 **Desktop Sidebar** (`src/components/nav/desktop-sidebar.tsx`)
 - [x] Create component — renders only on `md+`
-- [ ] Fixed left, full height, narrow width (`w-16`), `bg-background border-r border-border`
-- [ ] Top: **fircle** logomark (single letter `F` or circle icon, bold)
-- [ ] Middle: vertically stacked nav icon buttons — Feed (`House`), Members (`Users`), Notifications (`Bell`), Profile (`UserCircle`)
-- [ ] Bottom: `ThemeToggle` button + Settings (`Settings` icon) + floating action Create button (`Plus`) — styled as a rounded pill or circle, matches the `+` FAB in desktop reference `original-822ee72523e5fd7b7d2d1e968054b218.webp`
-- [ ] Active item: `bg-muted text-foreground rounded-lg`; inactive: ghost, `text-muted-foreground`
-- [ ] Use `usePathname()` to derive active state
-- [ ] Add `title` attribute to each button for accessible tooltip on hover
+- [x] Fixed left, full height, narrow width (`w-16`), `bg-background border-r border-border`
+- [x] Top: **fircle** logomark (single letter `F` or circle icon, bold)
+- [x] Middle: vertically stacked nav icon buttons — Feed (`House`), Members (`Users`), Notifications (`Bell`), Profile (`UserCircle`)
+- [x] Bottom: `ThemeToggle` button + Settings (`Settings` icon) + floating action Create button (`Plus`) — styled as a rounded pill or circle, matches the `+` FAB in desktop reference `original-822ee72523e5fd7b7d2d1e968054b218.webp`
+- [x] Active item: `bg-muted text-foreground rounded-lg`; inactive: ghost, `text-muted-foreground`
+- [x] Use `usePathname()` to derive active state
+- [x] Add `title` attribute to each button for accessible tooltip on hover
 
 ---
 
@@ -115,8 +115,8 @@ This is purely structural and cosmetic UI. No auth gating, no real data, no page
 
 #### Tasks
 
-- [ ] Create route group directory `src/app/(app)/`
-- [ ] Create `src/app/(app)/layout.tsx`:
+- [x] Create route group directory `src/app/(app)/`
+- [x] Create `src/app/(app)/layout.tsx`:
   ```tsx
   import { MobileHeader } from "~/components/nav/mobile-header";
   import { MobileBottomNav } from "~/components/nav/mobile-bottom-nav";
@@ -137,8 +137,8 @@ This is purely structural and cosmetic UI. No auth gating, no real data, no page
     );
   }
   ```
-- [ ] Create `src/app/(app)/page.tsx` — empty feed placeholder with a centered "Feed coming soon" message so the shell has something to wrap
-- [ ] Verify the boilerplate `src/app/page.tsx` either redirects to `/` under `(app)` or is replaced cleanly
+- [x] Create `src/app/(app)/page.tsx` — empty feed placeholder with a centered "Feed coming soon" message so the shell has something to wrap
+- [x] Verify the boilerplate `src/app/page.tsx` either redirects to `/` under `(app)` or is replaced cleanly
 
 ---
 
@@ -148,21 +148,21 @@ This is purely structural and cosmetic UI. No auth gating, no real data, no page
 
 #### Tasks
 
-- [ ] `src/app/(app)/members/page.tsx` — placeholder
-- [ ] `src/app/(app)/create/page.tsx` — placeholder
-- [ ] `src/app/(app)/notifications/page.tsx` — placeholder
-- [ ] `src/app/(app)/profile/page.tsx` — placeholder
-- [ ] Each renders a centered page title only (e.g. `<h1>Members</h1>`)
+- [x] `src/app/(app)/members/page.tsx` — placeholder
+- [x] `src/app/(app)/create/page.tsx` — placeholder
+- [x] `src/app/(app)/notifications/page.tsx` — placeholder
+- [x] `src/app/(app)/profile/page.tsx` — placeholder
+- [x] Each renders a centered page title only (e.g. `<h1>Members</h1>`)
 
 ---
 
 ## Acceptance Criteria
 
-- [ ] App loads in dark mode by default without flash of light mode
-- [ ] On mobile (< 768px): top header is visible with hamburger, centered fircle wordmark, and notification badge; bottom nav bar is visible with 5 items
-- [ ] On desktop (≥ 768px): left sidebar is visible with nav icons, logo, and FAB; mobile header and bottom nav are hidden
-- [ ] Active navigation item is visually distinct from inactive items on both mobile and desktop
-- [ ] Theme toggle switches between dark and light correctly; preference persists on page refresh
-- [ ] All 5 nav routes resolve without 404
-- [ ] No TypeScript or lint errors (`pnpm check` passes)
-- [ ] Layout does not cause horizontal scroll at any viewport width
+- [x] App loads in dark mode by default without flash of light mode
+- [x] On mobile (< 768px): top header is visible with hamburger, centered fircle wordmark, and notification badge; bottom nav bar is visible with 5 items
+- [x] On desktop (≥ 768px): left sidebar is visible with nav icons, logo, and FAB; mobile header and bottom nav are hidden
+- [x] Active navigation item is visually distinct from inactive items on both mobile and desktop
+- [x] Theme toggle switches between dark and light correctly; preference persists on page refresh
+- [x] All 5 nav routes resolve without 404
+- [x] No TypeScript or lint errors (`pnpm check` passes)
+- [x] Layout does not cause horizontal scroll at any viewport width
