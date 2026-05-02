@@ -1,29 +1,116 @@
-# Create T3 App
+# Fircle
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+Family-first social network focused on private sharing and memory preservation.
 
-## What's next? How do I make an app with this?
+## Product Direction
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+Fircle is currently optimized for shipping a functional MVP quickly:
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+- Single-family mode first (faster path to usable product)
+- Invite-only registration
+- Family member profiles that can exist before account creation (unclaimed members)
+- Account claiming flow for later ownership
+- Photo/video posts with member tagging
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+Multi-tenancy is planned after the MVP is functional and validated.
 
-## Learn More
+## Tech Stack
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+- Next.js (App Router)
+- TypeScript
+- tRPC
+- Prisma
+- NextAuth.js
+- Tailwind CSS
+- shadcn/ui
+- PostgreSQL
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+## Getting Started
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+### 1. Install dependencies
 
-## How do I deploy this?
+```bash
+pnpm install
+```
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+### 2. Configure environment variables
+
+Create a `.env` file in the project root.
+
+Required variables:
+
+- `DATABASE_URL` (PostgreSQL connection string)
+- `AUTH_SECRET` (required in production, optional in development)
+- `NODE_ENV` (`development`, `test`, or `production`)
+
+Example:
+
+```env
+DATABASE_URL="postgresql://postgres:password@localhost:5432/fircle"
+AUTH_SECRET="dev-secret"
+NODE_ENV="development"
+```
+
+### 3. Start a local database
+
+Option A (Linux/macOS, or Windows via WSL):
+
+```bash
+./start-database.sh
+```
+
+Option B: use your own PostgreSQL instance and set `DATABASE_URL` accordingly.
+
+### 4. Apply schema
+
+For local development:
+
+```bash
+pnpm db:generate
+```
+
+Alternative quick sync:
+
+```bash
+pnpm db:push
+```
+
+### 5. Run the app
+
+```bash
+pnpm dev
+```
+
+Open http://localhost:3000.
+
+## Available Scripts
+
+- `pnpm dev` - Start development server
+- `pnpm build` - Build for production
+- `pnpm start` - Start production server
+- `pnpm preview` - Build and start production locally
+- `pnpm lint` - Run lint checks
+- `pnpm lint:fix` - Auto-fix lint issues where possible
+- `pnpm typecheck` - Run TypeScript checks
+- `pnpm check` - Run lint + typecheck
+- `pnpm format:check` - Check formatting
+- `pnpm format:write` - Write formatting changes
+- `pnpm db:generate` - Run Prisma migrate dev
+- `pnpm db:migrate` - Run Prisma migrate deploy
+- `pnpm db:push` - Push Prisma schema to DB
+- `pnpm db:studio` - Open Prisma Studio
+
+## Current Focus
+
+MVP implementation priorities:
+
+- Invite-only registration
+- Family auth and onboarding
+- Unclaimed member profiles
+- Account claiming flow
+- Posts with photos/videos
+- Member tagging in media
+
+## Contributing
+
+Contributions are welcome. Open an issue or pull request for bug fixes, improvements, and feature work aligned with the MVP roadmap.
