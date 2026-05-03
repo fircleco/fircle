@@ -94,7 +94,7 @@ export default function SignInPage() {
           <p className="text-center text-sm text-muted-foreground sm:text-left">
             Don&apos;t have an account?{" "}
             <Link
-              href="/"
+              href="/auth"
               className="font-medium text-foreground underline-offset-4 transition hover:underline"
             >
               Request an invite
