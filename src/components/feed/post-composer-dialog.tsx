@@ -75,7 +75,7 @@ export function PostComposerDialog({ open, onOpenChange }: PostComposerDialogPro
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <button
               type="button"
-              className="flex h-24 items-center justify-center gap-2 rounded-2xl border border-dashed border-border bg-muted/40 text-sm text-muted-foreground transition hover:bg-muted"
+              className="flex h-24 items-center justify-center gap-2 rounded-2xl border border-dashed border-border bg-muted/40 text-sm text-muted-foreground transition outline-none hover:bg-muted focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
             >
               <ImagePlus className="size-4" />
               Add photos
@@ -83,7 +83,7 @@ export function PostComposerDialog({ open, onOpenChange }: PostComposerDialogPro
 
             <button
               type="button"
-              className="flex h-24 items-center justify-center gap-2 rounded-2xl border border-dashed border-border bg-muted/40 text-sm text-muted-foreground transition hover:bg-muted"
+              className="flex h-24 items-center justify-center gap-2 rounded-2xl border border-dashed border-border bg-muted/40 text-sm text-muted-foreground transition outline-none hover:bg-muted focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
             >
               <Video className="size-4" />
               Add videos

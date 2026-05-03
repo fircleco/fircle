@@ -1,6 +1,6 @@
 ---
 title: "Core App Static UIs — Feed, Composer, and Post Cards"
-status: in-progress
+status: completed
 references:
   - type: doc
     url: .project/brief.md
@@ -152,29 +152,29 @@ The goal is to lock down layout, component structure, responsive behavior, and i
 
 #### Tasks
 
-- [ ] Validate pages at 375px, 768px, and 1024px:
-  - [ ] No horizontal overflow
-  - [ ] Comfortable spacing inside app shell
-  - [ ] Bottom nav does not cover actionable UI on mobile
-- [ ] Verify keyboard focus visibility for all buttons and inputs.
-- [ ] Add loading/skeleton placeholders for feed cards (visual only).
-- [ ] Run quality checks:
-  - [ ] `pnpm lint`
-  - [ ] `pnpm typecheck`
-  - [ ] `pnpm check`
-- [ ] Confirm no API calls or form submissions are introduced in this PRD.
+- [x] Validate pages at 375px, 768px, and 1024px:
+  - [x] No horizontal overflow
+  - [x] Comfortable spacing inside app shell
+  - [x] Bottom nav does not cover actionable UI on mobile
+- [x] Verify keyboard focus visibility for all buttons and inputs.
+- [x] Add loading/skeleton placeholders for feed cards (visual only).
+- [x] Run quality checks:
+  - [x] `pnpm lint`
+  - [x] `pnpm typecheck`
+  - [x] `pnpm check`
+- [x] Confirm no API calls or form submissions are introduced in this PRD.
 
 ## Acceptance Criteria
 
-- [ ] `src/app/(app)/page.tsx` renders a static family feed inside the app shell.
-- [ ] `/auth` renders the landing page UI and `/` resolves to the app feed route.
-- [ ] Feed includes at least 6 mock posts spanning text, photo, video, and mixed variants.
-- [ ] Reusable post card components exist under `src/components/feed/` and are used by the feed page.
-- [ ] Composer entry is visible at top of feed and opens a static composer dialog/sheet.
-- [ ] Empty feed state exists with a clear CTA.
-- [ ] Tagged members are displayed as read-only chips in post cards.
-- [ ] Mobile and desktop layouts are responsive with no horizontal scroll at 375px, 768px, and 1024px.
-- [ ] App shell nav remains intact and usable while viewing feed UI.
-- [ ] `pnpm check` passes with no lint or TypeScript errors.
-- [ ] No backend integration, auth gating changes, or persistent form submission are added in this PRD.
+- [x] `src/app/(app)/page.tsx` renders a static family feed inside the app shell.
+- [x] `/auth` renders the landing page UI and `/` resolves to the app feed route.
+- [x] Feed includes at least 6 mock posts spanning text, photo, video, and mixed variants.
+- [x] Reusable post card components exist under `src/components/feed/` and are used by the feed page.
+- [x] Composer entry is visible at top of feed and opens a static composer dialog/sheet.
+- [x] Empty feed state exists with a clear CTA.
+- [x] Tagged members are displayed as read-only chips in post cards.
+- [x] Mobile and desktop layouts are responsive with no horizontal scroll at 375px, 768px, and 1024px.
+- [x] App shell nav remains intact and usable while viewing feed UI.
+- [x] `pnpm check` passes with no lint or TypeScript errors.
+- [x] No backend integration, auth gating changes, or persistent form submission are added in this PRD.
 
