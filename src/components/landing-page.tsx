@@ -35,10 +35,15 @@ export function LandingPage() {
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row">
-              <Button asChild size="lg" className="flex-1">
+              <Button asChild size="lg" className="w-full sm:flex-1">
                 <Link href="/auth/signin">Sign In</Link>
               </Button>
-              <Button asChild variant="ghost" size="lg" className="flex-1">
+              <Button
+                asChild
+                variant="ghost"
+                size="lg"
+                className="w-full rounded-4xl border border-border/80 bg-muted/40 sm:flex-1 sm:border-transparent sm:bg-transparent"
+              >
                 <Link href="/auth/invite/example-family-code">I have an invite</Link>
               </Button>
             </div>

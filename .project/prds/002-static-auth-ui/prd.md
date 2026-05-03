@@ -184,6 +184,12 @@ These are **purely static UI** — no auth logic, no form submission, no databas
 - [x] Placeholder text is visible and appropriately sized
 - [x] Buttons have clear hover/focus states (from shadcn defaults)
 
+#### Implementation Notes
+
+- Mobile landing CTA polish applied in `src/components/landing-page.tsx`:
+  - Ensured both CTAs use full-width button layout on mobile (`w-full`)
+  - Updated secondary "I have an invite" CTA to render with explicit button surface on mobile (border + muted background) while preserving ghost-style behavior on `sm+`
+
 ---
 
 ## Acceptance Criteria
