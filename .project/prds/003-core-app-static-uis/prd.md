@@ -1,6 +1,6 @@
 ---
 title: "Core App Static UIs — Feed, Composer, and Post Cards"
-status: draft
+status: in-progress
 references:
   - type: doc
     url: .project/brief.md
@@ -56,24 +56,24 @@ The goal is to lock down layout, component structure, responsive behavior, and i
 
 #### Tasks
 
-- [ ] Create `src/app/(app)/page.tsx` as the home feed route.
-- [ ] Resolve route ownership for auth-first redirects:
-  - [ ] Move landing UI from `src/app/page.tsx` to `src/app/auth/page.tsx` so landing lives at `/auth`.
-  - [ ] Ensure root `/` is owned by `src/app/(app)/page.tsx` as the primary feed entry route.
-- [ ] Create `src/lib/mocks/feed.ts` with typed static post data and helper enums/types.
-- [ ] Add types for:
-  - [ ] `PostType` (`text`, `photo`, `video`, `mixed`)
-  - [ ] `PostAuthor`
-  - [ ] `PostMediaItem`
-  - [ ] `FeedPost`
-- [ ] Seed at least 6 mock posts covering all supported variants.
-- [ ] Include mock metadata fields used by UI only:
-  - [ ] author name/avatar
-  - [ ] created time label
-  - [ ] caption/body
-  - [ ] media items (image/video)
-  - [ ] tagged member chips
-  - [ ] reaction/comment counts (display only)
+- [x] Create `src/app/(app)/page.tsx` as the home feed route.
+- [x] Resolve route ownership for auth-first redirects:
+  - [x] Move landing UI from `src/app/page.tsx` to `src/app/auth/page.tsx` so landing lives at `/auth`.
+  - [x] Ensure root `/` is owned by `src/app/(app)/page.tsx` as the primary feed entry route.
+- [x] Create `src/lib/mocks/feed.ts` with typed static post data and helper enums/types.
+- [x] Add types for:
+  - [x] `PostType` (`text`, `photo`, `video`, `mixed`)
+  - [x] `PostAuthor`
+  - [x] `PostMediaItem`
+  - [x] `FeedPost`
+- [x] Seed at least 6 mock posts covering all supported variants.
+- [x] Include mock metadata fields used by UI only:
+  - [x] author name/avatar
+  - [x] created time label
+  - [x] caption/body
+  - [x] media items (image/video)
+  - [x] tagged member chips
+  - [x] reaction/comment counts (display only)
 
 ---
 
