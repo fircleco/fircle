@@ -11,6 +11,10 @@ references:
   - type: prd
     url: .project/prds/002-static-auth-ui/prd.md
     description: "Public auth static UI flow"
+    description: "App shell & navigation foundation"
+  - type: pr
+    url: https://github.com/babblebey/fircle/pull/5
+    description: "Implementation pull request - feat: implement core app static UIs"
 ---
 
 > **Instructions for AI Agents:**
