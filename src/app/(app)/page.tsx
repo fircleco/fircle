@@ -1,22 +1,10 @@
 import { ImageOff } from "lucide-react";
 
 import { ComposerEntry } from "~/components/feed/composer-entry";
+import { PostCard } from "~/components/feed/post-card";
+import type { PostCardData } from "~/components/feed/post-card";
 import { Button } from "~/components/ui/button";
 import { feedPosts } from "~/lib/mocks/feed";
-
-type FeedPostPreview = {
-  id: string;
-  type: "text" | "photo" | "video" | "mixed";
-  author: {
-    name: string;
-  };
-  createdAtLabel: string;
-  body: string;
-  mediaItems: Array<unknown>;
-  taggedMembers: string[];
-  reactionCount: number;
-  commentCount: number;
-};
 
 function FeedEmptyState() {
   return (
@@ -35,45 +23,12 @@ function FeedEmptyState() {
   );
 }
 
-function FeedList({ posts }: { posts: FeedPostPreview[] }) {
+function FeedList({ posts }: { posts: PostCardData[] }) {
   return (
     <ul className="space-y-3 pb-20 md:pb-8">
       {posts.map((post) => (
         <li key={post.id}>
-          <article className="rounded-3xl border border-border/80 bg-card/90 p-4 shadow-sm sm:p-5">
-            <header className="flex items-start justify-between gap-3">
-              <div>
-                <p className="font-medium text-sm text-foreground">{post.author.name}</p>
-                <p className="text-muted-foreground text-xs">{post.createdAtLabel}</p>
-              </div>
-              <span className="rounded-full border border-border bg-muted px-2.5 py-1 text-[11px] uppercase tracking-wide text-muted-foreground">
-                {post.type}
-              </span>
-            </header>
-
-            <p className="mt-3 text-foreground text-sm leading-6 sm:text-base">{post.body}</p>
-
-            <div className="mt-3 flex flex-wrap items-center gap-2 text-muted-foreground text-xs">
-              <span>{post.mediaItems.length} media item(s)</span>
-              <span aria-hidden>•</span>
-              <span>{post.reactionCount} reactions</span>
-              <span aria-hidden>•</span>
-              <span>{post.commentCount} comments</span>
-            </div>
-
-            {post.taggedMembers.length > 0 ? (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {post.taggedMembers.map((member) => (
-                  <span
-                    key={`${post.id}-${member}`}
-                    className="rounded-full border border-border/80 bg-muted px-2.5 py-1 text-[11px] text-muted-foreground"
-                  >
-                    {member}
-                  </span>
-                ))}
-              </div>
-            ) : null}
-          </article>
+          <PostCard post={post} />
         </li>
       ))}
     </ul>
@@ -81,7 +36,7 @@ function FeedList({ posts }: { posts: FeedPostPreview[] }) {
 }
 
 export default function FeedPage() {
-  const posts = feedPosts as unknown as FeedPostPreview[];
+  const posts = feedPosts as unknown as PostCardData[];
 
   return (
     <section className="px-4 pb-6 pt-5 sm:px-6 md:px-8">

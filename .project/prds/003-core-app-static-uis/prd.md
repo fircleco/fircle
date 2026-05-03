@@ -105,23 +105,23 @@ The goal is to lock down layout, component structure, responsive behavior, and i
 
 #### Tasks
 
-- [ ] Create `src/components/feed/post-card.tsx` base shell:
-  - [ ] Author row (avatar, name, time)
-  - [ ] Optional tagged member chips
-  - [ ] Body text/caption section
-  - [ ] Footer actions row (Like, Comment, Share as static buttons)
-- [ ] Create `src/components/feed/post-media-grid.tsx`:
-  - [ ] Responsive grid for 1-4 media items
-  - [ ] Image thumbnail placeholders using real image URLs or local placeholders
-- [ ] Create `src/components/feed/post-video-card.tsx`:
-  - [ ] Video placeholder with play icon overlay
-  - [ ] Duration badge
-- [ ] Support rendering rules:
-  - [ ] Text-only post
-  - [ ] Photo-only post
-  - [ ] Video-only post
-  - [ ] Mixed post (caption + media)
-- [ ] Add mocked engagement row values (counts only, no interactions)
+- [x] Create `src/components/feed/post-card.tsx` base shell:
+  - [x] Author row (avatar, name, time)
+  - [x] Optional tagged member chips
+  - [x] Body text/caption section
+  - [x] Footer actions row (Like, Comment, Share as static buttons)
+- [x] Create `src/components/feed/post-media-grid.tsx`:
+  - [x] Responsive grid for 1-4 media items
+  - [x] Image thumbnail placeholders using real image URLs or local placeholders
+- [x] Create `src/components/feed/post-video-card.tsx`:
+  - [x] Video placeholder with play icon overlay
+  - [x] Duration badge
+- [x] Support rendering rules:
+  - [x] Text-only post
+  - [x] Photo-only post
+  - [x] Video-only post
+  - [x] Mixed post (caption + media)
+- [x] Add mocked engagement row values (counts only, no interactions)
 
 ---
 
