@@ -1,8 +1,12 @@
+"use client";
+
 import { ImageOff } from "lucide-react";
+import { useState } from "react";
 
 import { ComposerEntry } from "~/components/feed/composer-entry";
 import { PostCard } from "~/components/feed/post-card";
 import type { PostCardData } from "~/components/feed/post-card";
+import { PostComposerDialog } from "~/components/feed/post-composer-dialog";
 import { Button } from "~/components/ui/button";
 import { feedPosts } from "~/lib/mocks/feed";
 
@@ -37,23 +41,28 @@ function FeedList({ posts }: { posts: PostCardData[] }) {
 
 export default function FeedPage() {
   const posts = feedPosts as unknown as PostCardData[];
+  const [composerOpen, setComposerOpen] = useState(false);
 
   return (
-    <section className="px-4 pb-6 pt-5 sm:px-6 md:px-8">
-      <div className="mx-auto w-full max-w-2xl space-y-4">
-        <header className="space-y-1.5">
-          <h1 className="font-semibold text-2xl tracking-tight">Family Feed</h1>
-          <p className="text-muted-foreground text-sm sm:text-base">
-            Recent memories from your family circle.
-          </p>
-        </header>
+    <>
+      <section className="px-4 pb-6 pt-5 sm:px-6 md:px-8">
+        <div className="mx-auto w-full max-w-2xl space-y-4">
+          <header className="space-y-1.5">
+            <h1 className="font-semibold text-2xl tracking-tight">Family Feed</h1>
+            <p className="text-muted-foreground text-sm sm:text-base">
+              Recent memories from your family circle.
+            </p>
+          </header>
 
-        <div className="supports-backdrop-filter:bg-background/80 sticky top-0 z-20 -mx-1 rounded-3xl bg-background/95 px-1 pb-2 pt-1 backdrop-blur">
-          <ComposerEntry />
+          <div className="supports-backdrop-filter:bg-background/80 sticky top-0 z-20 -mx-1 rounded-3xl bg-background/95 px-1 pb-2 pt-1 backdrop-blur">
+            <ComposerEntry onOpenComposer={() => setComposerOpen(true)} />
+          </div>
+
+          {posts.length > 0 ? <FeedList posts={posts} /> : <FeedEmptyState />}
         </div>
+      </section>
 
-        {posts.length > 0 ? <FeedList posts={posts} /> : <FeedEmptyState />}
-      </div>
-    </section>
+      <PostComposerDialog open={composerOpen} onOpenChange={setComposerOpen} />
+    </>
   );
 }

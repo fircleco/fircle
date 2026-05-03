@@ -131,18 +131,18 @@ The goal is to lock down layout, component structure, responsive behavior, and i
 
 #### Tasks
 
-- [ ] Create `src/components/feed/post-composer-dialog.tsx` (or sheet on mobile):
-  - [ ] Title: "Create memory"
-  - [ ] Multiline text area for caption
-  - [ ] Media attach placeholders (photo/video slots)
-  - [ ] Audience visibility chip (Family-only, static)
-  - [ ] Publish button with loading mock state text
-- [ ] Wire composer entry button to open and close composer UI in client state.
-- [ ] Include visual states only:
-  - [ ] Default
-  - [ ] "Uploading..." mock
-  - [ ] "Publish" disabled mock when no content
-- [ ] Ensure composer is fully responsive on 375px width and desktop.
+- [x] Create `src/components/feed/post-composer-dialog.tsx` (or sheet on mobile):
+  - [x] Title: "Create memory"
+  - [x] Multiline text area for caption
+  - [x] Media attach placeholders (photo/video slots)
+  - [x] Audience visibility chip (Family-only, static)
+  - [x] Publish button with loading mock state text
+- [x] Wire composer entry button to open and close composer UI in client state.
+- [x] Include visual states only:
+  - [x] Default
+  - [x] "Uploading..." mock
+  - [x] "Publish" disabled mock when no content
+- [x] Ensure composer is fully responsive on 375px width and desktop.
 
 ---
 
