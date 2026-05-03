@@ -36,7 +36,7 @@ These are **purely static UI** — no auth logic, no form submission, no databas
 - **No auth logic in this phase**: Forms are presentational only. Button clicks do nothing. NextAuth and form validation come later.
 - **Route structure**: Auth routes live outside the `(app)` route group, so they don't render the app shell (nav, header).
   - `/` — public landing, outside any group
-  - `/auth/signin` — public, routes group `(auth)` optional for clarity
+  - `/auth/signin` — public, routes group `auth` optional for clarity
   - `/auth/invite/[code]` — public invite link (must support arbitrary `[code]` segment)
 - **Dark mode default**: All screens inherit the dark theme from the root layout. Light mode toggle works globally.
 - **Responsive design**: Mobile-first. All screens stack vertically and look good at `sm` (375px) and `lg` (1024px).
@@ -61,14 +61,14 @@ These are **purely static UI** — no auth logic, no form submission, no databas
 
 #### Tasks
 
-- [x] Create `src/app/(auth)/layout.tsx`:
+- [x] Create `src/app/auth/layout.tsx`:
   - Renders `children` without app shell
   - Centered content area, inherits dark theme
   - Minimal styling: `flex min-h-screen items-center justify-center px-4 py-8`
 - [x] Create `src/app/page.tsx` — redirect to `/auth/signin` or render the landing page directly (decision: keep at root)
-- [x] Create `src/app/(auth)/signin/page.tsx` — route stub
-- [x] Create `src/app/(auth)/invite/[code]/page.tsx` — dynamic route stub
-- [x] Verify routes load without 404 and render inside `(auth)` layout
+- [x] Create `src/app/auth/signin/page.tsx` — route stub
+- [x] Create `src/app/auth/invite/[code]/page.tsx` — dynamic route stub
+- [x] Verify routes load without 404 and render inside `auth` layout
 
 ---
 
@@ -99,7 +99,7 @@ These are **purely static UI** — no auth logic, no form submission, no databas
 
 #### Tasks
 
-- [ ] Create `src/app/(auth)/signin/page.tsx`:
+- [x] Create `src/app/auth/signin/page.tsx`:
   - Centered card container
   - Heading: "Sign In"
   - Subheading (gray): "Enter your family credentials"
@@ -124,7 +124,7 @@ These are **purely static UI** — no auth logic, no form submission, no databas
 
 #### Tasks
 
-- [ ] Create `src/app/(auth)/invite/[code]/page.tsx`:
+- [ ] Create `src/app/auth/invite/[code]/page.tsx`:
   - Extract `code` from `params` (used for display/context only, not functional yet)
   - Centered card container
   - Invite details card (light border, gray background):
