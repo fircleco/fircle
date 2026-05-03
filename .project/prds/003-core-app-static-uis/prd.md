@@ -83,19 +83,19 @@ The goal is to lock down layout, component structure, responsive behavior, and i
 
 #### Tasks
 
-- [ ] Implement `src/app/(app)/page.tsx` feed container:
-  - [ ] Header section with page title and supporting subtitle
-  - [ ] Sticky composer entry card near top of feed
-  - [ ] Feed list rendering from mock data
-  - [ ] Mobile-safe bottom spacing to avoid overlap with bottom nav
-- [ ] Create `src/components/feed/composer-entry.tsx`:
-  - [ ] Avatar + placeholder text (for example: "Share a memory...")
-  - [ ] Button to open static composer
-  - [ ] Quick action chips/buttons (Photo, Video)
-- [ ] Add empty-state rendering when feed data array is empty:
-  - [ ] Friendly illustration/icon placeholder
-  - [ ] Headline and helper text
-  - [ ] Primary CTA: "Create first memory"
+- [x] Implement `src/app/(app)/page.tsx` feed container:
+  - [x] Header section with page title and supporting subtitle
+  - [x] Sticky composer entry card near top of feed
+  - [x] Feed list rendering from mock data
+  - [x] Mobile-safe bottom spacing to avoid overlap with bottom nav
+- [x] Create `src/components/feed/composer-entry.tsx`:
+  - [x] Avatar + placeholder text (for example: "Share a memory...")
+  - [x] Button to open static composer
+  - [x] Quick action chips/buttons (Photo, Video)
+- [x] Add empty-state rendering when feed data array is empty:
+  - [x] Friendly illustration/icon placeholder
+  - [x] Headline and helper text
+  - [x] Primary CTA: "Create first memory"
 
 ---
 
