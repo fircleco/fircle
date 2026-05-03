@@ -1,6 +1,6 @@
 ---
 title: "Static Auth UI — Landing, Sign In, and Invite Acceptance"
-status: draft
+status: in-progress
 references:
   - type: doc
     url: .project/brief.md
@@ -61,14 +61,14 @@ These are **purely static UI** — no auth logic, no form submission, no databas
 
 #### Tasks
 
-- [ ] Create `src/app/(auth)/layout.tsx`:
+- [x] Create `src/app/(auth)/layout.tsx`:
   - Renders `children` without app shell
   - Centered content area, inherits dark theme
   - Minimal styling: `flex min-h-screen items-center justify-center px-4 py-8`
-- [ ] Create `src/app/page.tsx` — redirect to `/auth/signin` or render the landing page directly (decision: keep at root)
-- [ ] Create `src/app/(auth)/signin/page.tsx` — route stub
-- [ ] Create `src/app/(auth)/invite/[code]/page.tsx` — dynamic route stub
-- [ ] Verify routes load without 404 and render inside `(auth)` layout
+- [x] Create `src/app/page.tsx` — redirect to `/auth/signin` or render the landing page directly (decision: keep at root)
+- [x] Create `src/app/(auth)/signin/page.tsx` — route stub
+- [x] Create `src/app/(auth)/invite/[code]/page.tsx` — dynamic route stub
+- [x] Verify routes load without 404 and render inside `(auth)` layout
 
 ---
 
