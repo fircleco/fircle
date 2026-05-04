@@ -109,23 +109,23 @@ The goal is to lock down information architecture, screen flow, card design, and
 
 #### Tasks
 
-- [ ] Implement `src/app/(app)/members/[memberId]/page.tsx` using local mock lookup by `memberId`.
-- [ ] Create `src/components/members/member-profile-header.tsx`:
-  - [ ] large avatar
-  - [ ] name
-  - [ ] relationship label
-  - [ ] claim-status badge
-  - [ ] actions area (`Edit profile`, `Send claim invite`, or `View account` as static buttons)
-- [ ] Add summary sections to the profile page:
-  - [ ] About / short bio block
-  - [ ] Relationship details block
-  - [ ] Membership status block explaining claimed vs unclaimed state
-  - [ ] Reserved “Tagged memories” preview section with placeholder cards
-- [ ] Add a static timeline/list section for recent family activity involving this member (mock only).
-- [ ] Add distinct visual states for:
-  - [ ] claimed member profile
-  - [ ] unclaimed member profile
-  - [ ] missing member / not-found placeholder state
+- [x] Implement `src/app/(app)/members/[memberId]/page.tsx` using local mock lookup by `memberId`.
+- [x] Create `src/components/members/member-profile-header.tsx`:
+  - [x] large avatar
+  - [x] name
+  - [x] relationship label
+  - [x] claim-status badge
+  - [x] actions area (`Edit profile`, `Send claim invite`, or `View account` as static buttons)
+- [x] Add summary sections to the profile page:
+  - [x] About / short bio block
+  - [x] Relationship details block
+  - [x] Membership status block explaining claimed vs unclaimed state
+  - [x] Reserved “Tagged memories” preview section with placeholder cards
+- [x] Add a static timeline/list section for recent family activity involving this member (mock only).
+- [x] Add distinct visual states for:
+  - [x] claimed member profile
+  - [x] unclaimed member profile
+  - [x] missing member / not-found placeholder state
 
 ---
 
