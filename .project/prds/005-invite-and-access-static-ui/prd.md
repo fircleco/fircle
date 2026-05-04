@@ -132,7 +132,7 @@ This is **purely static UI**. No invites are generated, no settings are persiste
 
 #### Tasks
 
-- [ ] Implement `src/app/(app)/settings/invites/page.tsx`:
+- [x] Implement `src/app/(app)/settings/invites/page.tsx`:
   - Page heading: "Invites"
   - "Create Invite" button (primary, top-right corner) — opens invite creation panel (see below)
   - **Pending invites section**:
