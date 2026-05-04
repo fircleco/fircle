@@ -11,6 +11,9 @@ references:
   - type: prd
     url: .project/prds/002-static-auth-ui/prd.md
     description: "Public auth static UI patterns"
+  - type: pr
+    url: https://github.com/babblebey/fircle/pull/6
+    description: "Implementation pull request - feat: implement family identity static UIs"
 ---
 
 > **Instructions for AI Agents:**
