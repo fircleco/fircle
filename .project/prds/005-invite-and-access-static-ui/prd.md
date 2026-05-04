@@ -167,7 +167,7 @@ This is **purely static UI**. No invites are generated, no settings are persiste
 
 #### Tasks
 
-- [ ] Implement `src/app/(app)/settings/roles/page.tsx`:
+- [x] Implement `src/app/(app)/settings/roles/page.tsx`:
   - Page heading: "Roles & Permissions"
   - **Member roles list**:
     - Each row shows:
