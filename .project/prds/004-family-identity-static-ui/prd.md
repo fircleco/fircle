@@ -154,23 +154,23 @@ The goal is to lock down information architecture, screen flow, card design, and
 
 #### Tasks
 
-- [ ] Implement `src/app/auth/claim/[token]/page.tsx`.
-- [ ] Render a claim preview card showing:
-  - [ ] invited/claiming person name
-  - [ ] family name
-  - [ ] relationship label
-  - [ ] message explaining this will activate an existing profile
-- [ ] Add a sign-up style form with mocked fields:
-  - [ ] email
-  - [ ] password
-  - [ ] confirm password
-- [ ] Add a clear primary CTA: `Claim profile and continue`.
-- [ ] Add mocked alert states for:
-  - [ ] expired claim link
-  - [ ] already claimed profile
-  - [ ] email already in use
-- [ ] Add a static success state or follow-up confirmation view.
-- [ ] Link back to sign-in for users who already have an account.
+- [x] Implement `src/app/auth/claim/[token]/page.tsx`.
+- [x] Render a claim preview card showing:
+  - [x] invited/claiming person name
+  - [x] family name
+  - [x] relationship label
+  - [x] message explaining this will activate an existing profile
+- [x] Add a sign-up style form with mocked fields:
+  - [x] email
+  - [x] password
+  - [x] confirm password
+- [x] Add a clear primary CTA: `Claim profile and continue`.
+- [x] Add mocked alert states for:
+  - [x] expired claim link
+  - [x] already claimed profile
+  - [x] email already in use
+- [x] Add a static success state or follow-up confirmation view.
+- [x] Link back to sign-in for users who already have an account.
 
 ---
 
