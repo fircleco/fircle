@@ -86,14 +86,14 @@ This is **purely static UI**. No invites are generated, no settings are persiste
 
 #### Tasks
 
-- [ ] Create `src/lib/mocks/invites.ts` with typed mock invite data.
+- [x] Create `src/lib/mocks/invites.ts` with typed mock invite data.
   - Type: `InviteStatus = "pending" | "accepted" | "expired" | "revoked"`
   - Type: `Invite` with fields: `id`, `code`, `invitedEmail` (optional), `createdAt`, `expiresAt`, `status`, `createdBy` (member name), `acceptedBy` (optional member name)
   - Seed at least 6 mock invites covering all four statuses.
-- [ ] Create or extend `src/lib/mocks/family-members.ts` to include a `role` field.
+- [x] Create or extend `src/lib/mocks/family-members.ts` to include a `role` field.
   - Type: `MemberRole = "owner" | "admin" | "member"`
   - Assign roles across the existing mock members (at least one owner, one admin, rest as members).
-- [ ] Create `src/lib/mocks/family-settings.ts` with a single mock family config object:
+- [x] Create `src/lib/mocks/family-settings.ts` with a single mock family config object:
   - Fields: `name`, `avatarUrl` (optional), `invitePolicy: "admin_only" | "any_member"`
 
 ---
