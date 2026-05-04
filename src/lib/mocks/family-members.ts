@@ -1,5 +1,7 @@
 export type FamilyMemberStatus = "claimed" | "unclaimed";
 
+export type MemberRole = "owner" | "admin" | "member";
+
 export type FamilyRelationship =
   | "Parent"
   | "Sibling"
@@ -14,6 +16,7 @@ export type FamilyMemberSummary = {
   name: string;
   relationship: FamilyRelationship;
   status: FamilyMemberStatus;
+  role: MemberRole;
   avatarUrl?: string;
   addedByName: string;
   addedAtLabel: string;
@@ -38,43 +41,47 @@ export type ClaimInvitePreview = {
 
 export const familyMembers: FamilyMemberSummary[] = [
   {
-    id: "member-emma-walker",
-    name: "Emma Walker",
+    id: "member-emma-shittabey",
+    name: "Emma Shittabey",
     relationship: "Parent",
     status: "claimed",
+    role: "owner",
     avatarUrl:
       "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=240&h=240&fit=crop",
     addedByName: "System",
     addedAtLabel: "Joined 1y ago",
   },
   {
-    id: "member-noah-walker",
-    name: "Noah Walker",
+    id: "member-noah-shittabey",
+    name: "Noah Shittabey",
     relationship: "Parent",
     status: "claimed",
+    role: "admin",
     avatarUrl:
       "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=240&h=240&fit=crop",
     addedByName: "System",
     addedAtLabel: "Joined 1y ago",
   },
   {
-    id: "member-lily-walker",
-    name: "Lily Walker",
+    id: "member-lily-shittabey",
+    name: "Lily Shittabey",
     relationship: "Child",
     status: "claimed",
+    role: "member",
     avatarUrl:
       "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=240&h=240&fit=crop",
-    addedByName: "Emma Walker",
+    addedByName: "Emma Shittabey",
     addedAtLabel: "Joined 8mo ago",
   },
   {
-    id: "member-evelyn-walker",
-    name: "Evelyn Walker",
+    id: "member-evelyn-shittabey",
+    name: "Evelyn Shittabey",
     relationship: "Grandparent",
     status: "unclaimed",
+    role: "member",
     avatarUrl:
       "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=240&h=240&fit=crop",
-    addedByName: "Noah Walker",
+    addedByName: "Noah Shittabey",
     addedAtLabel: "Added 3mo ago",
   },
   {
@@ -82,9 +89,10 @@ export const familyMembers: FamilyMemberSummary[] = [
     name: "Logan Ross",
     relationship: "Sibling",
     status: "claimed",
+    role: "member",
     avatarUrl:
       "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=240&h=240&fit=crop",
-    addedByName: "Emma Walker",
+    addedByName: "Emma Shittabey",
     addedAtLabel: "Joined 6mo ago",
   },
   {
@@ -92,6 +100,7 @@ export const familyMembers: FamilyMemberSummary[] = [
     name: "Nina Ross",
     relationship: "Cousin",
     status: "unclaimed",
+    role: "member",
     addedByName: "Logan Ross",
     addedAtLabel: "Added 2mo ago",
   },
@@ -100,9 +109,10 @@ export const familyMembers: FamilyMemberSummary[] = [
     name: "Ben Harper",
     relationship: "Aunt/Uncle",
     status: "unclaimed",
+    role: "member",
     avatarUrl:
       "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?w=240&h=240&fit=crop",
-    addedByName: "Noah Walker",
+    addedByName: "Noah Shittabey",
     addedAtLabel: "Added 1mo ago",
   },
   {
@@ -110,9 +120,10 @@ export const familyMembers: FamilyMemberSummary[] = [
     name: "Ava Kim",
     relationship: "Family Friend",
     status: "claimed",
+    role: "member",
     avatarUrl:
       "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=240&h=240&fit=crop",
-    addedByName: "Emma Walker",
+    addedByName: "Emma Shittabey",
     addedAtLabel: "Joined 4mo ago",
   },
 ];
@@ -135,11 +146,11 @@ export const familyMemberProfiles: FamilyMemberProfile[] = familyMembers.map((me
 export const claimInvitePreviews: ClaimInvitePreview[] = [
   {
     token: "claim-rose-001",
-    memberId: "member-evelyn-walker",
-    memberName: "Evelyn Walker",
+    memberId: "member-evelyn-shittabey",
+    memberName: "Evelyn Shittabey",
     relationship: "Grandparent",
-    familyName: "The Walker Family",
-    invitedByName: "Noah Walker",
+    familyName: "The Shittabey Family",
+    invitedByName: "Noah Shittabey",
     status: "valid",
   },
   {
@@ -147,7 +158,7 @@ export const claimInvitePreviews: ClaimInvitePreview[] = [
     memberId: "member-nina-ross",
     memberName: "Nina Ross",
     relationship: "Cousin",
-    familyName: "The Walker Family",
+    familyName: "The Shittabey Family",
     invitedByName: "Logan Ross",
     status: "expired",
   },
@@ -156,8 +167,8 @@ export const claimInvitePreviews: ClaimInvitePreview[] = [
     memberId: "member-ben-harper",
     memberName: "Ben Harper",
     relationship: "Aunt/Uncle",
-    familyName: "The Walker Family",
-    invitedByName: "Emma Walker",
+    familyName: "The Shittabey Family",
+    invitedByName: "Emma Shittabey",
     status: "claimed",
   },
 ];

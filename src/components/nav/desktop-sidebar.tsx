@@ -61,13 +61,15 @@ export function DesktopSidebar() {
       <div className="mb-3 flex flex-col items-center gap-2">
         <ThemeToggle title="Toggle theme" />
         <Button
-          type="button"
+          asChild
           variant="ghost"
           size="icon"
           title="Settings"
           aria-label="Settings"
         >
-          <Settings className="size-5 text-muted-foreground" />
+          <Link href="/settings">
+            <Settings className="size-5 text-muted-foreground" />
+          </Link>
         </Button>
         <Button
           asChild
