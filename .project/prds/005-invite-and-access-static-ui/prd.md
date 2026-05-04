@@ -11,6 +11,9 @@ references:
   - type: prd
     url: .project/prds/004-family-identity-static-ui/prd.md
     description: "Family identity screens and member status patterns"
+  - type: pr
+    url: https://github.com/babblebey/fircle/pull/7
+    description: "Implementation pull request - feat: implement invite, access management and setting static UIs"
 ---
 
 > **Instructions for AI Agents:**
