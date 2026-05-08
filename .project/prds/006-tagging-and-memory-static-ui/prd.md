@@ -86,26 +86,26 @@ The goal is to lock down the UX, route structure, component model, and informati
 
 #### Tasks
 
-- [ ] Implement `src/app/(app)/create/tagging/photo/page.tsx`:
-  - [ ] page title and helper copy explaining photo tagging
-  - [ ] mock selected photo preview inside a bounded editor canvas
-  - [ ] visible tag anchor markers positioned over the image
-  - [ ] selected-tag state showing label, member avatar/initials, and claim-status badge
-  - [ ] side panel or bottom sheet containing tagged members list
-  - [ ] primary CTA: `Save tags`
-  - [ ] secondary CTA: `Skip for now`
-- [ ] Create `src/components/tagging/photo-tag-editor.tsx`:
-  - [ ] image canvas shell
-  - [ ] clickable marker primitives
-  - [ ] selected marker highlight state
-  - [ ] optional crosshair/add-tag visual affordance
-- [ ] Create `src/components/tagging/tagged-member-picker.tsx`:
-  - [ ] search input mock
-  - [ ] list of members from existing family-member mocks
-  - [ ] clear claim-status treatment for claimed vs unclaimed members
-  - [ ] selected state with checkmark or chip
-- [ ] Add empty state mock for a photo with no tags yet.
-- [ ] Add overflow handling for dense tagging scenarios (for example, stacked marker offsets or a summary chip).
+- [x] Implement `src/app/(app)/create/tagging/photo/page.tsx`:
+  - [x] page title and helper copy explaining photo tagging
+  - [x] mock selected photo preview inside a bounded editor canvas
+  - [x] visible tag anchor markers positioned over the image
+  - [x] selected-tag state showing label, member avatar/initials, and claim-status badge
+  - [x] side panel or bottom sheet containing tagged members list
+  - [x] primary CTA: `Save tags`
+  - [x] secondary CTA: `Skip for now`
+- [x] Create `src/components/tagging/photo-tag-editor.tsx`:
+  - [x] image canvas shell
+  - [x] clickable marker primitives
+  - [x] selected marker highlight state
+  - [x] optional crosshair/add-tag visual affordance
+- [x] Create `src/components/tagging/tagged-member-picker.tsx`:
+  - [x] search input mock
+  - [x] list of members from existing family-member mocks
+  - [x] clear claim-status treatment for claimed vs unclaimed members
+  - [x] selected state with checkmark or chip
+- [x] Add empty state mock for a photo with no tags yet.
+- [x] Add overflow handling for dense tagging scenarios (for example, stacked marker offsets or a summary chip).
 
 ---
 

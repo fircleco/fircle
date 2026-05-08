@@ -95,6 +95,8 @@ const lily = getTaggedPerson("member-lily-shittabey");
 const evelyn = getTaggedPerson("member-evelyn-shittabey");
 const nina = getTaggedPerson("member-nina-ross");
 const ava = getTaggedPerson("member-ava-kim");
+const logan = getTaggedPerson("member-logan-ross");
+const ben = getTaggedPerson("member-ben-harper");
 
 export const photoTaggingExamples: PhotoTaggingExample[] = [
   {
@@ -118,6 +120,9 @@ export const photoTaggingExamples: PhotoTaggingExample[] = [
     anchors: [
       { id: "anchor-noah", xPercent: 35, yPercent: 28, person: noah, label: "Lighting candles" },
       { id: "anchor-nina", xPercent: 61, yPercent: 34, person: nina, label: "Leaning in from the right" },
+      { id: "anchor-ava", xPercent: 48, yPercent: 48, person: ava, label: "Center table laugh" },
+      { id: "anchor-logan", xPercent: 71, yPercent: 56, person: logan, label: "Cutting slices" },
+      { id: "anchor-ben", xPercent: 22, yPercent: 58, person: ben, label: "Holding extra plates" },
     ],
   },
 ];
