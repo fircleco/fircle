@@ -5,13 +5,16 @@ import { Clock3, Image as ImageIcon, UserRoundX } from "lucide-react";
 import { useParams } from "next/navigation";
 
 import { MemberProfileHeader } from "~/components/members/member-profile-header";
+import { TaggedMemoryCard } from "~/components/memories/tagged-memory-card";
 import { Button } from "~/components/ui/button";
 import { getFamilyMemberProfileById } from "~/lib/mocks/family-members";
+import { getTaggedMemoriesByMemberId } from "~/lib/mocks/tagging";
 
 export default function MemberProfilePage() {
   const params = useParams<{ memberId: string }>();
   const member = getFamilyMemberProfileById(params.memberId);
   const isClaimed = member?.status === "claimed";
+  const taggedMemories = member ? getTaggedMemoriesByMemberId(member.id) : [];
 
   return (
     <section className="mx-auto w-full max-w-5xl space-y-5 px-4 py-8 sm:px-6 lg:px-8">
@@ -69,24 +72,28 @@ export default function MemberProfilePage() {
           <section className="rounded-3xl border bg-card p-5">
             <div className="flex items-center justify-between gap-3">
               <h2 className="font-medium text-lg">Tagged memories</h2>
-              <Button type="button" variant="ghost" size="sm">
-                View all (coming soon)
+              <Button asChild type="button" variant="ghost" size="sm">
+                <Link href={`/members/${member.id}/memories`}>View all memories</Link>
               </Button>
             </div>
 
-            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {[1, 2, 3].map((item) => (
-                <article key={item} className="rounded-2xl border border-dashed bg-muted/20 p-4">
-                  <div className="inline-flex items-center gap-2 text-sm text-muted-foreground">
-                    <ImageIcon className="size-4" aria-hidden="true" />
-                    Memory placeholder {item}
-                  </div>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    Reserved for tagged photos/videos in a later phase.
-                  </p>
-                </article>
-              ))}
-            </div>
+            {taggedMemories.length > 0 ? (
+              <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {taggedMemories.slice(0, 3).map((memory) => (
+                  <TaggedMemoryCard key={memory.id} memory={memory} ctaHref={`/members/${member.id}/memories`} />
+                ))}
+              </div>
+            ) : (
+              <div className="mt-4 rounded-2xl border border-dashed bg-muted/20 p-4">
+                <div className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+                  <ImageIcon className="size-4" aria-hidden="true" />
+                  No tagged memories yet
+                </div>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Memories tagged with this member will appear here once available.
+                </p>
+              </div>
+            )}
           </section>
 
           <section className="rounded-3xl border bg-card p-5">
