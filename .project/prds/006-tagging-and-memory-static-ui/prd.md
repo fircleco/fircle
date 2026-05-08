@@ -143,21 +143,21 @@ The goal is to lock down the UX, route structure, component model, and informati
 
 #### Tasks
 
-- [ ] Implement `src/app/(app)/members/[memberId]/memories/page.tsx`:
-  - [ ] member header summary reused from the existing member profile pattern
-  - [ ] page title such as `Memories with Ava`
-  - [ ] filter chips: `All`, `Photos`, `Videos`, `Posts`
-  - [ ] optional date-group labels (for example, `This month`, `2025`, `Earlier`)
-  - [ ] responsive memory grid/list of tagged items
-  - [ ] empty state for members with no tagged memories yet
-- [ ] Create `src/components/memories/tagged-memory-card.tsx`:
-  - [ ] media thumbnail or video poster
-  - [ ] post caption/title snippet
-  - [ ] author + date row
-  - [ ] tagged-people chips
-  - [ ] CTA or affordance to view the original post later
-- [ ] Add navigation from the existing member profile UI to the new memories route.
-- [ ] Ensure claimed/unclaimed member badges still appear where relevant.
+- [x] Implement `src/app/(app)/members/[memberId]/memories/page.tsx`:
+  - [x] member header summary reused from the existing member profile pattern
+  - [x] page title such as `Memories with Ava`
+  - [x] filter chips: `All`, `Photos`, `Videos`, `Posts`
+  - [x] optional date-group labels (for example, `This month`, `2025`, `Earlier`)
+  - [x] responsive memory grid/list of tagged items
+  - [x] empty state for members with no tagged memories yet
+- [x] Create `src/components/memories/tagged-memory-card.tsx`:
+  - [x] media thumbnail or video poster
+  - [x] post caption/title snippet
+  - [x] author + date row
+  - [x] tagged-people chips
+  - [x] CTA or affordance to view the original post later
+- [x] Add navigation from the existing member profile UI to the new memories route.
+- [x] Ensure claimed/unclaimed member badges still appear where relevant.
 
 ---
 
