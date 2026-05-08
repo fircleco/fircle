@@ -167,24 +167,24 @@ The goal is to lock down the UX, route structure, component model, and informati
 
 #### Tasks
 
-- [ ] Implement `src/app/(app)/notifications/page.tsx`:
-  - [ ] page title and subtitle
-  - [ ] filter tabs/chips: `All`, `Tags`, `Invites`, `System`
-  - [ ] unread/read sectioning or visual treatment
-  - [ ] list of notification cards from mock data
-  - [ ] empty state when no notifications exist
-- [ ] Create `src/components/notifications/notification-card.tsx`:
-  - [ ] icon/avatar leading content
-  - [ ] primary text for tag events (for example, `You were tagged in Emma's birthday post`)
-  - [ ] metadata row with relative time
-  - [ ] unread indicator
-  - [ ] optional thumbnail preview for media-related notifications
-- [ ] Include at least these static notification variants:
-  - [ ] current user tagged in a photo
-  - [ ] current user tagged in a video
-  - [ ] a family member was tagged in a new memory
-  - [ ] an unclaimed member was tagged
-- [ ] Add a `Mark all as read` UI control as a visual-only action.
+- [x] Implement `src/app/(app)/notifications/page.tsx`:
+  - [x] page title and subtitle
+  - [x] filter tabs/chips: `All`, `Tags`, `Invites`, `System`
+  - [x] unread/read sectioning or visual treatment
+  - [x] list of notification cards from mock data
+  - [x] empty state when no notifications exist
+- [x] Create `src/components/notifications/notification-card.tsx`:
+  - [x] icon/avatar leading content
+  - [x] primary text for tag events (for example, `You were tagged in Emma's birthday post`)
+  - [x] metadata row with relative time
+  - [x] unread indicator
+  - [x] optional thumbnail preview for media-related notifications
+- [x] Include at least these static notification variants:
+  - [x] current user tagged in a photo
+  - [x] current user tagged in a video
+  - [x] a family member was tagged in a new memory
+  - [x] an unclaimed member was tagged
+- [x] Add a `Mark all as read` UI control as a visual-only action.
 
 ---
 
