@@ -31,16 +31,16 @@ export default function PhotoTaggingPage() {
     primaryExample ? Array.from(new Set(primaryExample.anchors.map((anchor) => anchor.person.memberId))) : [],
   );
 
+  const taggedMembers = useMemo(() => {
+    return familyMembers.filter((member) => selectedMemberIds.includes(member.id));
+  }, [selectedMemberIds]);
+
   if (!primaryExample || !denseExample) {
     return null;
   }
 
   const currentExample = view === "dense" ? denseExample : primaryExample;
   const selectedAnchor = currentExample.anchors.find((anchor) => anchor.id === selectedAnchorId) ?? null;
-
-  const taggedMembers = useMemo(() => {
-    return familyMembers.filter((member) => selectedMemberIds.includes(member.id));
-  }, [selectedMemberIds]);
 
   const handleViewChange = (nextView: "tagged" | "dense" | "empty") => {
     setView(nextView);

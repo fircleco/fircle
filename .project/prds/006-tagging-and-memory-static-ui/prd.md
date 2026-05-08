@@ -1,6 +1,6 @@
 ---
 title: "Tagging and Memory Static UI — Media Tagging, Tagged Memories, and Notifications"
-status: in-progress
+status: completed
 references:
   - type: doc
     url: .project/brief.md
@@ -194,25 +194,25 @@ The goal is to lock down the UX, route structure, component model, and informati
 
 #### Tasks
 
-- [ ] Test routes in browser at 375px, 768px, and 1024px:
-  - [ ] `/create/tagging/photo`
-  - [ ] `/create/tagging/video`
-  - [ ] `/members/[memberId]/memories`
-  - [ ] `/notifications`
-- [ ] Verify no horizontal overflow in tagging editors, memory grids, or notifications list.
-- [ ] Run `pnpm check` with no TypeScript or lint errors.
-- [ ] Ensure dark mode and light mode both render all new components correctly.
-- [ ] Verify tag markers, chips, cards, and filters have clear hover/focus states.
-- [ ] Confirm all new screens work inside the existing app shell patterns from PRD 001.
+- [x] Test routes in browser at 375px, 768px, and 1024px:
+  - [x] `/create/tagging/photo`
+  - [x] `/create/tagging/video`
+  - [x] `/members/[memberId]/memories`
+  - [x] `/notifications`
+- [x] Verify no horizontal overflow in tagging editors, memory grids, or notifications list.
+- [x] Run `pnpm check` with no TypeScript or lint errors.
+- [x] Ensure dark mode and light mode both render all new components correctly.
+- [x] Verify tag markers, chips, cards, and filters have clear hover/focus states.
+- [x] Confirm all new screens work inside the existing app shell patterns from PRD 001.
 
 ## Acceptance Criteria
 
-- [ ] `/create/tagging/photo` renders a static photo-tagging interface with visible tag markers and tagged-member selection UI.
-- [ ] `/create/tagging/video` renders a static video-tagging interface with timestamp markers and tag-moment detail UI.
-- [ ] `/members/[memberId]/memories` renders a tagged-memory archive for a family member with media cards and filter controls.
-- [ ] `/notifications` renders a static notifications list with tag-related event variants and unread/read treatment.
-- [ ] Claimed and unclaimed family members are visually distinguishable in tag pickers, chips, and related UI.
-- [ ] All new routes are fully responsive at mobile, tablet, and desktop widths with no horizontal scrolling.
-- [ ] All new interactive controls are visual-only in this phase: no API calls, no persisted state, and no database reads.
-- [ ] The design is consistent with the existing Fircle shell, members UI, and feed card patterns.
-- [ ] `pnpm check` passes with no TypeScript or lint errors once implementation is complete.
+- [x] `/create/tagging/photo` renders a static photo-tagging interface with visible tag markers and tagged-member selection UI.
+- [x] `/create/tagging/video` renders a static video-tagging interface with timestamp markers and tag-moment detail UI.
+- [x] `/members/[memberId]/memories` renders a tagged-memory archive for a family member with media cards and filter controls.
+- [x] `/notifications` renders a static notifications list with tag-related event variants and unread/read treatment.
+- [x] Claimed and unclaimed family members are visually distinguishable in tag pickers, chips, and related UI.
+- [x] All new routes are fully responsive at mobile, tablet, and desktop widths with no horizontal scrolling.
+- [x] All new interactive controls are visual-only in this phase: no API calls, no persisted state, and no database reads.
+- [x] The design is consistent with the existing Fircle shell, members UI, and feed card patterns.
+- [x] `pnpm check` passes with no TypeScript or lint errors once implementation is complete.

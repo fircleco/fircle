@@ -59,8 +59,8 @@ export default function NotificationsPage() {
             aria-selected={activeFilter === value}
             className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
               activeFilter === value
-                ? "border-primary bg-primary text-primary-foreground"
-                : "border-border bg-card text-muted-foreground hover:bg-muted"
+                ? "border-primary bg-primary text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-2"
+                : "border-border bg-card text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-2"
             }`}
           >
             {label}
