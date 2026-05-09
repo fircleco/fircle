@@ -64,15 +64,15 @@ function MediaSlide({ item }: { item: MediaViewerItem }) {
 
 function TaggedMembersOverlay({ members }: { members: TaggedMember[] }) {
   return (
-    <div className="absolute bottom-4 left-4 max-w-[min(92vw,28rem)] rounded-2xl border border-white/10 bg-black/55 px-3 py-2 text-white shadow-xl backdrop-blur-sm">
-      <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-white/60">
+    <div className="absolute bottom-14 left-2 max-w-[min(92vw,28rem)] rounded-2xl border border-black/10 dark:border-white/10 bg-white/70 dark:bg-black/55 px-3 py-2 text-foreground dark:text-white shadow-xl backdrop-blur-sm">
+      <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground dark:text-white/60">
         Tagged in this media
       </p>
       <div className="mt-2 flex flex-wrap gap-2">
         {members.map((member) => (
           <div
             key={member.name}
-            className="inline-flex items-center gap-2 rounded-full bg-white/10 px-2.5 py-1"
+            className="inline-flex items-center gap-2 rounded-full bg-black/10 dark:bg-white/10 text-foreground dark:text-white px-2.5 py-1"
             title={member.name}
           >
             <img
@@ -80,7 +80,7 @@ function TaggedMembersOverlay({ members }: { members: TaggedMember[] }) {
               alt={member.name}
               className="size-5 rounded-full object-cover"
             />
-            <span className="text-xs font-medium text-white">{member.name}</span>
+            <span className="text-xs font-medium">{member.name}</span>
           </div>
         ))}
       </div>
@@ -117,7 +117,7 @@ export function MediaViewerDialog({
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/92 backdrop-blur-sm" />
+        <DialogPrimitive.Overlay className="fixed inset-0 z-50 dark:bg-black/92 bg-white/95 backdrop-blur-sm" />
 
         <DialogPrimitive.Content
           aria-describedby={undefined}
@@ -130,11 +130,11 @@ export function MediaViewerDialog({
           {/* Top bar */}
           <div className="flex shrink-0 items-center justify-between px-4 py-3">
             {!isSingle ? (
-              <span className="text-sm font-medium text-white/60">
+              <span className="text-sm font-medium dark:text-white/60 text-muted-foreground">
                 {current + 1} / {items.length}
               </span>
             ) : null}
-            <DialogPrimitive.Close className="ml-auto flex size-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 active:translate-y-0 active:scale-100">
+            <DialogPrimitive.Close className="ml-auto flex size-10 items-center justify-center rounded-full dark:bg-white/10 dark:text-white dark:hover:bg-white/20 bg-black/10 text-foreground hover:bg-black/20 transition-colors active:translate-y-0 active:scale-100">
               <X className="size-5" />
               <span className="sr-only">Close</span>
             </DialogPrimitive.Close>
@@ -161,8 +161,8 @@ export function MediaViewerDialog({
                     </CarouselItem>
                   ))}
                 </CarouselContent>
-                <CarouselPrevious className="border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white active:translate-y-0 active:scale-100 disabled:opacity-30" />
-                <CarouselNext className="border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white active:translate-y-0 active:scale-100 disabled:opacity-30" />
+                <CarouselPrevious className="dark:border-white/20 dark:bg-white/10 dark:text-white dark:hover:bg-white/20 border-black/20 bg-black/10 text-foreground hover:bg-black/20 active:translate-y-0 active:scale-100 disabled:opacity-30" />
+                <CarouselNext className="dark:border-white/20 dark:bg-white/10 dark:text-white dark:hover:bg-white/20 border-black/20 bg-black/10 text-foreground hover:bg-black/20 active:translate-y-0 active:scale-100 disabled:opacity-30" />
               </Carousel>
             )}
           </div>
@@ -174,7 +174,7 @@ export function MediaViewerDialog({
                 <div
                   key={item.id}
                   className={`size-1.5 rounded-full transition-colors ${
-                    i === current ? "bg-white" : "bg-white/25"
+                    i === current ? "dark:bg-white bg-black" : "dark:bg-white/25 bg-black/25"
                   }`}
                 />
               ))}
