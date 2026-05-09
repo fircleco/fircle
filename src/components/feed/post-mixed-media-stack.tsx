@@ -30,7 +30,7 @@ export function PostMixedMediaStack({ items }: PostMixedMediaStackProps) {
         return (
           <article
             key={item.id}
-            className="absolute overflow-hidden rounded-2xl border border-border/80 bg-muted/40 shadow-sm"
+            className="absolute overflow-hidden rounded-2xl border border-border/80 bg-muted/40 shadow-sm transition-shadow duration-200 hover:z-50! hover:shadow-md"
             style={{
               top: frameInset,
               bottom: frameInset,
@@ -40,7 +40,7 @@ export function PostMixedMediaStack({ items }: PostMixedMediaStackProps) {
             }}
           >
             <div className="h-full p-3">
-              <div className="relative flex h-full items-end justify-between rounded-xl border border-border/70 bg-background/70 p-3">
+              <div className="relative flex h-full items-end justify-between rounded-xl border border-border/70 bg-background p-3">
                 <p className="line-clamp-2 max-w-[70%] text-xs text-muted-foreground">{item.alt}</p>
                 <span className="rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
                   {item.type === "video" ? "Video" : "Photo"}
