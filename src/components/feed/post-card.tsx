@@ -3,6 +3,7 @@ import { Heart, Comment, Share } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
 
 import { PostMediaGrid } from "./post-media-grid";
+import { PostMixedMediaStack } from "./post-mixed-media-stack";
 import { PostVideoCard } from "./post-video-card";
 
 type PostMediaItem = {
@@ -44,6 +45,7 @@ function getInitials(name: string) {
 export function PostCard({ post }: PostCardProps) {
   const imageItems = post.mediaItems.filter((item) => item.type === "image");
   const videoItems = post.mediaItems.filter((item) => item.type === "video");
+  const shouldUseMixedMediaStack = post.type === "mixed" && post.mediaItems.length > 4;
   const showSinglePhotoTaggedOverlay =
     post.type === "photo" && imageItems.length === 1 && post.taggedMembers.length > 0;
   const showSingleVideoTaggedOverlay =
@@ -110,10 +112,16 @@ export function PostCard({ post }: PostCardProps) {
 
       {post.type === "mixed" ? (
         <div className="mt-3 space-y-2">
-          {imageItems.length > 0 ? <PostMediaGrid items={imageItems} /> : null}
-          {videoItems.map((item) => (
-            <PostVideoCard key={item.id} title={item.alt} durationLabel={item.durationLabel} />
-          ))}
+          {shouldUseMixedMediaStack ? (
+            <PostMixedMediaStack items={post.mediaItems} />
+          ) : (
+            <>
+              {imageItems.length > 0 ? <PostMediaGrid items={imageItems} /> : null}
+              {videoItems.map((item) => (
+                <PostVideoCard key={item.id} title={item.alt} durationLabel={item.durationLabel} />
+              ))}
+            </>
+          )}
         </div>
       ) : null}
 

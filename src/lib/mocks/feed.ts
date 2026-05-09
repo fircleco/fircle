@@ -164,6 +164,31 @@ export const feedPosts: FeedPost[] = [
         alt: "Kids skipping stones at a lake",
         durationLabel: "00:34",
       },
+      {
+        id: "media-004-c",
+        type: "image",
+        url: "https://images.unsplash.com/photo-1473116763249-2faaef81ccda?w=1280&h=720&fit=crop",
+        alt: "Road snacks spread on a picnic blanket",
+      },
+      {
+        id: "media-004-d",
+        type: "video",
+        url: "https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+        alt: "Family walking along the shoreline",
+        durationLabel: "00:41",
+      },
+      {
+        id: "media-004-e",
+        type: "image",
+        url: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1280&h=720&fit=crop",
+        alt: "Sunset over the lake before heading back",
+      },
+      {
+        id: "media-004-f",
+        type: "image",
+        url: "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=1280&h=720&fit=crop",
+        alt: "Dock view with calm water and trees",
+      },
     ],
     taggedMembers: [
       {
