@@ -11,7 +11,7 @@ export function PostVideoCard({ title, durationLabel }: PostVideoCardProps) {
       <div className="aspect-video p-1.5 sm:p-3">
         <div className="relative flex h-full items-end justify-between rounded-xl border border-border/70 bg-background p-3">
           <PlayCircle
-            className="pointer-events-none absolute left-1/2 top-1/2 size-9 -translate-x-1/2 -translate-y-1/2 text-muted-foreground sm:size-12"
+            className="pointer-events-none absolute left-1/2 top-1/2 size-9 -translate-x-1/2 -translate-y-1/2 text-muted-foreground sm:size-12 fill-accent-foreground"
             aria-hidden="true"
           />
 
