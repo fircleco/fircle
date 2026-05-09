@@ -93,9 +93,7 @@ export function MediaViewerDialog({
               <span className="text-sm font-medium text-white/60">
                 {current + 1} / {items.length}
               </span>
-            ) : (
-              <span />
-            )}
+            ) : null}
             <DialogPrimitive.Close className="ml-auto flex size-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 active:translate-y-0 active:scale-100">
               <X className="size-5" />
               <span className="sr-only">Close</span>
