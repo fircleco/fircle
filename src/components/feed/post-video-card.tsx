@@ -27,7 +27,7 @@ export function PostVideoCard({
           ) : null}
         </div>
       </div>
-      <p className="px-3 pb-3 text-xs text-muted-foreground">{title}</p>
+      <p className="max-w-[75%] truncate px-3 pb-3 text-xs text-muted-foreground">{title}</p>
     </article>
   );
 }

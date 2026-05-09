@@ -50,7 +50,13 @@ export function PostMixedMediaStack({ items }: PostMixedMediaStackProps) {
                   />
                 ) : null}
 
-                <p className="line-clamp-2 max-w-[70%] text-xs text-muted-foreground">{item.alt}</p>
+                <p
+                  className={`text-xs text-muted-foreground ${
+                    item.type === "video" ? "max-w-[75%] truncate" : "max-w-full truncate"
+                  }`}
+                >
+                  {item.alt}
+                </p>
 
                 {item.type === "video" && item.durationLabel ? (
                   <span className="absolute bottom-2 right-2 rounded-full border border-border bg-background/90 px-2 py-0.5 text-[11px] text-foreground">

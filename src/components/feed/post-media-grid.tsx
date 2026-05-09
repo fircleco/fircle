@@ -55,7 +55,13 @@ export function PostMediaGrid({ items, taggedMembers = [] }: PostMediaGridProps)
                   />
                 ) : null}
 
-                <p className="line-clamp-2 text-xs text-muted-foreground">{item.alt}</p>
+                <p
+                  className={`text-xs text-muted-foreground ${
+                    isVideo ? "max-w-[75%] truncate" : "max-w-full truncate"
+                  }`}
+                >
+                  {item.alt}
+                </p>
 
                 {isVideo && item.durationLabel ? (
                   <span className="absolute bottom-2 right-2 rounded-full border border-border bg-background/90 px-2 py-0.5 text-[11px] text-foreground">
