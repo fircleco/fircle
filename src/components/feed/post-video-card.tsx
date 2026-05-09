@@ -18,7 +18,7 @@ export function PostVideoCard({
       {taggedMembers.length > 0 ? <TaggedMemberAvatarStack members={taggedMembers} /> : null}
       <div className="aspect-video p-1.5 sm:p-3">
         <div className="relative flex h-full items-center justify-center rounded-xl border border-border/70 bg-background">
-          <PlayCircle className="size-12 text-muted-foreground" aria-hidden="true" />
+          <PlayCircle className="size-9 text-muted-foreground sm:size-12" aria-hidden="true" />
 
           {durationLabel ? (
             <span className="absolute bottom-2 right-2 rounded-full border border-border bg-background/90 px-2 py-0.5 text-[11px] text-foreground">

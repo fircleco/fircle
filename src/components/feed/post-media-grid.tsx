@@ -50,7 +50,7 @@ export function PostMediaGrid({ items, taggedMembers = [] }: PostMediaGridProps)
               <div className="relative flex h-full items-end justify-between rounded-xl border border-border/70 bg-background p-3">
                 {isVideo ? (
                   <PlayCircle
-                    className="pointer-events-none absolute left-1/2 top-1/2 size-10 -translate-x-1/2 -translate-y-1/2 text-muted-foreground"
+                    className="pointer-events-none absolute left-1/2 top-1/2 size-7 -translate-x-1/2 -translate-y-1/2 text-muted-foreground sm:size-10"
                     aria-hidden="true"
                   />
                 ) : null}
