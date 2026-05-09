@@ -13,7 +13,7 @@ const fallbackIcon = coreIcons.Search01Icon;
 const createIcon = (iconName: string) => {
   const icon = coreIcons[iconName] ?? fallbackIcon;
 
-  const Icon = ({ size = 24, strokeWidth = 2, ...props }: IconProps) => {
+  const Icon = ({ size = 24, strokeWidth = 1.5, ...props }: IconProps) => {
     return (
       <HugeiconsIcon
         icon={icon as never}
@@ -52,14 +52,14 @@ export const Link2 = createIcon("Link02Icon");
 export const ListVideo = createIcon("ListVideoIcon");
 export const Loader2 = createIcon("LoaderPinwheelIcon");
 export const Menu = createIcon("Menu01Icon");
-export const Comment = createIcon("CommentIcon");
+export const Comment = createIcon("Comment02Icon");
 export const Moon = createIcon("Moon02Icon");
 export const PlayCircle = createIcon("PlayIcon");
 export const Plus = createIcon("Add01Icon");
 export const PlusCircle = createIcon("AddCircleIcon");
 export const Search = createIcon("Search01Icon");
 export const Settings = createIcon("Settings03Icon");
-export const Share = createIcon("Share01Icon");
+export const Share = createIcon("LinkForwardIcon");
 export const ShieldAlert = createIcon("Shield01Icon");
 export const ShieldCheck = createIcon("Shield02Icon");
 export const Sparkles = createIcon("SparklesIcon");
