@@ -480,4 +480,461 @@ export const feedPosts: FeedPost[] = [
     reactionCount: 57,
     commentCount: 13,
   },
+
+  // ── Emma Shittabey ──────────────────────────────────────────────────────────
+  {
+    id: "post-011",
+    type: "text",
+    author: {
+      id: "member-emma-shittabey",
+      name: "Emma Shittabey",
+      avatarUrl:
+        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=240&h=240&fit=crop",
+    },
+    createdAtLabel: "1h ago",
+    body: "Family game night is back on this Friday! @Noah Shittabey please don't forget the snacks this time 😅",
+    mediaItems: [],
+    taggedMembers: [
+      {
+        name: "Noah Shittabey",
+        avatarUrl:
+          "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop",
+      },
+    ],
+    reactionCount: 18,
+    commentCount: 5,
+  },
+  {
+    id: "post-012",
+    type: "photo",
+    author: {
+      id: "member-emma-shittabey",
+      name: "Emma Shittabey",
+      avatarUrl:
+        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=240&h=240&fit=crop",
+    },
+    createdAtLabel: "3d ago",
+    body: "Baked Grandma Evelyn's famous lemon cake for the first time. Not bad for a first try!",
+    mediaItems: [
+      {
+        id: "media-012-a",
+        type: "image",
+        url: "https://images.unsplash.com/photo-1519915028121-7d3463d20b13?w=1280&h=720&fit=crop",
+        alt: "Homemade lemon cake on the kitchen counter",
+      },
+      {
+        id: "media-012-b",
+        type: "image",
+        url: "https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?w=1280&h=720&fit=crop",
+        alt: "A slice of the lemon cake on a plate",
+      },
+    ],
+    taggedMembers: [
+      {
+        name: "Evelyn Shittabey",
+        avatarUrl:
+          "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop",
+      },
+      {
+        name: "Lily Shittabey",
+        avatarUrl:
+          "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop",
+      },
+    ],
+    reactionCount: 34,
+    commentCount: 8,
+  },
+
+  // ── Noah Shittabey ──────────────────────────────────────────────────────────
+  {
+    id: "post-013",
+    type: "text",
+    author: {
+      id: "member-noah-shittabey",
+      name: "Noah Shittabey",
+      avatarUrl:
+        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=240&h=240&fit=crop",
+    },
+    createdAtLabel: "2h ago",
+    body: "Finished putting together the new bookshelf. Took three hours and one minor injury but we got there. @Emma Shittabey — your turn to decide what goes on it.",
+    mediaItems: [],
+    taggedMembers: [
+      {
+        name: "Emma Shittabey",
+        avatarUrl:
+          "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop",
+      },
+    ],
+    reactionCount: 21,
+    commentCount: 4,
+  },
+  {
+    id: "post-014",
+    type: "photo",
+    author: {
+      id: "member-noah-shittabey",
+      name: "Noah Shittabey",
+      avatarUrl:
+        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=240&h=240&fit=crop",
+    },
+    createdAtLabel: "5d ago",
+    body: "Saturday morning hike with @Lily Shittabey and @Logan Ross. The views were absolutely worth it.",
+    mediaItems: [
+      {
+        id: "media-014-a",
+        type: "image",
+        url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1280&h=720&fit=crop",
+        alt: "Mountain trail at sunrise",
+      },
+      {
+        id: "media-014-b",
+        type: "image",
+        url: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1280&h=720&fit=crop",
+        alt: "Panoramic valley view from the summit",
+      },
+      {
+        id: "media-014-c",
+        type: "image",
+        url: "https://images.unsplash.com/photo-1551632811-561732d1e306?w=1280&h=720&fit=crop",
+        alt: "Forest path through pine trees",
+      },
+    ],
+    taggedMembers: [
+      {
+        name: "Lily Shittabey",
+        avatarUrl:
+          "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop",
+      },
+      {
+        name: "Logan Ross",
+        avatarUrl:
+          "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop",
+      },
+    ],
+    reactionCount: 46,
+    commentCount: 11,
+  },
+
+  // ── Lily Shittabey ───────────────────────────────────────────────────────────
+  {
+    id: "post-015",
+    type: "text",
+    author: {
+      id: "member-lily-shittabey",
+      name: "Lily Shittabey",
+      avatarUrl:
+        "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=240&h=240&fit=crop",
+    },
+    createdAtLabel: "30m ago",
+    body: "Just got my exam results back — passed with distinction! Couldn't have done it without the support from this whole family 🎉",
+    mediaItems: [],
+    taggedMembers: [],
+    reactionCount: 62,
+    commentCount: 14,
+  },
+  {
+    id: "post-016",
+    type: "video",
+    author: {
+      id: "member-lily-shittabey",
+      name: "Lily Shittabey",
+      avatarUrl:
+        "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=240&h=240&fit=crop",
+    },
+    createdAtLabel: "1w ago",
+    body: "Quick clip from our pottery class. @Ava Kim this one's for you — told you I'd share it!",
+    mediaItems: [
+      {
+        id: "media-016-a",
+        type: "video",
+        url: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",
+        alt: "Hands shaping clay on a pottery wheel",
+        durationLabel: "00:45",
+      },
+    ],
+    taggedMembers: [
+      {
+        name: "Ava Kim",
+        avatarUrl:
+          "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&h=100&fit=crop",
+      },
+    ],
+    reactionCount: 38,
+    commentCount: 7,
+  },
+
+  // ── Evelyn Shittabey ─────────────────────────────────────────────────────────
+  {
+    id: "post-017",
+    type: "text",
+    author: {
+      id: "member-evelyn-shittabey",
+      name: "Evelyn Shittabey",
+      avatarUrl:
+        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=240&h=240&fit=crop",
+    },
+    createdAtLabel: "2d ago",
+    body: "Sitting in the garden this morning thinking about how lucky I am to have @Emma Shittabey and @Noah Shittabey looking after things. This family is everything.",
+    mediaItems: [],
+    taggedMembers: [
+      {
+        name: "Emma Shittabey",
+        avatarUrl:
+          "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop",
+      },
+      {
+        name: "Noah Shittabey",
+        avatarUrl:
+          "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop",
+      },
+    ],
+    reactionCount: 77,
+    commentCount: 16,
+  },
+  {
+    id: "post-018",
+    type: "photo",
+    author: {
+      id: "member-evelyn-shittabey",
+      name: "Evelyn Shittabey",
+      avatarUrl:
+        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=240&h=240&fit=crop",
+    },
+    createdAtLabel: "1w ago",
+    body: "My rose bushes are blooming again. Best time of year in this garden.",
+    mediaItems: [
+      {
+        id: "media-018-a",
+        type: "image",
+        url: "https://images.unsplash.com/photo-1502977249166-824b3a8a4d6d?w=1280&h=720&fit=crop",
+        alt: "Pink rose bushes in full bloom",
+      },
+    ],
+    taggedMembers: [],
+    reactionCount: 54,
+    commentCount: 9,
+  },
+
+  // ── Logan Ross ───────────────────────────────────────────────────────────────
+  {
+    id: "post-019",
+    type: "text",
+    author: {
+      id: "member-logan-ross",
+      name: "Logan Ross",
+      avatarUrl:
+        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=240&h=240&fit=crop",
+    },
+    createdAtLabel: "4h ago",
+    body: "Anyone up for a barbecue this weekend? I'm thinking Sunday afternoon. @Noah Shittabey already volunteered to man the grill.",
+    mediaItems: [],
+    taggedMembers: [
+      {
+        name: "Noah Shittabey",
+        avatarUrl:
+          "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop",
+      },
+    ],
+    reactionCount: 19,
+    commentCount: 6,
+  },
+  {
+    id: "post-020",
+    type: "mixed",
+    author: {
+      id: "member-logan-ross",
+      name: "Logan Ross",
+      avatarUrl:
+        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=240&h=240&fit=crop",
+    },
+    createdAtLabel: "6d ago",
+    body: "Weekend in the city with @Nina Ross. Highlights: street food, live music, and getting completely lost twice.",
+    mediaItems: [
+      {
+        id: "media-020-a",
+        type: "image",
+        url: "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=1280&h=720&fit=crop",
+        alt: "City skyline at dusk",
+      },
+      {
+        id: "media-020-b",
+        type: "video",
+        url: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
+        alt: "Street musician performing on a busy corner",
+        durationLabel: "00:32",
+      },
+      {
+        id: "media-020-c",
+        type: "image",
+        url: "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1280&h=720&fit=crop",
+        alt: "Food market stalls lit up at night",
+      },
+    ],
+    taggedMembers: [
+      {
+        name: "Nina Ross",
+        avatarUrl: "",
+      },
+    ],
+    reactionCount: 41,
+    commentCount: 10,
+  },
+
+  // ── Nina Ross ────────────────────────────────────────────────────────────────
+  {
+    id: "post-021",
+    type: "text",
+    author: {
+      id: "member-nina-ross",
+      name: "Nina Ross",
+      avatarUrl: "",
+    },
+    createdAtLabel: "3h ago",
+    body: "Had such a great time visiting @Logan Ross last weekend. Already planning the next trip!",
+    mediaItems: [],
+    taggedMembers: [
+      {
+        name: "Logan Ross",
+        avatarUrl:
+          "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop",
+      },
+    ],
+    reactionCount: 15,
+    commentCount: 3,
+  },
+  {
+    id: "post-022",
+    type: "photo",
+    author: {
+      id: "member-nina-ross",
+      name: "Nina Ross",
+      avatarUrl: "",
+    },
+    createdAtLabel: "4d ago",
+    body: "Morning coffee and a good book. My perfect Saturday.",
+    mediaItems: [
+      {
+        id: "media-022-a",
+        type: "image",
+        url: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1280&h=720&fit=crop",
+        alt: "Coffee cup beside an open book on a wooden table",
+      },
+    ],
+    taggedMembers: [],
+    reactionCount: 23,
+    commentCount: 2,
+  },
+
+  // ── Ben Harper ───────────────────────────────────────────────────────────────
+  {
+    id: "post-023",
+    type: "photo",
+    author: {
+      id: "member-ben-harper",
+      name: "Ben Harper",
+      avatarUrl:
+        "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?w=240&h=240&fit=crop",
+    },
+    createdAtLabel: "1d ago",
+    body: "Spent the afternoon fixing up the old car. Progress is slow but it's coming together. @Noah Shittabey you'd appreciate this.",
+    mediaItems: [
+      {
+        id: "media-023-a",
+        type: "image",
+        url: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1280&h=720&fit=crop",
+        alt: "Classic car with the hood open in a garage",
+      },
+      {
+        id: "media-023-b",
+        type: "image",
+        url: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1280&h=720&fit=crop",
+        alt: "Engine components laid out on a workbench",
+      },
+    ],
+    taggedMembers: [
+      {
+        name: "Noah Shittabey",
+        avatarUrl:
+          "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop",
+      },
+    ],
+    reactionCount: 30,
+    commentCount: 7,
+  },
+  {
+    id: "post-024",
+    type: "text",
+    author: {
+      id: "member-ben-harper",
+      name: "Ben Harper",
+      avatarUrl:
+        "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?w=240&h=240&fit=crop",
+    },
+    createdAtLabel: "3d ago",
+    body: "Finally tried that new ramen place downtown. Solid 9/10 — the broth was incredible. Highly recommend.",
+    mediaItems: [],
+    taggedMembers: [],
+    reactionCount: 12,
+    commentCount: 4,
+  },
+
+  // ── Ava Kim ──────────────────────────────────────────────────────────────────
+  {
+    id: "post-025",
+    type: "text",
+    author: {
+      id: "member-ava-kim",
+      name: "Ava Kim",
+      avatarUrl:
+        "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=240&h=240&fit=crop",
+    },
+    createdAtLabel: "5h ago",
+    body: "So grateful to the Shittabey family for making me feel like one of their own. @Emma Shittabey your hospitality is unmatched!",
+    mediaItems: [],
+    taggedMembers: [
+      {
+        name: "Emma Shittabey",
+        avatarUrl:
+          "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop",
+      },
+    ],
+    reactionCount: 49,
+    commentCount: 8,
+  },
+  {
+    id: "post-026",
+    type: "mixed",
+    author: {
+      id: "member-ava-kim",
+      name: "Ava Kim",
+      avatarUrl:
+        "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=240&h=240&fit=crop",
+    },
+    createdAtLabel: "2d ago",
+    body: "Pottery class recap! @Lily Shittabey this was such a fun idea. We're definitely going back.",
+    mediaItems: [
+      {
+        id: "media-026-a",
+        type: "image",
+        url: "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=1280&h=720&fit=crop",
+        alt: "Completed pottery pieces drying on a shelf",
+      },
+      {
+        id: "media-026-b",
+        type: "video",
+        url: "https://storage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4",
+        alt: "Timelapse of Ava shaping a bowl on the wheel",
+        durationLabel: "00:22",
+      },
+    ],
+    taggedMembers: [
+      {
+        name: "Lily Shittabey",
+        avatarUrl:
+          "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop",
+      },
+    ],
+    reactionCount: 36,
+    commentCount: 6,
+  },
 ];

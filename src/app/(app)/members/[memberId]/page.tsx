@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useState } from "react";
 import {
   Heart,
-  Image as ImageIcon,
   Tag,
   UserRoundX,
   FileText,
@@ -14,11 +13,9 @@ import { useParams } from "next/navigation";
 import { MemberProfileHeader } from "~/components/members/member-profile-header";
 import { MemberAdminPanel } from "~/components/members/member-admin-panel";
 import { PostCard } from "~/components/feed/post-card";
-import { TaggedMemoryCard } from "~/components/memories/tagged-memory-card";
 import { Button } from "~/components/ui/button";
 import { getFamilyMemberProfileById } from "~/lib/mocks/family-members";
 import { feedPosts } from "~/lib/mocks/feed";
-import { getTaggedMemoriesByMemberId } from "~/lib/mocks/tagging";
 import { cn } from "~/lib/utils";
 
 // In a real app this would come from the auth session / user context.
@@ -42,7 +39,9 @@ export default function MemberProfilePage() {
   const memberPosts = member
     ? feedPosts.filter((p) => p.author.name === member.name)
     : [];
-  const taggedMemories = member ? getTaggedMemoriesByMemberId(member.id) : [];
+  const taggedPosts = member
+    ? feedPosts.filter((p) => p.taggedMembers.some((t) => t.name === member.name))
+    : [];
   // Liked posts: no mock data yet — shows empty state.
   const likedPosts: typeof feedPosts = [];
 
@@ -100,17 +99,17 @@ export default function MemberProfilePage() {
 
               {activeTab === "tagged" && (
                 <>
-                  {taggedMemories.length > 0 ? (
-                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                      {taggedMemories.map((memory) => (
-                        <TaggedMemoryCard key={memory.id} memory={memory} ctaHref={`/members/${member.id}/memories`} />
+                  {taggedPosts.length > 0 ? (
+                    <div className="space-y-4">
+                      {taggedPosts.map((post) => (
+                        <PostCard key={post.id} post={post} />
                       ))}
                     </div>
                   ) : (
                     <EmptyState
-                      icon={ImageIcon}
+                      icon={Tag}
                       title="Not tagged yet"
-                      description={`Posts and memories tagging ${member.name.split(" ")[0]} will appear here.`}
+                      description={`Posts tagging ${member.name.split(" ")[0]} will appear here.`}
                     />
                   )}
                 </>
