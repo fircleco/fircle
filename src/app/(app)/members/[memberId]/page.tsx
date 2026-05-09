@@ -56,7 +56,7 @@ export default function MemberProfilePage() {
           {isAdmin && <MemberAdminPanel member={member} />}
 
           {/* ── Bottom: tabbed posts ── */}
-          <section className="rounded-3xl border bg-card shadow-sm">
+          <section>
             {/* Tab bar */}
             <div className="flex border-b">
               {tabs.map(({ id, label, icon: Icon }) => (
@@ -78,7 +78,7 @@ export default function MemberProfilePage() {
             </div>
 
             {/* Tab panels */}
-            <div className="p-5">
+            <div className="pt-4">
               {activeTab === "posts" && (
                 <>
                   {memberPosts.length > 0 ? (
@@ -163,8 +163,8 @@ function EmptyState({
   description: string;
 }) {
   return (
-    <div className="rounded-2xl border border-dashed bg-muted/20 px-4 py-8 text-center">
-      <div className="mx-auto grid size-10 place-items-center rounded-full bg-muted text-muted-foreground">
+    <div className="px-2 py-8 text-center">
+      <div className="mx-auto grid size-10 place-items-center rounded-full text-muted-foreground">
         <Icon className="size-5" aria-hidden="true" />
       </div>
       <p className="mt-3 font-medium text-sm">{title}</p>
