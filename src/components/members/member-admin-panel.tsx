@@ -1,4 +1,5 @@
-import { ArrowRight, CalendarDays, Clock3, ShieldCheck, UserRole, UserCheck } from "~/components/ui/icons";
+import { ArrowRight, ShieldCheck, UserRole, UserCheck, UserRoundPlus, UserX } from "~/components/ui/icons";
+import { Button } from "~/components/ui/button";
 import type { FamilyMemberProfile, MemberRole } from "~/lib/mocks/family-members";
 import { cn } from "~/lib/utils";
 
@@ -18,7 +19,7 @@ const roleBadgeClasses: Record<MemberRole, string> = {
   member: "bg-muted text-muted-foreground border-border",
 };
 
-export function MemberAdminPanel({ member }: MemberAdminPanelProps) {
+export function MemberAdminActionsPanel({ member }: MemberAdminPanelProps) {
   const isClaimed = member.status === "claimed";
 
   return (
@@ -27,7 +28,7 @@ export function MemberAdminPanel({ member }: MemberAdminPanelProps) {
         <div className="flex items-center gap-2">
           <ShieldCheck className="size-4 text-muted-foreground" aria-hidden="true" />
           <h2 className="font-medium text-sm uppercase tracking-wider text-muted-foreground">
-            Admin info
+            Admin actions
           </h2>
         </div>
         <ArrowRight
@@ -36,61 +37,101 @@ export function MemberAdminPanel({ member }: MemberAdminPanelProps) {
         />
       </summary>
 
-      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <div className="flex items-start gap-3 rounded-2xl border bg-muted/20 p-3">
-          <UserRole className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-          <div>
-            <p className="text-xs text-muted-foreground">Role</p>
-            <span
-              className={cn(
-                "mt-1 inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium",
-                roleBadgeClasses[member.role],
-              )}
-            >
-              {roleLabels[member.role]}
-            </span>
+      <div className="mt-4 space-y-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="rounded-2xl border bg-muted/20 p-3">
+            <div className="flex items-start gap-3">
+              <UserCheck className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+              <div>
+                <p className="text-xs text-muted-foreground">Account status</p>
+                <p className="mt-0.5 text-sm font-medium">
+                  {isClaimed ? "Claimed" : "Unclaimed"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {isClaimed
+                    ? "This member is signed in and owns this profile."
+                    : "This profile can be claimed by the real member."}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border bg-muted/20 p-3">
+            <div className="flex items-start gap-3">
+              <UserRole className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+              <div>
+                <p className="text-xs text-muted-foreground">Current role</p>
+                <span
+                  className={cn(
+                    "mt-1 inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium",
+                    roleBadgeClasses[member.role],
+                  )}
+                >
+                  {roleLabels[member.role]}
+                </span>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Update access level or assign elevated permissions.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="flex items-start gap-3 rounded-2xl border bg-muted/20 p-3">
-          <UserCheck className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-          <div>
-            <p className="text-xs text-muted-foreground">Account status</p>
-            <p className="mt-0.5 text-sm font-medium">
-              {isClaimed ? "Claimed" : "Unclaimed"}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="rounded-2xl border bg-muted/20 p-3">
+            <p className="text-xs text-muted-foreground">Claim management</p>
+            <p className="mt-1 text-sm font-medium">
+              {isClaimed ? "Claim handled" : "Invite this user to claim"}
             </p>
-            <p className="text-xs text-muted-foreground">
+            <p className="mt-1 text-xs text-muted-foreground">
               {isClaimed
-                ? "Member has signed in and owns this profile."
-                : "Profile not yet claimed by the real member."}
+                ? "No claim invite is needed for this profile."
+                : "Send a claim invite so this person can take ownership."}
             </p>
+            <Button className="mt-3 w-full" size="sm" type="button" variant={isClaimed ? "outline" : "default"}>
+              {isClaimed ? "Claim already complete" : "Send claim invite"}
+            </Button>
+          </div>
+
+          <div className="rounded-2xl border bg-muted/20 p-3">
+            <p className="text-xs text-muted-foreground">Password reset</p>
+            <p className="mt-1 text-sm font-medium">Reset sign-in credentials</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Trigger a reset email or recovery flow for the claimed member.
+            </p>
+            <Button className="mt-3 w-full" size="sm" type="button" variant="secondary">
+              Reset password
+            </Button>
           </div>
         </div>
 
-        <div className="flex items-start gap-3 rounded-2xl border bg-muted/20 p-3">
-          <CalendarDays className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-          <div>
-            <p className="text-xs text-muted-foreground">Added by</p>
-            <p className="mt-0.5 text-sm font-medium">{member.addedByName}</p>
-            <p className="text-xs text-muted-foreground">{member.addedAtLabel}</p>
+        <div className="rounded-2xl border bg-muted/20 p-3">
+          <p className="text-xs text-muted-foreground">Role management</p>
+          <p className="mt-1 text-sm font-medium">Promote or demote this member</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Pick the role that best matches how much control this member should have.
+          </p>
+
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Button size="sm" type="button" variant={member.role === "member" ? "default" : "outline"}>
+              Member
+            </Button>
+            <Button size="sm" type="button" variant={member.role === "admin" ? "default" : "outline"}>
+              Admin
+            </Button>
+            <Button size="sm" type="button" variant={member.role === "owner" ? "default" : "outline"}>
+              Owner
+            </Button>
           </div>
         </div>
 
-        <div className="flex items-start gap-3 rounded-2xl border bg-muted/20 p-3">
-          <Clock3 className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-          <div>
-            <p className="text-xs text-muted-foreground">Location</p>
-            <p className="mt-0.5 text-sm font-medium">{member.location ?? "Not specified"}</p>
+        {member.note ? (
+          <div className="rounded-2xl border border-amber-500/30 bg-amber-500/5 px-3 py-2.5">
+            <p className="text-xs font-medium text-amber-700 dark:text-amber-400">Admin note</p>
+            <p className="mt-0.5 text-sm text-muted-foreground">{member.note}</p>
           </div>
-        </div>
+        ) : null}
       </div>
-
-      {member.note ? (
-        <div className="mt-3 rounded-2xl border border-amber-500/30 bg-amber-500/5 px-3 py-2.5">
-          <p className="text-xs font-medium text-amber-700 dark:text-amber-400">Note</p>
-          <p className="mt-0.5 text-sm text-muted-foreground">{member.note}</p>
-        </div>
-      ) : null}
     </details>
   );
 }

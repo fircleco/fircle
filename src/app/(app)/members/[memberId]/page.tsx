@@ -11,7 +11,7 @@ import {
 import { useParams } from "next/navigation";
 
 import { MemberProfileHeader } from "~/components/members/member-profile-header";
-import { MemberAdminPanel } from "~/components/members/member-admin-panel";
+import { MemberAdminActionsPanel } from "~/components/members/member-admin-panel";
 import { PostCard } from "~/components/feed/post-card";
 import { Button } from "~/components/ui/button";
 import { getFamilyMemberProfileById } from "~/lib/mocks/family-members";
@@ -53,7 +53,7 @@ export default function MemberProfilePage() {
           <MemberProfileHeader member={member} />
 
           {/* ── Middle: admin-only info ── */}
-          {isAdmin && <MemberAdminPanel member={member} />}
+          {isAdmin && <MemberAdminActionsPanel member={member} />}
 
           {/* ── Bottom: tabbed posts ── */}
           <section>
