@@ -1,9 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { format } from "date-fns";
 
 import { Button } from "~/components/ui/button";
+import { Calendar } from "~/components/ui/calendar";
 import { Input } from "~/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { CalendarDays, Camera, User, X } from "~/components/ui/icons";
 import type { FamilyMemberProfile } from "~/lib/mocks/family-members";
 import { cn } from "~/lib/utils";
@@ -21,7 +24,7 @@ type EditProfileFormState = {
   avatarUrl: string;
   relationship: string;
   location: string;
-  dateOfBirth: string;
+  dateOfBirth?: Date;
 };
 
 function getInitials(name: string) {
@@ -47,7 +50,7 @@ export function EditProfileDialog({
     avatarUrl: member.avatarUrl ?? "",
     relationship: member.relationship,
     location: member.location ?? "",
-    dateOfBirth: "",
+    dateOfBirth: undefined,
   });
 
   useEffect(() => {
@@ -58,7 +61,7 @@ export function EditProfileDialog({
       avatarUrl: member.avatarUrl ?? "",
       relationship: member.relationship,
       location: member.location ?? "",
-      dateOfBirth: "",
+      dateOfBirth: undefined,
     });
   }, [member, open]);
 
@@ -178,13 +181,28 @@ export function EditProfileDialog({
                     <CalendarDays className="size-3.5" aria-hidden="true" />
                     Date of birth
                   </span>
-                  <Input
-                    type="date"
-                    value={form.dateOfBirth}
-                    onChange={(event) =>
-                      setForm((prev) => ({ ...prev, dateOfBirth: event.target.value }))
-                    }
-                  />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        data-empty={!form.dateOfBirth}
+                        className="w-full justify-start text-left font-normal data-[empty=true]:text-muted-foreground"
+                      >
+                        <CalendarDays className="size-4" aria-hidden="true" />
+                        {form.dateOfBirth ? format(form.dateOfBirth, "PPP") : <span>Select date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={form.dateOfBirth}
+                        onSelect={(date) => setForm((prev) => ({ ...prev, dateOfBirth: date }))}
+                        captionLayout="dropdown"
+                        defaultMonth={form.dateOfBirth ?? new Date(2000, 0, 1)}
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </label>
 
                 <label className="space-y-1.5 text-sm">
