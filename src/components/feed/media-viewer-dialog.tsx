@@ -96,42 +96,42 @@ export function MediaViewerDialog({
             ) : (
               <span />
             )}
-            <DialogPrimitive.Close className="ml-auto flex size-9 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20">
+            <DialogPrimitive.Close className="ml-auto flex size-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 active:translate-y-0 active:scale-100">
               <X className="size-5" />
               <span className="sr-only">Close</span>
             </DialogPrimitive.Close>
           </div>
 
           {/* Media area */}
-          <div className="flex flex-1 items-center justify-center overflow-hidden px-4 pb-4">
+          <div className="flex flex-1 items-center justify-center overflow-hidden px-2 pb-3 sm:px-4 sm:pb-4">
             {isSingle ? (
-              <div className="flex h-full w-full items-center justify-center">
+              <div className="flex h-[calc(100vh-6rem)] w-full items-center justify-center">
                 <MediaSlide item={items[0]!} />
               </div>
             ) : (
               <Carousel
-                className="w-full max-w-4xl"
+                className="w-full max-w-6xl"
                 opts={{ startIndex, loop: false }}
                 setApi={setApi}
               >
                 <CarouselContent>
                   {items.map((item) => (
                     <CarouselItem key={item.id}>
-                      <div className="flex h-[68vh] items-center justify-center">
+                      <div className="flex h-[calc(100vh-9rem)] items-center justify-center">
                         <MediaSlide item={item} />
                       </div>
                     </CarouselItem>
                   ))}
                 </CarouselContent>
-                <CarouselPrevious className="border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white disabled:opacity-30" />
-                <CarouselNext className="border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white disabled:opacity-30" />
+                <CarouselPrevious className="border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white active:translate-y-0 active:scale-100 disabled:opacity-30" />
+                <CarouselNext className="border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white active:translate-y-0 active:scale-100 disabled:opacity-30" />
               </Carousel>
             )}
           </div>
 
           {/* Dot indicators */}
           {!isSingle && (
-            <div className="flex shrink-0 justify-center gap-1.5 pb-6">
+            <div className="flex shrink-0 justify-center gap-1.5 pb-4 sm:pb-6">
               {items.map((item, i) => (
                 <div
                   key={item.id}
