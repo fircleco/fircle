@@ -68,6 +68,7 @@ export const Tag = createIcon("Tag01Icon");
 export const TriangleAlert = createIcon("Alert01Icon");
 export const UserCheck = createIcon("UserCheck01Icon");
 export const User = createIcon("UserIcon");
+export const UserRole = createIcon("UserShield01Icon");
 export const UserRoundPlus = createIcon("UserAdd01Icon");
 export const UserRoundX = createIcon("UserRemove01Icon");
 export const Users = createIcon("UserMultipleIcon");

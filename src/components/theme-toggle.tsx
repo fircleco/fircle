@@ -29,7 +29,8 @@ export function ThemeToggle({ className, ...props }: ThemeToggleProps) {
       className={className}
       {...props}
     >
-      {mounted && isDark ? <Sun className="size-5" /> : <Moon className="size-5" />}
+      {mounted && isDark ? <Sun className="size-6" /> : <Moon className="size-6" />}
+      <span>{mounted && isDark ? "Light" : "Dark"}</span>
     </Button>
   );
 }
