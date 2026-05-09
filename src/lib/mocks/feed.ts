@@ -938,3 +938,192 @@ export const feedPosts: FeedPost[] = [
     commentCount: 6,
   },
 ];
+
+// ── Comments ────────────────────────────────────────────────────────────────
+
+export type PostComment = {
+  id: string;
+  author: {
+    name: string;
+    avatarUrl: string;
+  };
+  body: string;
+  createdAtLabel: string;
+  reactionCount: number;
+};
+
+export const postComments: Record<string, PostComment[]> = {
+  "post-001": [
+    {
+      id: "c-001-1",
+      author: {
+        name: "Liam Johnson",
+        avatarUrl:
+          "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=100&h=100&fit=crop",
+      },
+      body: "I'll be there on time, promise! 🍝",
+      createdAtLabel: "2h ago",
+      reactionCount: 3,
+    },
+    {
+      id: "c-001-2",
+      author: {
+        name: "Noah Johnson",
+        avatarUrl:
+          "https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=100&h=100&fit=crop",
+      },
+      body: "Can we do a horror movie this time?",
+      createdAtLabel: "1h ago",
+      reactionCount: 1,
+    },
+    {
+      id: "c-001-3",
+      author: {
+        name: "Amy Johnson",
+        avatarUrl:
+          "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=240&h=240&fit=crop",
+      },
+      body: "No horror, it's a family night 😄",
+      createdAtLabel: "58m ago",
+      reactionCount: 5,
+    },
+  ],
+  "post-002": [
+    {
+      id: "c-002-1",
+      author: {
+        name: "Grandma Rose",
+        avatarUrl:
+          "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=100&h=100&fit=crop",
+      },
+      body: "Those tomatoes look gorgeous! Save some for me.",
+      createdAtLabel: "3h ago",
+      reactionCount: 7,
+    },
+    {
+      id: "c-002-2",
+      author: {
+        name: "Uncle Ben",
+        avatarUrl:
+          "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop",
+      },
+      body: "The garden has never looked better. Great work, Dan.",
+      createdAtLabel: "2h ago",
+      reactionCount: 4,
+    },
+    {
+      id: "c-002-3",
+      author: {
+        name: "Amy Johnson",
+        avatarUrl:
+          "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=240&h=240&fit=crop",
+      },
+      body: "Drop some off next time you come over!",
+      createdAtLabel: "1h ago",
+      reactionCount: 2,
+    },
+    {
+      id: "c-002-4",
+      author: {
+        name: "Dan Johnson",
+        avatarUrl:
+          "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=240&h=240&fit=crop",
+      },
+      body: "Will do. I've got more than I can use anyway 🍅",
+      createdAtLabel: "45m ago",
+      reactionCount: 6,
+    },
+    {
+      id: "c-002-5",
+      author: {
+        name: "Liam Johnson",
+        avatarUrl:
+          "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=100&h=100&fit=crop",
+      },
+      body: "Homemade pasta sauce incoming 👨‍🍳",
+      createdAtLabel: "30m ago",
+      reactionCount: 8,
+    },
+    {
+      id: "c-002-6",
+      author: {
+        name: "Noah Johnson",
+        avatarUrl:
+          "https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=100&h=100&fit=crop",
+      },
+      body: "Count me in for dinner!",
+      createdAtLabel: "15m ago",
+      reactionCount: 3,
+    },
+  ],
+  "post-003": [
+    {
+      id: "c-003-1",
+      author: {
+        name: "Grace Park",
+        avatarUrl:
+          "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=100&h=100&fit=crop",
+      },
+      body: "Ella was absolutely brilliant! So proud of her.",
+      createdAtLabel: "Yesterday",
+      reactionCount: 12,
+    },
+    {
+      id: "c-003-2",
+      author: {
+        name: "Sophie Chen",
+        avatarUrl:
+          "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop",
+      },
+      body: "That middle section gave me chills! She nailed it.",
+      createdAtLabel: "Yesterday",
+      reactionCount: 9,
+    },
+    {
+      id: "c-003-3",
+      author: {
+        name: "Ella Lin",
+        avatarUrl:
+          "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop",
+      },
+      body: "Thank you all so much, I was so nervous! 🎹",
+      createdAtLabel: "Yesterday",
+      reactionCount: 18,
+    },
+  ],
+  "post-006": [
+    {
+      id: "c-006-1",
+      author: {
+        name: "Aunt Nora",
+        avatarUrl:
+          "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?w=100&h=100&fit=crop",
+      },
+      body: "Beach house — hands down! 🏖️",
+      createdAtLabel: "3d ago",
+      reactionCount: 6,
+    },
+    {
+      id: "c-006-2",
+      author: {
+        name: "Uncle Ben",
+        avatarUrl:
+          "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop",
+      },
+      body: "Mountain cabin for me. Cooler temps, better hikes.",
+      createdAtLabel: "3d ago",
+      reactionCount: 5,
+    },
+    {
+      id: "c-006-3",
+      author: {
+        name: "Cousin Ava",
+        avatarUrl:
+          "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=100&h=100&fit=crop",
+      },
+      body: "Why not both? Split the week? 😅",
+      createdAtLabel: "2d ago",
+      reactionCount: 14,
+    },
+  ],
+};

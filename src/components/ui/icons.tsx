@@ -58,6 +58,7 @@ export const PlayCircle = createIcon("PlayIcon");
 export const Plus = createIcon("Add01Icon");
 export const PlusCircle = createIcon("AddCircleIcon");
 export const Search = createIcon("Search01Icon");
+export const Send = createIcon("Send01Icon");
 export const Settings = createIcon("Settings03Icon");
 export const Share = createIcon("LinkForwardIcon");
 export const ShieldAlert = createIcon("Shield01Icon");
