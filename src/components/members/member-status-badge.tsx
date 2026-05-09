@@ -1,5 +1,6 @@
 import { cn } from "~/lib/utils";
 import type { FamilyMemberStatus } from "~/lib/mocks/family-members";
+import { Check } from "~/components/ui/icons";
 
 type MemberStatusBadgeProps = {
   status: FamilyMemberStatus;
@@ -19,6 +20,7 @@ export function MemberStatusBadge({ status, className }: MemberStatusBadgeProps)
         className,
       )}
     >
+      {isClaimed ? <Check className="mr-1 size-3.5" aria-hidden="true" /> : null}
       {isClaimed ? "Claimed" : "Unclaimed"}
     </span>
   );

@@ -24,8 +24,11 @@ export function MemberCard({ member }: MemberCardProps) {
   const initials = getInitials(member.name);
 
   return (
-    <article className="rounded-3xl border bg-card p-4 shadow-sm transition hover:border-primary/30">
-      <div className="flex items-start gap-3">
+    <Link
+      href={`/members/${member.id}`}
+      className="block rounded-3xl border bg-card p-4 shadow-sm transition hover:border-primary/30"
+    >
+      <article className="flex items-start gap-3">
         <div
           aria-hidden="true"
           className={cn(
@@ -62,16 +65,7 @@ export function MemberCard({ member }: MemberCardProps) {
             </p>
           ) : null}
         </div>
-      </div>
-
-      <div className="mt-4 flex items-center justify-end">
-        <Link
-          href={`/members/${member.id}`}
-          className="text-sm text-muted-foreground underline-offset-4 transition hover:text-foreground hover:underline"
-        >
-          View profile
-        </Link>
-      </div>
-    </article>
+      </article>
+    </Link>
   );
 }
