@@ -44,9 +44,6 @@ export function PostMediaGrid({ items, taggedMembers = [] }: PostMediaGridProps)
               ) : null}
               <div className="flex h-full items-end justify-between rounded-xl border border-border/70 bg-background p-3">
                 <p className="line-clamp-2 text-xs text-muted-foreground">{item.alt}</p>
-                <span className="rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
-                  Photo
-                </span>
               </div>
             </div>
           </article>

@@ -25,10 +25,6 @@ export function PostVideoCard({
               {durationLabel}
             </span>
           ) : null}
-
-          <span className="absolute left-2 top-2 rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
-            Video
-          </span>
         </div>
       </div>
       <p className="px-3 pb-3 text-xs text-muted-foreground">{title}</p>
