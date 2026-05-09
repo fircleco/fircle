@@ -115,12 +115,7 @@ export function PostCard({ post }: PostCardProps) {
           {shouldUseMixedMediaStack ? (
             <PostMixedMediaStack items={post.mediaItems} />
           ) : (
-            <>
-              {imageItems.length > 0 ? <PostMediaGrid items={imageItems} /> : null}
-              {videoItems.map((item) => (
-                <PostVideoCard key={item.id} title={item.alt} durationLabel={item.durationLabel} />
-              ))}
-            </>
+            <PostMediaGrid items={post.mediaItems} />
           )}
         </div>
       ) : null}
