@@ -1,4 +1,4 @@
-import { CalendarDays, Clock3, ShieldCheck, UserRole, UserCheck } from "~/components/ui/icons";
+import { ArrowRight, CalendarDays, Clock3, ShieldCheck, UserRole, UserCheck } from "~/components/ui/icons";
 import type { FamilyMemberProfile, MemberRole } from "~/lib/mocks/family-members";
 import { cn } from "~/lib/utils";
 
@@ -22,15 +22,21 @@ export function MemberAdminPanel({ member }: MemberAdminPanelProps) {
   const isClaimed = member.status === "claimed";
 
   return (
-    <section className="rounded-3xl border bg-card p-5 shadow-sm sm:p-6">
-      <div className="mb-4 flex items-center gap-2">
-        <ShieldCheck className="size-4 text-muted-foreground" aria-hidden="true" />
-        <h2 className="font-medium text-sm uppercase tracking-wider text-muted-foreground">
-          Admin info
-        </h2>
-      </div>
+    <details className="group rounded-3xl border bg-card p-5 shadow-sm sm:p-6">
+      <summary className="flex cursor-pointer list-none items-center justify-between">
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="size-4 text-muted-foreground" aria-hidden="true" />
+          <h2 className="font-medium text-sm uppercase tracking-wider text-muted-foreground">
+            Admin info
+          </h2>
+        </div>
+        <ArrowRight
+          className="size-4 text-muted-foreground transition-transform group-open:rotate-90"
+          aria-hidden="true"
+        />
+      </summary>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="flex items-start gap-3 rounded-2xl border bg-muted/20 p-3">
           <UserRole className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
           <div>
@@ -85,6 +91,6 @@ export function MemberAdminPanel({ member }: MemberAdminPanelProps) {
           <p className="mt-0.5 text-sm text-muted-foreground">{member.note}</p>
         </div>
       ) : null}
-    </section>
+    </details>
   );
 }
