@@ -1,9 +1,9 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import { ArrowLeft, Heart, Send } from "~/components/ui/icons";
+import { ArrowLeft, Heart } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
 import { PostCard } from "~/components/feed/post-card";
 import type { PostCardData } from "~/components/feed/post-card";
@@ -66,6 +66,23 @@ function CommentCard({ comment }: { comment: PostComment }) {
 
 function CommentInput() {
   const [value, setValue] = useState("");
+  const [isFocused, setIsFocused] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const hasText = value.trim().length > 0;
+  const isExpanded = isFocused || hasText;
+
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    if (!hasText) {
+      textarea.style.height = "";
+      return;
+    }
+
+    textarea.style.height = "auto";
+    textarea.style.height = `${textarea.scrollHeight}px`;
+  }, [hasText, value]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -75,29 +92,48 @@ function CommentInput() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex items-center gap-3 rounded-2xl border border-border/80 bg-card/90 px-4 py-2"
+      className="flex items-center gap-3 rounded-2xl border border-border/80 bg-card/90 p-4"
     >
       {/* Current user avatar placeholder */}
-      <div className="flex size-8 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-xs font-semibold text-foreground">
-        Me
+      <div className="mb-auto mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-xs font-semibold text-foreground">
+        ME
       </div>
-      <input
-        type="text"
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        placeholder="Write a comment…"
-        className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none"
-      />
-      <Button
-        type="submit"
-        size="icon"
-        variant="ghost"
-        className="size-8 shrink-0 rounded-full"
-        disabled={!value.trim()}
-      >
-        <Send className="size-4" />
-        <span className="sr-only">Post comment</span>
-      </Button>
+      <div className="flex-1">
+        <textarea
+          ref={textareaRef}
+          rows={1}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          placeholder="Post your reply"
+          className="min-h-6 w-full resize-none bg-transparent py-1 text-foreground leading-5 placeholder:text-muted-foreground outline-none"
+        />
+
+        {isExpanded ? (
+          <div className="mt-2 flex justify-end">
+            <Button
+              type="submit"
+              size="sm"
+              className="h-9 rounded-full px-4 font-semibold disabled:opacity-100"
+              disabled={!hasText}
+            >
+              Reply
+            </Button>
+          </div>
+        ) : null}
+      </div>
+
+      {!isExpanded ? (
+        <Button
+          type="submit"
+          size="sm"
+          className="h-9 shrink-0 rounded-full px-4 font-semibold disabled:opacity-100"
+          disabled={!hasText}
+        >
+          Reply
+        </Button>
+      ) : null}
     </form>
   );
 }
@@ -148,7 +184,6 @@ export default function SinglePostPage() {
 
       {/* Post */}
       <PostCard post={post} />
-
       
       {/* Comment input */}
       <div className="mt-6">
