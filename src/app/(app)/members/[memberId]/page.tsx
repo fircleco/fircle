@@ -1,112 +1,141 @@
 "use client";
 
 import Link from "next/link";
-import { Clock3, Image as ImageIcon, UserRoundX } from "~/components/ui/icons";
+import { useState } from "react";
+import {
+  Heart,
+  Image as ImageIcon,
+  Tag,
+  UserRoundX,
+  FileText,
+} from "~/components/ui/icons";
 import { useParams } from "next/navigation";
 
 import { MemberProfileHeader } from "~/components/members/member-profile-header";
+import { MemberAdminPanel } from "~/components/members/member-admin-panel";
+import { PostCard } from "~/components/feed/post-card";
 import { TaggedMemoryCard } from "~/components/memories/tagged-memory-card";
 import { Button } from "~/components/ui/button";
 import { getFamilyMemberProfileById } from "~/lib/mocks/family-members";
+import { feedPosts } from "~/lib/mocks/feed";
 import { getTaggedMemoriesByMemberId } from "~/lib/mocks/tagging";
+import { cn } from "~/lib/utils";
+
+// In a real app this would come from the auth session / user context.
+const MOCK_CURRENT_USER_ROLE = "admin" as "owner" | "admin" | "member";
+
+type ProfileTab = "posts" | "tagged" | "liked";
+
+const tabs: { id: ProfileTab; label: string; icon: typeof FileText }[] = [
+  { id: "posts", label: "Posts", icon: FileText },
+  { id: "tagged", label: "Tagged In", icon: Tag },
+  { id: "liked", label: "Liked", icon: Heart },
+];
 
 export default function MemberProfilePage() {
   const params = useParams<{ memberId: string }>();
+  const [activeTab, setActiveTab] = useState<ProfileTab>("posts");
+
   const member = getFamilyMemberProfileById(params.memberId);
-  const isClaimed = member?.status === "claimed";
+  const isAdmin = MOCK_CURRENT_USER_ROLE === "owner" || MOCK_CURRENT_USER_ROLE === "admin";
+
+  const memberPosts = member
+    ? feedPosts.filter((p) => p.author.name === member.name)
+    : [];
   const taggedMemories = member ? getTaggedMemoriesByMemberId(member.id) : [];
+  // Liked posts: no mock data yet — shows empty state.
+  const likedPosts: typeof feedPosts = [];
 
   return (
-    <section className="mx-auto w-full max-w-5xl space-y-5 px-4 py-8 sm:px-6 lg:px-8">
+    <section className="mx-auto w-full max-w-2xl px-4 py-8 sm:px-6">
       {member ? (
-        <>
+        <div className="space-y-5">
+          {/* ── Top: profile photo + name ── */}
           <MemberProfileHeader member={member} />
 
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-            <section className="rounded-3xl border bg-card p-5 lg:col-span-2">
-              <h2 className="font-medium text-lg">About</h2>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground sm:text-base">
-                {member.bio ?? "No bio added yet."}
-              </p>
+          {/* ── Middle: admin-only info ── */}
+          {isAdmin && <MemberAdminPanel member={member} />}
 
-              <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <div className="rounded-2xl border bg-muted/30 p-3">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                    Relationship details
-                  </p>
-                  <p className="mt-1 font-medium">{member.relationship}</p>
-                  <p className="text-sm text-muted-foreground">
-                    Location: {member.location ?? "Unknown"}
-                  </p>
-                </div>
-
-                <div className="rounded-2xl border bg-muted/30 p-3">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                    Membership status
-                  </p>
-                  <p className="mt-1 font-medium">{isClaimed ? "Claimed profile" : "Unclaimed profile"}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {isClaimed
-                      ? "This member can sign in and interact directly."
-                      : "This profile can be claimed later by the real family member."}
-                  </p>
-                </div>
-              </div>
-            </section>
-
-            <aside className="rounded-3xl border bg-card p-5">
-              <h2 className="font-medium text-lg">Profile notes</h2>
-              <p className="mt-2 text-sm text-muted-foreground">
-                {member.note ?? "No pending notes for this member."}
-              </p>
-
-              {!isClaimed ? (
-                <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 text-xs text-muted-foreground">
-                  <Clock3 className="size-3.5" aria-hidden="true" />
-                  Invite/claim pending
-                </p>
-              ) : null}
-            </aside>
-          </div>
-
-          <section className="rounded-3xl border bg-card p-5">
-            <div className="flex items-center justify-between gap-3">
-              <h2 className="font-medium text-lg">Tagged memories</h2>
-              <Button asChild type="button" variant="ghost" size="sm">
-                <Link href={`/members/${member.id}/memories`}>View all memories</Link>
-              </Button>
+          {/* ── Bottom: tabbed posts ── */}
+          <section className="rounded-3xl border bg-card shadow-sm">
+            {/* Tab bar */}
+            <div className="flex border-b">
+              {tabs.map(({ id, label, icon: Icon }) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setActiveTab(id)}
+                  className={cn(
+                    "flex flex-1 items-center justify-center gap-2 px-4 py-3.5 text-sm font-medium transition-colors first:rounded-tl-3xl last:rounded-tr-3xl",
+                    activeTab === id
+                      ? "border-b-2 border-primary text-primary"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  <Icon className="size-4" aria-hidden="true" />
+                  {label}
+                </button>
+              ))}
             </div>
 
-            {taggedMemories.length > 0 ? (
-              <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {taggedMemories.slice(0, 3).map((memory) => (
-                  <TaggedMemoryCard key={memory.id} memory={memory} ctaHref={`/members/${member.id}/memories`} />
-                ))}
-              </div>
-            ) : (
-              <div className="mt-4 rounded-2xl border border-dashed bg-muted/20 p-4">
-                <div className="inline-flex items-center gap-2 text-sm text-muted-foreground">
-                  <ImageIcon className="size-4" aria-hidden="true" />
-                  No tagged memories yet
-                </div>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Memories tagged with this member will appear here once available.
-                </p>
-              </div>
-            )}
-          </section>
+            {/* Tab panels */}
+            <div className="p-5">
+              {activeTab === "posts" && (
+                <>
+                  {memberPosts.length > 0 ? (
+                    <div className="space-y-4">
+                      {memberPosts.map((post) => (
+                        <PostCard key={post.id} post={post} />
+                      ))}
+                    </div>
+                  ) : (
+                    <EmptyState
+                      icon={FileText}
+                      title="No posts yet"
+                      description={`${member.name.split(" ")[0]} hasn't posted anything yet.`}
+                    />
+                  )}
+                </>
+              )}
 
-          <section className="rounded-3xl border bg-card p-5">
-            <h2 className="font-medium text-lg">Recent family activity</h2>
-            <ul className="mt-3 space-y-2">
-              {member.recentActivity.map((activity, index) => (
-                <li key={`${activity}-${index}`} className="rounded-2xl border bg-muted/20 px-3 py-2 text-sm">
-                  {activity}
-                </li>
-              ))}
-            </ul>
+              {activeTab === "tagged" && (
+                <>
+                  {taggedMemories.length > 0 ? (
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      {taggedMemories.map((memory) => (
+                        <TaggedMemoryCard key={memory.id} memory={memory} ctaHref={`/members/${member.id}/memories`} />
+                      ))}
+                    </div>
+                  ) : (
+                    <EmptyState
+                      icon={ImageIcon}
+                      title="Not tagged yet"
+                      description={`Posts and memories tagging ${member.name.split(" ")[0]} will appear here.`}
+                    />
+                  )}
+                </>
+              )}
+
+              {activeTab === "liked" && (
+                <>
+                  {likedPosts.length > 0 ? (
+                    <div className="space-y-4">
+                      {likedPosts.map((post) => (
+                        <PostCard key={post.id} post={post} />
+                      ))}
+                    </div>
+                  ) : (
+                    <EmptyState
+                      icon={Heart}
+                      title="No liked posts"
+                      description={`Posts ${member.name.split(" ")[0]} likes will show up here.`}
+                    />
+                  )}
+                </>
+              )}
+            </div>
           </section>
-        </>
+        </div>
       ) : (
         <div className="rounded-3xl border border-dashed p-8 text-center">
           <div className="mx-auto grid size-12 place-items-center rounded-full bg-muted text-muted-foreground">
@@ -122,6 +151,26 @@ export default function MemberProfilePage() {
         </div>
       )}
     </section>
+  );
+}
+
+function EmptyState({
+  icon: Icon,
+  title,
+  description,
+}: {
+  icon: typeof FileText;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-dashed bg-muted/20 px-4 py-8 text-center">
+      <div className="mx-auto grid size-10 place-items-center rounded-full bg-muted text-muted-foreground">
+        <Icon className="size-5" aria-hidden="true" />
+      </div>
+      <p className="mt-3 font-medium text-sm">{title}</p>
+      <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+    </div>
   );
 }
 
