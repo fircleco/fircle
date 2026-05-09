@@ -43,7 +43,7 @@ export function PostMediaGrid({ items, taggedMembers = [] }: PostMediaGridProps)
               shouldSpanTwo ? "sm:col-span-2" : ""
             }`}
           >
-            <div className="aspect-video p-3">
+            <div className="aspect-video p-1.5 sm:p-3">
               {visibleItems.length === 1 && taggedMembers.length > 0 ? (
                 <TaggedMemberAvatarStack members={taggedMembers} />
               ) : null}
