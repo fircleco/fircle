@@ -9,9 +9,10 @@ type MixedMediaItem = {
 
 type PostMixedMediaStackProps = {
   items: MixedMediaItem[];
+  onItemClick?: (index: number) => void;
 };
 
-export function PostMixedMediaStack({ items }: PostMixedMediaStackProps) {
+export function PostMixedMediaStack({ items, onItemClick }: PostMixedMediaStackProps) {
   if (items.length <= 4) {
     return null;
   }
@@ -32,7 +33,8 @@ export function PostMixedMediaStack({ items }: PostMixedMediaStackProps) {
         return (
           <article
             key={item.id}
-            className="absolute overflow-hidden rounded-2xl border border-border/80 bg-muted/40 shadow-sm transition-shadow duration-200 hover:z-50! hover:shadow-md"
+            onClick={() => onItemClick?.(index)}
+            className={`absolute overflow-hidden rounded-2xl border border-border/80 bg-muted/40 shadow-sm transition-shadow duration-200 hover:z-50! hover:shadow-md ${onItemClick ? "cursor-pointer" : ""}`}
             style={{
               top: frameInset,
               bottom: frameInset,

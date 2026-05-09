@@ -3,11 +3,15 @@ import { PlayCircle } from "~/components/ui/icons";
 type PostVideoCardProps = {
   title: string;
   durationLabel?: string;
+  onClick?: () => void;
 };
 
-export function PostVideoCard({ title, durationLabel }: PostVideoCardProps) {
+export function PostVideoCard({ title, durationLabel, onClick }: PostVideoCardProps) {
   return (
-    <article className="relative overflow-hidden rounded-2xl border border-border/80 bg-muted/50">
+    <article
+      onClick={onClick}
+      className={`relative overflow-hidden rounded-2xl border border-border/80 bg-muted/50 ${onClick ? "cursor-pointer" : ""}`}
+    >
       <div className="aspect-video p-1.5 sm:p-3">
         <div className="relative flex h-full items-end justify-between rounded-xl border border-border/70 bg-background p-3">
           <PlayCircle

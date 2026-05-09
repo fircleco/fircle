@@ -10,6 +10,7 @@ type PostMediaGridItem = {
 
 type PostMediaGridProps = {
   items: PostMediaGridItem[];
+  onItemClick?: (index: number) => void;
 };
 
 function getGridClass(count: number) {
@@ -20,7 +21,7 @@ function getGridClass(count: number) {
   return "grid-cols-2";
 }
 
-export function PostMediaGrid({ items }: PostMediaGridProps) {
+export function PostMediaGrid({ items, onItemClick }: PostMediaGridProps) {
   if (items.length === 0) {
     return null;
   }
@@ -36,9 +37,10 @@ export function PostMediaGrid({ items }: PostMediaGridProps) {
         return (
           <article
             key={item.id}
+            onClick={() => onItemClick?.(index)}
             className={`relative overflow-hidden rounded-2xl border border-border/80 bg-muted/40 ${
               shouldSpanTwo ? "sm:col-span-2" : ""
-            }`}
+            } ${onItemClick ? "cursor-pointer" : ""}`}
           >
             <div className="aspect-video p-1.5 sm:p-3">
               <div className="relative flex h-full items-end justify-between rounded-xl border border-border/70 bg-background p-3">

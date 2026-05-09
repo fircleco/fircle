@@ -1,3 +1,7 @@
+"use client";
+
+import { useState } from "react";
+
 import { Heart, Comment, Share } from "~/components/ui/icons";
 
 import { Button } from "~/components/ui/button";
@@ -6,6 +10,7 @@ import { PostMediaGrid } from "./post-media-grid";
 import { TaggedMemberAvatarStack } from "./tagged-member-avatar-stack";
 import { PostMixedMediaStack } from "./post-mixed-media-stack";
 import { PostVideoCard } from "./post-video-card";
+import { MediaViewerDialog } from "./media-viewer-dialog";
 
 type PostMediaItem = {
   id: string;
@@ -88,6 +93,14 @@ function getInitials(name: string) {
 }
 
 export function PostCard({ post }: PostCardProps) {
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [viewerStart, setViewerStart] = useState(0);
+
+  function openViewer(index: number) {
+    setViewerStart(index);
+    setViewerOpen(true);
+  }
+
   const imageItems = post.mediaItems.filter((item) => item.type === "image");
   const videoItems = post.mediaItems.filter((item) => item.type === "video");
   const shouldUseMixedMediaStack = post.type === "mixed" && post.mediaItems.length > 4;
@@ -118,7 +131,13 @@ export function PostCard({ post }: PostCardProps) {
 
       {post.type === "photo" && imageItems.length > 0 ? (
         <div className="mt-3">
-          <PostMediaGrid items={imageItems} />
+          <PostMediaGrid
+            items={imageItems}
+            onItemClick={(localIdx) => {
+              const globalIdx = post.mediaItems.findIndex((m) => m.id === imageItems[localIdx]?.id);
+              openViewer(globalIdx >= 0 ? globalIdx : localIdx);
+            }}
+          />
         </div>
       ) : null}
 
@@ -129,6 +148,10 @@ export function PostCard({ post }: PostCardProps) {
               key={item.id}
               title={item.alt}
               durationLabel={item.durationLabel}
+              onClick={() => {
+                const globalIdx = post.mediaItems.findIndex((m) => m.id === item.id);
+                openViewer(globalIdx >= 0 ? globalIdx : 0);
+              }}
             />
           ))}
         </div>
@@ -137,9 +160,9 @@ export function PostCard({ post }: PostCardProps) {
       {post.type === "mixed" ? (
         <div className="mt-3 space-y-2">
           {shouldUseMixedMediaStack ? (
-            <PostMixedMediaStack items={post.mediaItems} />
+            <PostMixedMediaStack items={post.mediaItems} onItemClick={openViewer} />
           ) : (
-            <PostMediaGrid items={post.mediaItems} />
+            <PostMediaGrid items={post.mediaItems} onItemClick={openViewer} />
           )}
         </div>
       ) : null}
@@ -164,6 +187,13 @@ export function PostCard({ post }: PostCardProps) {
           Share
         </Button>
       </div>
+
+      <MediaViewerDialog
+        items={post.mediaItems}
+        startIndex={viewerStart}
+        open={viewerOpen}
+        onOpenChange={setViewerOpen}
+      />
     </article>
   );
 }
