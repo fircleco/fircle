@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import { PostCard } from "~/components/feed/post-card";
+import { EditProfileDialog } from "~/components/members/edit-profile-dialog";
 import { MemberProfileHeader } from "~/components/members/member-profile-header";
 import { Button } from "~/components/ui/button";
 import { FileText, Heart, Tag, UserRoundX } from "~/components/ui/icons";
@@ -44,6 +45,9 @@ export default function ProfilePage() {
       {member ? (
         <div className="space-y-5">
           <MemberProfileHeader member={member} showStatus={false} />
+          <div className="flex justify-center">
+            <EditProfileDialog member={member} triggerText="Edit my profile" />
+          </div>
 
           <section>
             <div className="flex border-b">

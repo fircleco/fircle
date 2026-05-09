@@ -1,7 +1,9 @@
-import { ArrowRight, ShieldCheck, UserRole, UserCheck, UserRoundPlus, UserX } from "~/components/ui/icons";
+import { ArrowRight, ShieldCheck, UserRole, UserCheck } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
 import type { FamilyMemberProfile, MemberRole } from "~/lib/mocks/family-members";
 import { cn } from "~/lib/utils";
+
+import { EditProfileDialog } from "./edit-profile-dialog";
 
 type MemberAdminPanelProps = {
   member: FamilyMemberProfile;
@@ -38,6 +40,15 @@ export function MemberAdminActionsPanel({ member }: MemberAdminPanelProps) {
       </summary>
 
       <div className="mt-4 space-y-4">
+        <div className="rounded-2xl border bg-muted/20 p-3">
+          <p className="text-xs text-muted-foreground">Profile management</p>
+          <p className="mt-1 text-sm font-medium">Edit member basics</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Update this member's name, profile picture, date of birth, and related profile details.
+          </p>
+          <EditProfileDialog member={member} triggerText="Edit member profile" triggerClassName="mt-3 w-full" />
+        </div>
+
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="rounded-2xl border bg-muted/20 p-3">
             <div className="flex items-start gap-3">
