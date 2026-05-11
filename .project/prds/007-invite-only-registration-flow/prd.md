@@ -155,7 +155,7 @@ This PRD also includes a minimal admin-only invite management backend (and optio
 
 A Prisma seed script ([`prisma/seed.mjs`](prisma/seed.mjs)) has been created to support manual QA and acceptance testing. The seed provides:
 
-- **Family**: The Shittabey Family (id: `seed-family-shittabey`)
+- **Family**: The Shittabey Family
 - **Family Members** (5 users in family with roles):
   - Emma Shittabey (OWNER)
   - Noah Shittabey (ADMIN)

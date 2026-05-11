@@ -111,18 +111,18 @@ async function upsertUser(email, name, hashedPassword) {
 async function main() {
   const hashedPassword = await bcrypt.hash(SEED_PASSWORD, 12);
 
-  const family = await db.family.upsert({
-    where: { id: "seed-family-shittabey" },
-    update: {
-      name: "The Shittabey Family",
-      description: "A close-knit family sharing memories, photos, and updates.",
-    },
-    create: {
-      id: "seed-family-shittabey",
-      name: "The Shittabey Family",
-      description: "A close-knit family sharing memories, photos, and updates.",
-    },
+  let family = await db.family.findFirst({
+    where: { name: "The Shittabey Family" },
   });
+
+  if (!family) {
+    family = await db.family.create({
+      data: {
+        name: "The Shittabey Family",
+        description: "A close-knit family sharing memories, photos, and updates.",
+      },
+    });
+  }
 
   const usersByName = new Map();
 
