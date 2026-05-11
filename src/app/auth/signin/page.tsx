@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { AlertCircle } from "~/components/ui/icons";
-import { useSearchParams } from "next/navigation";
+import { signIn } from "next-auth/react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 import { ThemeToggle } from "~/components/theme-toggle";
@@ -10,19 +11,59 @@ import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 
+function getFormString(formData: FormData, key: string) {
+  const value = formData.get(key);
+  return typeof value === "string" ? value : "";
+}
+
 export default function SignInPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const showError = searchParams.get("error") === "invalid";
+  const callbackUrl = searchParams.get("callbackUrl") ?? "/";
+  const errorType = searchParams.get("error");
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const errorMessageByType: Record<string, string> = {
+    invalid: "Invalid email or password. Please try again.",
+    CredentialsSignin: "Invalid email or password. Please try again.",
+    AccessDenied: "You do not have permission to sign in.",
+    SessionRequired: "Please sign in to continue.",
+  };
+
+  const errorMessage = formError ?? (errorType ? errorMessageByType[errorType] : null);
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (isLoading) {
       return;
     }
 
+    const formData = new FormData(event.currentTarget);
+    const email = getFormString(formData, "email").trim();
+    const password = getFormString(formData, "password");
+
     setIsLoading(true);
+    setFormError(null);
+
+    const result = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+      callbackUrl,
+    });
+
+    if (!result || result.error) {
+      const next = new URLSearchParams();
+      next.set("error", "invalid");
+      next.set("callbackUrl", callbackUrl);
+      router.replace(`/auth/signin?${next.toString()}`);
+      setIsLoading(false);
+      return;
+    }
+
+    router.replace(result.url ?? callbackUrl);
   };
 
   return (
@@ -42,11 +83,11 @@ export default function SignInPage() {
             </p>
           </header>
 
-          {showError ? (
+          {errorMessage ? (
             <Alert variant="destructive">
               <AlertCircle className="size-5" aria-hidden="true" />
               <AlertTitle>Sign-in failed</AlertTitle>
-              <AlertDescription>Invalid email or password. Please try again.</AlertDescription>
+              <AlertDescription>{errorMessage}</AlertDescription>
             </Alert>
           ) : null}
 
@@ -57,6 +98,7 @@ export default function SignInPage() {
               </label>
               <Input
                 id="email"
+                name="email"
                 type="email"
                 placeholder="email@family.com"
                 autoComplete="email"
@@ -70,6 +112,7 @@ export default function SignInPage() {
               </label>
               <Input
                 id="password"
+                name="password"
                 type="password"
                 placeholder="Password"
                 autoComplete="current-password"

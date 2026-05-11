@@ -116,12 +116,12 @@ This PRD also includes a minimal admin-only invite management backend (and optio
 
 #### Tasks
 
-- [ ] Update src/app/auth/invite/[code]/page.tsx to fetch invite details by code.
-- [ ] Render dynamic state on invite page for valid, expired, claimed, and revoked invites.
-- [ ] Submit invite acceptance form to `acceptInvite` mutation.
-- [ ] Show inline errors for binding mismatch, duplicate email, and invalid invite.
-- [ ] Update src/app/auth/signin/page.tsx to call credentials sign-in for real.
-- [ ] Preserve and map error query params/states on signin route for failed auth attempts.
+- [x] Update src/app/auth/invite/[code]/page.tsx to fetch invite details by code.
+- [x] Render dynamic state on invite page for valid, expired, claimed, and revoked invites.
+- [x] Submit invite acceptance form to `acceptInvite` mutation.
+- [x] Show inline errors for binding mismatch, duplicate email, and invalid invite.
+- [x] Update src/app/auth/signin/page.tsx to call credentials sign-in for real.
+- [x] Preserve and map error query params/states on signin route for failed auth attempts.
 
 ---
 
