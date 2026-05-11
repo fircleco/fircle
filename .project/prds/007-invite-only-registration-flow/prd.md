@@ -145,10 +145,10 @@ This PRD also includes a minimal admin-only invite management backend (and optio
 
 #### Tasks
 
-- [ ] Add basic rate-limit hooks or guard rails for public invite lookup and acceptance endpoints.
-- [ ] Ensure invite acceptance is transactional and safe against double-claim race conditions.
-- [ ] Add logs or audit-friendly fields updates for invite lifecycle events.
-- [ ] Run full checks: `pnpm check` and Prisma migration validation.
+- [x] Add basic rate-limit hooks or guard rails for public invite lookup and acceptance endpoints.
+- [x] Ensure invite acceptance is transactional and safe against double-claim race conditions.
+- [x] Add logs or audit-friendly fields updates for invite lifecycle events.
+- [x] Run full checks: `pnpm check` and Prisma migration validation.
 - [ ] Perform manual happy path and failure path testing across auth routes.
 
 ## Acceptance Criteria
@@ -163,7 +163,7 @@ This PRD also includes a minimal admin-only invite management backend (and optio
 - [ ] Existing users can sign in from /auth/signin with credentials.
 - [ ] Admin users can create, list, and revoke invites; non-admin users cannot.
 - [ ] Invite status transitions are persisted and reflected accurately in list views.
-- [ ] `pnpm check` passes with no lint/type errors after implementation.
+- [x] `pnpm check` passes with no lint/type errors after implementation.
 - [ ] Core invite acceptance scenarios are verified manually:
   - valid invite acceptance
   - expired invite rejection

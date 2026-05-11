@@ -150,7 +150,7 @@ export default function InvitesPage() {
 
   const createInvite = api.invite.createInvite.useMutation({
     onSuccess: async (createdInviteResult) => {
-      const parsedCreatedInvite = createdInviteSchema.safeParse(createdInviteResult as unknown);
+      const parsedCreatedInvite = createdInviteSchema.safeParse(createdInviteResult);
       if (!parsedCreatedInvite.success) {
         setCreateError("Invite was created, but response parsing failed.");
         return;
@@ -178,7 +178,7 @@ export default function InvitesPage() {
   });
 
   const invites = useMemo(() => {
-    const parsedInvites = inviteListSchema.safeParse(invitesQuery.data as unknown);
+    const parsedInvites = inviteListSchema.safeParse(invitesQuery.data);
     return parsedInvites.success ? parsedInvites.data : [];
   }, [invitesQuery.data]);
   const historyInvites = useMemo(

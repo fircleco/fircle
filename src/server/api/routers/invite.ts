@@ -22,6 +22,7 @@ import {
   inviteRevokeInputSchema,
 } from "~/lib/invite-schemas"
 import { normalizeEmail } from "~/lib/email"
+import { checkRateLimit, getClientIp } from "~/lib/rate-limit"
 
 export const inviteRouter = createTRPCRouter({
   /**
@@ -31,6 +32,16 @@ export const inviteRouter = createTRPCRouter({
   getByCode: publicProcedure
     .input(inviteLookupInputSchema)
     .query(async ({ ctx, input }) => {
+      // Rate limit: 30 lookups per minute per IP
+      const ip = getClientIp(ctx.headers)
+      const lookupRateLimit = checkRateLimit(`invite:lookup:${ip}`, 30, 60_000)
+      if (!lookupRateLimit.ok) {
+        throw new TRPCError({
+          code: "TOO_MANY_REQUESTS",
+          message: "Too many requests. Please try again later.",
+        })
+      }
+
       const invite = await ctx.db.invite.findUnique({
         where: { code: input.code },
         include: { family: true },
@@ -93,6 +104,16 @@ export const inviteRouter = createTRPCRouter({
   acceptInvite: publicProcedure
     .input(inviteAcceptInputSchema)
     .mutation(async ({ ctx, input }) => {
+      // Rate limit: 5 acceptance attempts per 15 minutes per IP
+      const ip = getClientIp(ctx.headers)
+      const acceptRateLimit = checkRateLimit(`invite:accept:${ip}`, 5, 15 * 60_000)
+      if (!acceptRateLimit.ok) {
+        throw new TRPCError({
+          code: "TOO_MANY_REQUESTS",
+          message: "Too many requests. Please try again later.",
+        })
+      }
+
       // Fetch invite with all necessary fields
       const invite = await ctx.db.invite.findUnique({
         where: { code: input.code },
@@ -170,37 +191,83 @@ export const inviteRouter = createTRPCRouter({
       const hashedPassword = await bcrypt.hash(input.password, 12)
 
       // Create user and claim invite in a transaction
-      const result = await ctx.db.$transaction(async (tx: Prisma.TransactionClient) => {
-        // Create user
-        const user = await tx.user.create({
-          data: {
-            name: input.name,
-            email: input.email,
-            password: hashedPassword,
-          },
-        })
+      let result: {
+        id: string
+        email: string | null
+        name: string | null
+      }
 
-        // Claim invite
-        await tx.invite.update({
-          where: { id: invite.id },
-          data: {
-            status: "CLAIMED",
-            claimedById: user.id,
-            claimedAt: new Date(),
-          },
-        })
+      try {
+        result = await ctx.db.$transaction(async (tx: Prisma.TransactionClient) => {
+          // Create user
+          const user = await tx.user.create({
+            data: {
+              name: input.name,
+              email: input.email,
+              password: hashedPassword,
+            },
+          })
 
-        // Add user to family
-        await tx.familyMember.create({
-          data: {
-            familyId: invite.familyId,
-            userId: user.id,
-            role: "MEMBER",
-          },
-        })
+          const claimedAt = new Date()
 
-        return user
-      })
+          // Claim invite atomically - only succeeds if invite is still usable.
+          const claimResult = await tx.invite.updateMany({
+            where: {
+              id: invite.id,
+              status: "PENDING",
+              claimedAt: null,
+              revokedAt: null,
+              expiresAt: { gt: claimedAt },
+            },
+            data: {
+              status: "CLAIMED",
+              claimedById: user.id,
+              claimedAt,
+            },
+          })
+
+          if (claimResult.count === 0) {
+            throw new TRPCError({
+              code: "CONFLICT",
+              message: "This invite is no longer valid",
+            })
+          }
+
+          // Add user to family
+          await tx.familyMember.create({
+            data: {
+              familyId: invite.familyId,
+              userId: user.id,
+              role: "MEMBER",
+            },
+          })
+
+          return user
+        })
+      } catch (error: unknown) {
+        if (error instanceof TRPCError) {
+          throw error
+        }
+
+        // Prisma unique violation for duplicate email under concurrent requests.
+        if (
+          typeof error === "object" &&
+          error !== null &&
+          "code" in error &&
+          (error as { code?: string }).code === "P2002"
+        ) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "An account with this email already exists. Please sign in instead.",
+          })
+        }
+
+        throw error
+      }
+
+      console.log(
+        `[invite:claimed] code=${invite.code} userId=${result.id} familyId=${invite.familyId} at=${new Date().toISOString()}`,
+      )
 
       return {
         userId: result.id,
@@ -306,6 +373,10 @@ export const inviteRouter = createTRPCRouter({
           status: "PENDING",
         },
       })
+
+      console.log(
+        `[invite:created] id=${invite.id} code=${invite.code} type=${invite.type} familyId=${invite.familyId} createdBy=${ctx.session.user.id} at=${new Date().toISOString()}`,
+      )
 
       return {
         id: invite.id,
@@ -425,6 +496,10 @@ export const inviteRouter = createTRPCRouter({
           revokedAt: new Date(),
         },
       })
+
+      console.log(
+        `[invite:revoked] id=${revoked.id} familyId=${invite.familyId} revokedBy=${ctx.session.user.id} at=${new Date().toISOString()}`,
+      )
 
       return {
         id: revoked.id,
