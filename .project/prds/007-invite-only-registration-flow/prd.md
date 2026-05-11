@@ -1,6 +1,6 @@
 ---
 title: "Invite-Only Registration Flow - Live Auth, Invite Validation, and Account Creation"
-status: in-progress
+status: completed
 references:
   - type: doc
     url: .project/brief.md
@@ -150,7 +150,7 @@ This PRD also includes a minimal admin-only invite management backend (and optio
 - [x] Ensure invite acceptance is transactional and safe against double-claim race conditions.
 - [x] Add logs or audit-friendly fields updates for invite lifecycle events.
 - [x] Run full checks: `pnpm check` and Prisma migration validation.
-- [ ] Perform manual happy path and failure path testing across auth routes.
+- [x] Perform manual happy path and failure path testing across auth routes.
 
 #### Test Data
 
@@ -197,7 +197,7 @@ Use any of the family member emails (e.g., emma.shittabey@example.com) to sign i
 - [x] Admin users can create, list, and revoke invites; non-admin users cannot.
 - [x] Invite status transitions are persisted and reflected accurately in list views.
 - [x] `pnpm check` passes with no lint/type errors after implementation.
-- [ ] Core invite acceptance scenarios are verified manually:
+- [x] Core invite acceptance scenarios are verified manually:
   - valid invite acceptance
   - expired invite rejection
   - claimed invite rejection
