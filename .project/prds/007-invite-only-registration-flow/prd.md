@@ -151,6 +151,38 @@ This PRD also includes a minimal admin-only invite management backend (and optio
 - [x] Run full checks: `pnpm check` and Prisma migration validation.
 - [ ] Perform manual happy path and failure path testing across auth routes.
 
+#### Test Data
+
+A Prisma seed script ([`prisma/seed.mjs`](prisma/seed.mjs)) has been created to support manual QA and acceptance testing. The seed provides:
+
+- **Family**: The Shittabey Family (id: `seed-family-shittabey`)
+- **Family Members** (5 users in family with roles):
+  - Emma Shittabey (OWNER)
+  - Noah Shittabey (ADMIN)
+  - Lily Shittabey (MEMBER)
+  - Logan Ross (MEMBER)
+  - Ava Kim (MEMBER)
+- **Non-Family User**: Existing User (`existing-user@example.com`) for testing duplicate-email scenarios
+- **Invites** (6 total, covering all lifecycle states):
+  - `abc123xyz` — EMAIL_BOUND, PENDING, expires May 31, 2026
+  - `def456uvw` — OPEN, PENDING, expires May 28, 2026
+  - `ghi789rst` — EMAIL_BOUND, CLAIMED (by Ava Kim), expired Apr 10, 2026
+  - `jkl012opq` — EMAIL_BOUND, EXPIRED, expires Mar 14, 2026
+  - `mno345lmn` — OPEN, REVOKED, expires May 15, 2026
+  - `pqr678hij` — EMAIL_BOUND, CLAIMED (by Lily Shittabey), expired Feb 5, 2026
+
+**Run seed:**
+```bash
+pnpm db:seed
+```
+
+**Test sign-in credentials** (password for all seeded users):
+```
+Password: Passw0rd!123
+```
+
+Use any of the family member emails (e.g., emma.shittabey@example.com) to sign in as existing users, or use the invite codes above to test invite acceptance flows.
+
 ## Acceptance Criteria
 
 - [ ] A user cannot register without a valid invite code.

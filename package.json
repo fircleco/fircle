@@ -9,6 +9,7 @@
     "db:generate": "prisma migrate dev",
     "db:migrate": "prisma migrate deploy",
     "db:push": "prisma db push",
+    "db:seed": "prisma db seed",
     "db:studio": "prisma studio",
     "dev": "next dev --turbo",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
@@ -66,6 +67,9 @@
     "tailwindcss": "^4.0.15",
     "typescript": "^5.8.2",
     "typescript-eslint": "^8.27.0"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.mjs"
   },
   "ct3aMetadata": {
     "initVersion": "7.40.0"
