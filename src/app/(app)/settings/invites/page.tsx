@@ -96,6 +96,10 @@ function formatStatus(status: LifecycleState) {
   return status[0]!.toUpperCase() + status.slice(1);
 }
 
+function formatInviteType(type: "OPEN" | "EMAIL_BOUND") {
+  return type === "EMAIL_BOUND" ? "Email-bound" : "Open";
+}
+
 function formatDate(value: Date | string | null) {
   if (!value) {
     return "Never";
@@ -431,8 +435,20 @@ export default function InvitesPage() {
                 <li key={invite.id} className="space-y-3 rounded-xl border bg-background p-4">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="space-y-1.5">
-                      <p className="text-muted-foreground text-xs">Invite link</p>
-                      <p className="break-all font-mono text-xs">{inviteLink}</p>
+                      <div className="flex flex-wrap items-center gap-2 text-xs">
+                        <span className="rounded-full border bg-muted px-2 py-0.5 text-muted-foreground">
+                          {formatInviteType(invite.type)} invite
+                        </span>
+                        {invite.type === "EMAIL_BOUND" ? (
+                          <span className="text-muted-foreground">
+                            {invite.invitedEmail ?? "No email specified"}
+                          </span>
+                        ) : null}
+                      </div>
+                      <p className="break-all font-mono text-xs">
+                        <span className="text-muted-foreground text-xs">Invite link: </span>
+                        {inviteLink}
+                      </p>
                       <p className="text-muted-foreground text-xs">
                         Created by {invite.createdBy.name ?? invite.createdBy.email ?? "Unknown"} · Expires {formatDate(invite.expiresAt)}
                       </p>
@@ -557,8 +573,8 @@ export default function InvitesPage() {
       ) : null}
 
       <div className="rounded-xl border border-dashed bg-muted/20 p-3 text-muted-foreground text-xs">
-        <div className="flex items-start gap-2">
-          <ShieldAlert className="mt-0.5 size-4 shrink-0" />
+        <div className="flex md:items-center gap-2">
+          <ShieldAlert className="mt-0.5 md:mt-0 size-4 shrink-0" />
           <p>
             Invite actions are server-validated. Owner/admin role is required for create and revoke
             operations.
