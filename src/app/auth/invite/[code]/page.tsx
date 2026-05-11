@@ -2,20 +2,26 @@
 
 import Link from "next/link";
 import { AlertCircle, UserRoundPlus } from "~/components/ui/icons";
-import { useParams } from "next/navigation";
-import { useSearchParams } from "next/navigation";
+import { signIn } from "next-auth/react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 import { ThemeToggle } from "~/components/theme-toggle";
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import { api } from "~/trpc/react";
 
 export default function InviteAcceptancePage() {
   const [isLoading, setIsLoading] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const router = useRouter();
   const params = useParams<{ code: string }>();
   const searchParams = useSearchParams();
   const errorType = searchParams.get("error");
+  const callbackUrl = searchParams.get("callbackUrl") ?? "/";
+
+  const acceptInvite = api.invite.acceptInvite.useMutation();
 
   const errorMessageByType: Record<string, string> = {
     expired: "This invite has expired. Please request a new one.",
@@ -23,16 +29,70 @@ export default function InviteAcceptancePage() {
     "email-conflict": "That email is already registered. Try signing in instead.",
   };
 
-  const errorMessage = errorType ? errorMessageByType[errorType] : null;
+  const errorMessage = formError ?? (errorType ? errorMessageByType[errorType] : null);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const getFormString = (formData: FormData, key: string) => {
+    const value = formData.get(key);
+    return typeof value === "string" ? value : "";
+  };
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (isLoading) {
       return;
     }
 
+    const formData = new FormData(event.currentTarget);
+    const name = getFormString(formData, "name").trim();
+    const email = getFormString(formData, "email").trim();
+    const password = getFormString(formData, "password");
+
     setIsLoading(true);
+    setFormError(null);
+
+    try {
+      await acceptInvite.mutateAsync({
+        code: params.code,
+        name,
+        email,
+        password,
+      });
+
+      const signInResult = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (!signInResult || signInResult.error) {
+        setFormError("Account created, but sign-in failed. Please sign in manually.");
+        router.replace("/auth/signin?error=invalid");
+        return;
+      }
+
+      router.replace(callbackUrl);
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message.includes("reserved for a different email")) {
+          setFormError("This invite is reserved for a different email address.");
+        } else if (error.message.includes("already exists")) {
+          setFormError("That email is already registered. Try signing in instead.");
+        } else if (error.message.includes("expired")) {
+          setFormError("This invite has expired. Please request a new one.");
+        } else if (error.message.includes("already been used")) {
+          setFormError("This invite has already been used.");
+        } else if (error.message.includes("revoked")) {
+          setFormError("This invite has been revoked.");
+        } else {
+          setFormError("Could not accept invite. Please try again.");
+        }
+      } else {
+        setFormError("Could not accept invite. Please try again.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -84,7 +144,7 @@ export default function InviteAcceptancePage() {
               <label htmlFor="name" className="text-sm font-medium">
                 Full name
               </label>
-              <Input id="name" placeholder="Your full name" autoComplete="name" required />
+              <Input id="name" name="name" placeholder="Your full name" autoComplete="name" required />
             </div>
 
             <div className="space-y-2">
@@ -93,6 +153,7 @@ export default function InviteAcceptancePage() {
               </label>
               <Input
                 id="email"
+                name="email"
                 type="email"
                 placeholder="email@family.com"
                 autoComplete="email"
@@ -106,6 +167,7 @@ export default function InviteAcceptancePage() {
               </label>
               <Input
                 id="password"
+                name="password"
                 type="password"
                 placeholder="Create a password"
                 autoComplete="new-password"

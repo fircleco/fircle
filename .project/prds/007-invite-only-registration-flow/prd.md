@@ -102,11 +102,11 @@ This PRD also includes a minimal admin-only invite management backend (and optio
 
 #### Tasks
 
-- [ ] Ensure account creation stores bcrypt-hashed passwords compatible with existing credentials authorize logic.
-- [ ] Confirm src/server/auth/config.ts continues to authorize newly created users correctly.
-- [ ] Define consistent handling for email already in use during invite acceptance.
-- [ ] Implement post-accept auto sign-in flow from invite screen.
-- [ ] Route successful acceptance into authenticated app surface.
+- [x] Ensure account creation stores bcrypt-hashed passwords compatible with existing credentials authorize logic.
+- [x] Confirm src/server/auth/config.ts continues to authorize newly created users correctly.
+- [x] Define consistent handling for email already in use during invite acceptance.
+- [x] Implement post-accept auto sign-in flow from invite screen.
+- [x] Route successful acceptance into authenticated app surface.
 
 ---
 

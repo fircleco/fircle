@@ -4,6 +4,7 @@ import { type DefaultSession, type NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { z } from "zod";
 
+import { normalizeEmail } from "~/lib/email";
 import { db } from "~/server/db";
 
 /**
@@ -49,7 +50,9 @@ export const authConfig = {
         if (!parsed.success) return null;
 
         const { email, password } = parsed.data;
-        const user = await db.user.findUnique({ where: { email } });
+        const user = await db.user.findUnique({
+          where: { email: normalizeEmail(email) },
+        });
         if (!user?.password) return null;
 
         const valid = await bcrypt.compare(password, user.password);
