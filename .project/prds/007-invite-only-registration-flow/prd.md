@@ -73,11 +73,11 @@ This PRD also includes a minimal admin-only invite management backend (and optio
 
 #### Tasks
 
-- [ ] Add invite helper module(s) under src/lib for code generation and lifecycle checks.
-- [ ] Add zod input schemas for invite create, lookup, accept, and revoke operations.
-- [ ] Implement centralized invite status evaluation logic (`valid`, `expired`, `claimed`, `revoked`).
-- [ ] Implement email-binding validation logic for email-bound invites.
-- [ ] Add utility to normalize and compare email values safely.
+- [x] Add invite helper module(s) under src/lib for code generation and lifecycle checks.
+- [x] Add zod input schemas for invite create, lookup, accept, and revoke operations.
+- [x] Implement centralized invite status evaluation logic (`valid`, `expired`, `claimed`, `revoked`).
+- [x] Implement email-binding validation logic for email-bound invites.
+- [x] Add utility to normalize and compare email values safely.
 
 ---
 
