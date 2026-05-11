@@ -1,6 +1,6 @@
 "use client";
 
-import { ImagePlus, Loader2, Video, X } from "~/components/ui/icons";
+import { ImagePlus, Loader, Video, X } from "~/components/ui/icons";
 import { useMemo, useState } from "react";
 
 import { Button } from "~/components/ui/button";
@@ -102,7 +102,7 @@ export function PostComposerDialog({ open, onOpenChange }: PostComposerDialogPro
               <Button type="button" onClick={handlePublish} disabled={!canPublish || isUploading}>
                 {isUploading ? (
                   <>
-                    <Loader2 className="size-4 animate-spin" />
+                    <Loader className="size-4 animate-spin" />
                     Uploading...
                   </>
                 ) : (

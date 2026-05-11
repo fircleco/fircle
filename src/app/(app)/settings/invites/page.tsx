@@ -5,7 +5,7 @@ import {
   Check,
   Copy,
   Link2,
-  Loader2,
+  Loader,
   Plus,
   ShieldAlert,
   X,
@@ -264,7 +264,7 @@ export default function InvitesPage() {
       {managementContext.isLoading ? (
         <section className="rounded-2xl border bg-card/70 p-5">
           <p className="flex items-center gap-2 text-muted-foreground text-sm">
-            <Loader2 className="size-4 animate-spin" />
+            <Loader className="size-4 animate-spin" />
             Loading invite access...
           </p>
         </section>
@@ -416,7 +416,7 @@ export default function InvitesPage() {
 
         {invitesQuery.isLoading ? (
           <p className="flex items-center gap-2 text-muted-foreground text-sm">
-            <Loader2 className="size-4 animate-spin" />
+            <Loader className="size-4 animate-spin" />
             Loading pending invites...
           </p>
         ) : visiblePendingInvites.length === 0 ? (
@@ -517,7 +517,7 @@ export default function InvitesPage() {
 
         {invitesQuery.isLoading ? (
           <p className="flex items-center gap-2 text-muted-foreground text-sm">
-            <Loader2 className="size-4 animate-spin" />
+            <Loader className="size-4 animate-spin" />
             Loading invite history...
           </p>
         ) : visibleHistoryInvites.length === 0 ? (
