@@ -87,12 +87,12 @@ This PRD also includes a minimal admin-only invite management backend (and optio
 
 #### Tasks
 
-- [ ] Create src/server/api/routers/invite.ts with public `getByCode` query.
-- [ ] Add public `acceptInvite` mutation with full server-side validation and account creation transaction.
-- [ ] Add protected `createInvite`, `listInvites`, and `revokeInvite` procedures.
-- [ ] Enforce admin-only access in protected invite management procedures.
-- [ ] Register invite router in src/server/api/root.ts.
-- [ ] Map domain failures to stable error codes/messages for UI consumption.
+- [x] Create src/server/api/routers/invite.ts with public `getByCode` query.
+- [x] Add public `acceptInvite` mutation with full server-side validation and account creation transaction.
+- [x] Add protected `createInvite`, `listInvites`, and `revokeInvite` procedures.
+- [x] Enforce admin-only access in protected invite management procedures.
+- [x] Register invite router in src/server/api/root.ts.
+- [x] Map domain failures to stable error codes/messages for UI consumption.
 
 ---
 
