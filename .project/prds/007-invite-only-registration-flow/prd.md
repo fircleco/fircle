@@ -36,6 +36,7 @@ This PRD also includes a minimal admin-only invite management backend (and optio
 - **Family identity in invites now**: Each invite is tied to a specific family record, even while product behavior is still single-family first.
 - **Support two invite types**: MVP supports both open invites and email-bound invites.
 - **Admin-only invite issuance**: Only owner/admin roles can create or revoke invites in MVP.
+- **Duplicate invite prevention**: Creating an email-bound invite is rejected if the target email is already a registered user or already has an active (pending, non-expired) invite for the same family.
 - **Auto sign-in after acceptance**: Successful invite acceptance should immediately create a session and route the user into the app.
 - **Invite expiry**: Default invite expiration is 14 days.
 - **API-first implementation**: Registration and invite validation run through tRPC procedures with server-side validation and transactions.

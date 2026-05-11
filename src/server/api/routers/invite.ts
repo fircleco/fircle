@@ -358,6 +358,38 @@ export const inviteRouter = createTRPCRouter({
         })
       }
 
+      // For email-bound invites, validate the target email
+      if (input.type === "EMAIL_BOUND" && input.invitedEmail) {
+        const normalizedEmail = normalizeEmail(input.invitedEmail)
+
+        // Check if email is already a registered user
+        const existingUser = await ctx.db.user.findUnique({
+          where: { email: normalizedEmail },
+        })
+        if (existingUser) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "This email address is already registered. No invite needed.",
+          })
+        }
+
+        // Check if email already has a pending invite for this family
+        const existingPendingInvite = await ctx.db.invite.findFirst({
+          where: {
+            familyId: input.familyId,
+            invitedEmail: normalizedEmail,
+            status: "PENDING",
+            expiresAt: { gt: new Date() },
+          },
+        })
+        if (existingPendingInvite) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "There is already a pending invite for this email address.",
+          })
+        }
+      }
+
       // Create invite
       const invite = await ctx.db.invite.create({
         data: {
