@@ -185,16 +185,16 @@ Use any of the family member emails (e.g., emma.shittabey@example.com) to sign i
 
 ## Acceptance Criteria
 
-- [ ] A user cannot register without a valid invite code.
-- [ ] Valid invite page loads dynamic family/invite details for the given code.
-- [ ] Expired, claimed, revoked, and invalid invites each render distinct UI states.
-- [ ] Email-bound invites reject non-matching email addresses.
-- [ ] Open invites can be accepted by a new email and become claimed after first use.
-- [ ] Invite acceptance creates a user account with hashed password.
-- [ ] Successful invite acceptance auto-signs the user in and routes into the app.
-- [ ] Existing users can sign in from /auth/signin with credentials.
-- [ ] Admin users can create, list, and revoke invites; non-admin users cannot.
-- [ ] Invite status transitions are persisted and reflected accurately in list views.
+- [x] A user cannot register without a valid invite code.
+- [x] Valid invite page loads dynamic family/invite details for the given code.
+- [x] Expired, claimed, revoked, and invalid invites each render distinct UI states.
+- [x] Email-bound invites reject non-matching email addresses.
+- [x] Open invites can be accepted by a new email and become claimed after first use.
+- [x] Invite acceptance creates a user account with hashed password.
+- [x] Successful invite acceptance auto-signs the user in and routes into the app.
+- [x] Existing users can sign in from /auth/signin with credentials.
+- [x] Admin users can create, list, and revoke invites; non-admin users cannot.
+- [x] Invite status transitions are persisted and reflected accurately in list views.
 - [x] `pnpm check` passes with no lint/type errors after implementation.
 - [ ] Core invite acceptance scenarios are verified manually:
   - valid invite acceptance
