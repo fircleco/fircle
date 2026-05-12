@@ -180,13 +180,13 @@ This PRD does not yet cover member tagging, post ownership migration, or broader
 
 #### Tasks
 
-- [ ] Add a minimal surface for generating a claim link from an unclaimed member profile or member list action.
-- [ ] Display the generated claim URL/token so it can be copied and shared.
-- [ ] Support optionally setting or omitting the claim email during link generation.
-- [ ] Prevent claim-link creation for members who are already claimed.
-- [ ] Prevent multiple simultaneously active claim links for the same member unless the product explicitly allows replacement behavior.
-- [ ] If replacement behavior is preferred, revoke older active links when a new claim link is generated.
-- [ ] Add audit-friendly timestamps and creator/claimer attribution to persisted records.
+- [x] Add a minimal surface for generating a claim link from an unclaimed member profile or member list action.
+- [x] Display the generated claim URL/token so it can be copied and shared.
+- [x] Support optionally setting or omitting the claim email during link generation.
+- [x] Prevent claim-link creation for members who are already claimed.
+- [x] Prevent multiple simultaneously active claim links for the same member unless the product explicitly allows replacement behavior.
+- [x] If replacement behavior is preferred, revoke older active links when a new claim link is generated.
+- [x] Add audit-friendly timestamps and creator/claimer attribution to persisted records.
 
 ---
 

@@ -4,6 +4,7 @@ import type { FamilyMemberProfile, MemberRole } from "~/lib/mocks/family-members
 import { cn } from "~/lib/utils";
 
 import { EditProfileDialog } from "./edit-profile-dialog";
+import { GenerateClaimLinkDialog } from "./generate-claim-link-dialog";
 
 type MemberAdminPanelProps = {
   member: FamilyMemberProfile;
@@ -95,13 +96,17 @@ export function MemberAdminActionsPanel({ member }: MemberAdminPanelProps) {
               {isClaimed ? "Claim handled" : "Invite this user to claim"}
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              {isClaimed
-                ? "No claim invite is needed for this profile."
-                : "Send a claim invite so this person can take ownership."}
+                  {isClaimed
+                    ? "No claim invite is needed for this profile."
+                    : "Send a claim invite so this person can take ownership."}
             </p>
-            <Button className="mt-3 w-full" size="sm" type="button" variant={isClaimed ? "outline" : "default"}>
-              {isClaimed ? "Claim already complete" : "Send claim invite"}
-            </Button>
+            {isClaimed ? (
+              <Button className="mt-3 w-full" size="sm" type="button" variant="outline" disabled>
+                Claim already complete
+              </Button>
+            ) : (
+              <GenerateClaimLinkDialog memberId={member.id} memberName={member.name} />
+            )}
           </div>
 
           <div className="rounded-2xl border bg-muted/20 p-3">
