@@ -1,6 +1,6 @@
 ---
 title: "Unclaimed Member Creation and Claim Flow - Live Family Identity Linking"
-status: draft
+status: in-progress
 references:
   - type: doc
     url: .project/brief.md
@@ -70,28 +70,28 @@ This PRD does not yet cover member tagging, post ownership migration, or broader
 
 #### Tasks
 
-- [ ] Update `prisma/schema.prisma` so `FamilyMember.userId` is nullable.
-- [ ] Update the `FamilyMember -> User` relation to be optional while preserving family membership behavior for claimed members.
-- [ ] Add member-owned profile fields needed for unclaimed rendering if they do not already exist, such as:
-  - [ ] `name`
-  - [ ] `image`
-- [ ] Remove `name` and `image` from the `User` model and migrate any display/profile reads to `FamilyMember`.
-- [ ] Review `@@unique([familyId, userId])` and related indexes to ensure they still behave correctly with nullable `userId`.
-- [ ] Extend `Invite` in `prisma/schema.prisma` with optional `claimMemberId` (relation to `FamilyMember`).
-- [ ] Add relation fields for claim targeting:
-  - [ ] `Invite.claimMember`
-  - [ ] `FamilyMember.claimInvites`
-- [ ] Keep existing invite lifecycle fields and reuse them for claim invites:
-  - [ ] `code`
-  - [ ] optional `invitedEmail`
-  - [ ] `createdById`
-  - [ ] `expiresAt`
-  - [ ] `claimedAt`
-  - [ ] `claimedById`
-  - [ ] `revokedAt`
+- [x] Update `prisma/schema.prisma` so `FamilyMember.userId` is nullable.
+- [x] Update the `FamilyMember -> User` relation to be optional while preserving family membership behavior for claimed members.
+- [x] Add member-owned profile fields needed for unclaimed rendering if they do not already exist, such as:
+  - [x] `name`
+  - [x] `image`
+- [x] Remove `name` and `image` from the `User` model and migrate any display/profile reads to `FamilyMember`.
+- [x] Review `@@unique([familyId, userId])` and related indexes to ensure they still behave correctly with nullable `userId`.
+- [x] Extend `Invite` in `prisma/schema.prisma` with optional `claimMemberId` (relation to `FamilyMember`).
+- [x] Add relation fields for claim targeting:
+  - [x] `Invite.claimMember`
+  - [x] `FamilyMember.claimInvites`
+- [x] Keep existing invite lifecycle fields and reuse them for claim invites:
+  - [x] `code`
+  - [x] optional `invitedEmail`
+  - [x] `createdById`
+  - [x] `expiresAt`
+  - [x] `claimedAt`
+  - [x] `claimedById`
+  - [x] `revokedAt`
 - [ ] Add app-level validation rule: if `claimMemberId` is set, `invite.familyId` must match `claimMember.familyId`.
-- [ ] Add indexes and constraints for safe token lookup and single-claim behavior.
-- [ ] Generate and commit a Prisma migration for the schema changes.
+- [x] Add indexes and constraints for safe token lookup and single-claim behavior.
+- [x] Generate a Prisma migration for the schema changes.
 
 ---
 

@@ -194,7 +194,6 @@ export const inviteRouter = createTRPCRouter({
       let result: {
         id: string
         email: string | null
-        name: string | null
       }
 
       try {
@@ -202,7 +201,6 @@ export const inviteRouter = createTRPCRouter({
           // Create user
           const user = await tx.user.create({
             data: {
-              name: input.name,
               email: input.email,
               password: hashedPassword,
             },
@@ -238,6 +236,7 @@ export const inviteRouter = createTRPCRouter({
             data: {
               familyId: invite.familyId,
               userId: user.id,
+              name: input.name,
               role: "MEMBER",
             },
           })
@@ -272,7 +271,6 @@ export const inviteRouter = createTRPCRouter({
       return {
         userId: result.id,
         email: result.email,
-        name: result.name,
       }
     }),
 
@@ -447,8 +445,8 @@ export const inviteRouter = createTRPCRouter({
       const invites = await ctx.db.invite.findMany({
         where: { familyId: input.familyId },
         include: {
-          createdBy: { select: { id: true, name: true, email: true } },
-          claimedBy: { select: { id: true, name: true, email: true } },
+          createdBy: { select: { id: true, email: true } },
+          claimedBy: { select: { id: true, email: true } },
         },
         orderBy: { createdAt: "desc" },
       })
@@ -471,14 +469,14 @@ export const inviteRouter = createTRPCRouter({
         createdAt: inv.createdAt,
         createdBy: {
           id: inv.createdBy.id,
-          name: inv.createdBy.name,
+          name: null,
           email: inv.createdBy.email,
         },
         claimedAt: inv.claimedAt,
         claimedBy: inv.claimedBy
           ? {
               id: inv.claimedBy.id,
-              name: inv.claimedBy.name,
+              name: null,
               email: inv.claimedBy.email,
             }
           : null,

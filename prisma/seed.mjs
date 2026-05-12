@@ -93,15 +93,13 @@ function parseDate(input) {
   return new Date(input);
 }
 
-async function upsertUser(email, name, hashedPassword) {
+async function upsertUser(email, hashedPassword) {
   return db.user.upsert({
     where: { email },
     update: {
-      name,
       password: hashedPassword,
     },
     create: {
-      name,
       email,
       password: hashedPassword,
     },
@@ -127,7 +125,7 @@ async function main() {
   const usersByName = new Map();
 
   for (const userInput of usersFromMocks) {
-    const user = await upsertUser(userInput.email, userInput.name, hashedPassword);
+    const user = await upsertUser(userInput.email, hashedPassword);
     usersByName.set(userInput.name, user);
 
     await db.familyMember.upsert({
@@ -138,17 +136,19 @@ async function main() {
         },
       },
       update: {
+        name: userInput.name,
         role: userInput.role,
       },
       create: {
         familyId: family.id,
         userId: user.id,
+        name: userInput.name,
         role: userInput.role,
       },
     });
   }
 
-  await upsertUser(duplicateEmailUser.email, duplicateEmailUser.name, hashedPassword);
+  await upsertUser(duplicateEmailUser.email, hashedPassword);
 
   for (const fixture of inviteFixtures) {
     const createdBy = usersByName.get(fixture.createdBy);
