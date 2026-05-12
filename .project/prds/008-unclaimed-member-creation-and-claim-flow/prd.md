@@ -128,22 +128,22 @@ This PRD does not yet cover member tagging, post ownership migration, or broader
 
 #### Tasks
 
-- [ ] Create a dedicated router such as `src/server/api/routers/family-member.ts` or extend the existing member router if one exists.
-- [ ] Add a protected `createUnclaimedMember` mutation.
-- [ ] Ensure `createUnclaimedMember` is limited to owner/admin family members.
-- [ ] Add a protected `createClaimLink` mutation for unclaimed members that creates an `Invite` with `claimMemberId` set.
-- [ ] Add a public `getClaimLinkByToken` query for claim-page lookup.
-- [ ] Add a public `claimMemberProfile` mutation that:
-  - [ ] validates the token
-  - [ ] verifies the invite is a claim invite (`claimMemberId` is set)
-  - [ ] validates optional email binding
-  - [ ] rejects already-claimed or revoked links
-  - [ ] rejects claiming a member that already has a `userId`
-  - [ ] creates a new `User` with hashed password (account fields only; no name/image persisted on `User`)
-  - [ ] links that `User` to `invite.claimMemberId`
-  - [ ] marks the claim link as claimed
-- [ ] Make the claim mutation transactional to prevent duplicate claims under race conditions.
-- [ ] Register the router in `src/server/api/root.ts`.
+- [x] Create a dedicated router such as `src/server/api/routers/family-member.ts` or extend the existing member router if one exists.
+- [x] Add a protected `createUnclaimedMember` mutation.
+- [x] Ensure `createUnclaimedMember` is limited to owner/admin family members.
+- [x] Add a protected `createClaimLink` mutation for unclaimed members that creates an `Invite` with `claimMemberId` set.
+- [x] Add a public `getClaimLinkByToken` query for claim-page lookup.
+- [x] Add a public `claimMemberProfile` mutation that:
+  - [x] validates the token
+  - [x] verifies the invite is a claim invite (`claimMemberId` is set)
+  - [x] validates optional email binding
+  - [x] rejects already-claimed or revoked links
+  - [x] rejects claiming a member that already has a `userId`
+  - [x] creates a new `User` with hashed password (account fields only; no name/image persisted on `User`)
+  - [x] links that `User` to `invite.claimMemberId`
+  - [x] marks the claim link as claimed
+- [x] Make the claim mutation transactional to prevent duplicate claims under race conditions.
+- [x] Register the router in `src/server/api/root.ts`.
 
 ---
 
