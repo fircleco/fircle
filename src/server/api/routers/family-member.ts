@@ -132,122 +132,157 @@ export const familyMemberRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       await requireAdminMembership(ctx.db, input.familyId, ctx.session.user.id)
 
-      const result = await ctx.db.$transaction(async (tx: Prisma.TransactionClient) => {
-        const baseSlug = getMemberSlugBase(input.name, input.nickname)
-        const slug = await resolveUniqueMemberSlug(tx, input.familyId, baseSlug)
+      try {
+        const result = await ctx.db.$transaction(async (tx: Prisma.TransactionClient) => {
+          const baseSlug = getMemberSlugBase(input.name, input.nickname)
+          const slug = await resolveUniqueMemberSlug(tx, input.familyId, baseSlug)
 
-        if (input.email) {
-          const conflictingInvite = await tx.invite.findFirst({
-            where: {
-              type: "EMAIL_BOUND",
-              invitedEmail: input.email,
-              status: "PENDING",
-              claimedAt: null,
-              revokedAt: null,
-              expiresAt: { gt: new Date() },
-            },
-            include: {
-              claimMember: {
-                select: { id: true, name: true },
+          if (input.email) {
+            const conflictingInvite = await tx.invite.findFirst({
+              where: {
+                type: "EMAIL_BOUND",
+                invitedEmail: input.email,
+                status: "PENDING",
+                claimedAt: null,
+                revokedAt: null,
+                expiresAt: { gt: new Date() },
               },
+              include: {
+                claimMember: {
+                  select: { id: true, name: true },
+                },
+              },
+            })
+
+            if (conflictingInvite) {
+              throw new TRPCError({
+                code: "CONFLICT",
+                message:
+                  conflictingInvite.claimMember?.name
+                    ? `This email is already bound to an active claim invite for ${conflictingInvite.claimMember.name}.`
+                    : "This email is already bound to another active claim invite.",
+              })
+            }
+          }
+
+          const member = await tx.familyMember.create({
+            data: {
+              familyId: input.familyId,
+              userId: null,
+              name: input.name,
+              nickname: input.nickname ?? null,
+              slug,
+              image: input.image ?? null,
+              role: "MEMBER",
             },
           })
 
-          if (conflictingInvite) {
+          if (!input.email) {
+            return {
+              member,
+              claimInvite: null,
+            }
+          }
+
+          let code: string | undefined
+          for (let attempt = 0; attempt < 3; attempt++) {
+            const candidate = generateClaimToken()
+            const conflict = await tx.invite.findUnique({ where: { code: candidate } })
+            if (!conflict) {
+              code = candidate
+              break
+            }
+          }
+
+          if (!code) {
             throw new TRPCError({
-              code: "CONFLICT",
+              code: "INTERNAL_SERVER_ERROR",
+              message: "Failed to generate a unique claim code. Please try again.",
+            })
+          }
+
+          const invite = await tx.invite.create({
+            data: {
+              code,
+              type: "EMAIL_BOUND",
+              status: "PENDING",
+              familyId: input.familyId,
+              claimMemberId: member.id,
+              invitedEmail: input.email,
+              createdById: ctx.session.user.id,
+              expiresAt: getInviteExpiryDate(new Date(), CLAIM_DEFAULT_TTL_DAYS),
+            },
+          })
+
+          return {
+            member,
+            claimInvite: invite,
+          }
+        })
+
+        const member = result.member
+
+        console.log(
+          `[member:created-unclaimed] id=${member.id} familyId=${member.familyId} createdBy=${ctx.session.user.id} at=${new Date().toISOString()}`,
+        )
+
+        if (result.claimInvite) {
+          console.log(
+            `[claim-link:auto-created] inviteId=${result.claimInvite.id} memberId=${member.id} familyId=${member.familyId} type=${result.claimInvite.type} createdBy=${ctx.session.user.id} at=${new Date().toISOString()}`,
+          )
+        }
+
+        return {
+          id: member.id,
+          name: member.name,
+          nickname: member.nickname,
+          slug: member.slug,
+          image: member.image,
+          familyId: member.familyId,
+          status: "unclaimed" as const,
+          claimInvite: result.claimInvite
+            ? {
+                id: result.claimInvite.id,
+                code: result.claimInvite.code,
+                type: result.claimInvite.type,
+                invitedEmail: result.claimInvite.invitedEmail,
+                expiresAt: result.claimInvite.expiresAt,
+              }
+            : null,
+        }
+      } catch (error) {
+        // Handle Prisma validation/client errors (e.g., schema/client mismatch)
+        if (error instanceof Error) {
+          const message = error.message || ""
+          if (
+            message.includes("Unknown argument") ||
+            message.includes("prisma") ||
+            message.includes("schema")
+          ) {
+            console.error(
+              `[member:create-error] Prisma schema/client mismatch: ${message}`,
+            )
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
               message:
-                conflictingInvite.claimMember?.name
-                  ? `This email is already bound to an active claim invite for ${conflictingInvite.claimMember.name}.`
-                  : "This email is already bound to another active claim invite.",
+                "A database configuration error occurred. Please try again or contact support if this persists.",
             })
           }
         }
 
-        const member = await tx.familyMember.create({
-          data: {
-            familyId: input.familyId,
-            userId: null,
-            name: input.name,
-            nickname: input.nickname ?? null,
-            slug,
-            image: input.image ?? null,
-            role: "MEMBER",
-          },
-        })
-
-        if (!input.email) {
-          return {
-            member,
-            claimInvite: null,
-          }
+        // Re-throw if it's already a TRPCError (like CONFLICT, etc.)
+        if (error instanceof TRPCError) {
+          throw error
         }
 
-        let code: string | undefined
-        for (let attempt = 0; attempt < 3; attempt++) {
-          const candidate = generateClaimToken()
-          const conflict = await tx.invite.findUnique({ where: { code: candidate } })
-          if (!conflict) {
-            code = candidate
-            break
-          }
-        }
-
-        if (!code) {
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message: "Failed to generate a unique claim code. Please try again.",
-          })
-        }
-
-        const invite = await tx.invite.create({
-          data: {
-            code,
-            type: "EMAIL_BOUND",
-            status: "PENDING",
-            familyId: input.familyId,
-            claimMemberId: member.id,
-            invitedEmail: input.email,
-            createdById: ctx.session.user.id,
-            expiresAt: getInviteExpiryDate(new Date(), CLAIM_DEFAULT_TTL_DAYS),
-          },
-        })
-
-        return {
-          member,
-          claimInvite: invite,
-        }
-      })
-
-      const member = result.member
-
-      console.log(
-        `[member:created-unclaimed] id=${member.id} familyId=${member.familyId} createdBy=${ctx.session.user.id} at=${new Date().toISOString()}`,
-      )
-
-      if (result.claimInvite) {
-        console.log(
-          `[claim-link:auto-created] inviteId=${result.claimInvite.id} memberId=${member.id} familyId=${member.familyId} type=${result.claimInvite.type} createdBy=${ctx.session.user.id} at=${new Date().toISOString()}`,
+        // Handle other unexpected errors
+        console.error(
+          `[member:create-error] Unexpected error: ${error instanceof Error ? error.message : String(error)}`,
         )
-      }
-
-      return {
-        id: member.id,
-        name: member.name,
-        nickname: member.nickname,
-        slug: member.slug,
-        image: member.image,
-        familyId: member.familyId,
-        status: "unclaimed" as const,
-        claimInvite: result.claimInvite
-          ? {
-              id: result.claimInvite.id,
-              code: result.claimInvite.code,
-              type: result.claimInvite.type,
-              invitedEmail: result.claimInvite.invitedEmail,
-              expiresAt: result.claimInvite.expiresAt,
-            }
-          : null,
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "An unexpected error occurred. Please try again.",
+        })
       }
     }),
 

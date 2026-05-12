@@ -266,7 +266,33 @@ export const inviteRouter = createTRPCRouter({
           })
         }
 
-        throw error
+        // Handle Prisma validation/client errors (e.g., schema/client mismatch)
+        if (error instanceof Error) {
+          const message = error.message || ""
+          if (
+            message.includes("Unknown argument") ||
+            message.includes("prisma") ||
+            message.includes("schema")
+          ) {
+            console.error(
+              `[invite:accept-error] Prisma schema/client mismatch: ${message}`,
+            )
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message:
+                "A database configuration error occurred. Please try again or contact support if this persists.",
+            })
+          }
+        }
+
+        // Handle other unexpected errors
+        console.error(
+          `[invite:accept-error] Unexpected error: ${error instanceof Error ? error.message : String(error)}`,
+        )
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "An unexpected error occurred. Please try again.",
+        })
       }
 
       console.log(
