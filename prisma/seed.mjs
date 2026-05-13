@@ -7,11 +7,38 @@ const db = new PrismaClient();
 const SEED_PASSWORD = "Passw0rd!123";
 
 const usersFromMocks = [
-  { name: "Emma Shittabey", nickname: "Em", email: "emma.shittabey@example.com", role: "OWNER" },
-  { name: "Noah Shittabey", email: "noah.shittabey@example.com", role: "ADMIN" },
-  { name: "Lily Shittabey", email: "lily.shittabey@example.com", role: "MEMBER" },
-  { name: "Logan Ross", email: "logan.ross@example.com", role: "MEMBER" },
-  { name: "Ava Kim", nickname: "Av", email: "ava.kim@example.com", role: "MEMBER" },
+  {
+    name: "Emma Shittabey",
+    nickname: "Em",
+    email: "emma.shittabey@example.com",
+    role: "OWNER",
+    avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=240&h=240&fit=crop",
+  },
+  {
+    name: "Noah Shittabey",
+    email: "noah.shittabey@example.com",
+    role: "ADMIN",
+    avatarUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=240&h=240&fit=crop",
+  },
+  {
+    name: "Lily Shittabey",
+    email: "lily.shittabey@example.com",
+    role: "MEMBER",
+    avatarUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=240&h=240&fit=crop",
+  },
+  {
+    name: "Logan Ross",
+    email: "logan.ross@example.com",
+    role: "MEMBER",
+    avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=240&h=240&fit=crop",
+  },
+  {
+    name: "Ava Kim",
+    nickname: "Av",
+    email: "ava.kim@example.com",
+    role: "MEMBER",
+    avatarUrl: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=240&h=240&fit=crop",
+  },
 ];
 
 // This user is intentionally outside the family to test duplicate-email invite acceptance.
@@ -180,6 +207,7 @@ async function main() {
           name: userInput.name,
           nickname: userInput.nickname ?? null,
           role: userInput.role,
+          image: userInput.avatarUrl ?? null,
         },
       });
       usedSlugs.add(existingMembership.slug);
@@ -197,6 +225,7 @@ async function main() {
         nickname: userInput.nickname ?? null,
         slug,
         role: userInput.role,
+        image: userInput.avatarUrl ?? null,
       },
     });
   }
