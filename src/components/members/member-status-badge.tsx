@@ -1,5 +1,5 @@
 import { Badge } from "~/components/ui/badge";
-import { BadgeAlertIcon, Check } from "~/components/ui/icons";
+import { BadgeAlertIcon, Check, Clock3 } from "~/components/ui/icons";
 import type { FamilyMemberStatus } from "~/lib/mocks/family-members";
 
 type MemberStatusBadgeProps = {
@@ -21,6 +21,15 @@ export function MemberStatusBadge({ status, className }: MemberStatusBadgeProps)
         <BadgeAlertIcon data-icon="inline-start" aria-hidden="true" />
       )}
       {isClaimed ? "Claimed" : "Unclaimed"}
+    </Badge>
+  );
+}
+
+export function ClaimPendingBadge() {
+  return (
+    <Badge variant="secondary">
+      <Clock3 data-icon="inline-start" aria-hidden="true" />
+      Claim pending
     </Badge>
   );
 }

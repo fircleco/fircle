@@ -1,10 +1,8 @@
 import Link from "next/link";
-import { Clock3 } from "~/components/ui/icons";
-
 import type { FamilyMemberSummary } from "~/lib/mocks/family-members";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 
-import { MemberStatusBadge } from "./member-status-badge";
+import { ClaimPendingBadge, MemberStatusBadge } from "./member-status-badge";
 
 type MemberCardProps = {
   member: FamilyMemberSummary;
@@ -44,12 +42,7 @@ export function MemberCard({ member }: MemberCardProps) {
             Added by {member.addedByName} · {member.addedAtLabel}
           </p>
 
-          {hasPendingInvite ? (
-            <p className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2 py-1 text-xs text-muted-foreground">
-              <Clock3 className="size-3.5" aria-hidden="true" />
-              Invite/claim pending
-            </p>
-          ) : null}
+          {hasPendingInvite ? <ClaimPendingBadge /> : null}
         </div>
       </article>
     </Link>

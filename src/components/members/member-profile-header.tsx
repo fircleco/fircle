@@ -1,7 +1,7 @@
 import type { FamilyMemberProfile } from "~/lib/mocks/family-members";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 
-import { MemberStatusBadge } from "./member-status-badge";
+import { ClaimPendingBadge, MemberStatusBadge } from "./member-status-badge";
 
 type MemberProfileHeaderProps = {
   member: FamilyMemberProfile;
@@ -19,6 +19,7 @@ function getInitials(name: string) {
 
 export function MemberProfileHeader({ member, showStatus = true }: MemberProfileHeaderProps) {
   const initials = getInitials(member.name);
+  const hasPendingClaimInvite = member.status === "unclaimed" && !!member.pendingClaimInvite;
 
   return (
     <header className="flex flex-col items-center gap-3 pb-2 pt-6 text-center">
@@ -30,8 +31,9 @@ export function MemberProfileHeader({ member, showStatus = true }: MemberProfile
       <div className="space-y-1.5">
         <h1 className="font-semibold text-2xl tracking-tight sm:text-3xl">{member.name}</h1>
         {showStatus ? (
-          <div className="flex justify-center">
+          <div className="flex flex-wrap justify-center gap-2">
             <MemberStatusBadge status={member.status} />
+            {hasPendingClaimInvite ? <ClaimPendingBadge /> : null}
           </div>
         ) : null}
       </div>
