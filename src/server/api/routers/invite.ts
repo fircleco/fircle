@@ -23,6 +23,7 @@ import {
 } from "~/lib/invite-schemas"
 import { normalizeEmail } from "~/lib/email"
 import { checkRateLimit, getClientIp } from "~/lib/rate-limit"
+import { getMemberSlugBase, resolveUniqueMemberSlug } from "~/lib/member-slug"
 
 export const inviteRouter = createTRPCRouter({
   /**
@@ -194,7 +195,6 @@ export const inviteRouter = createTRPCRouter({
       let result: {
         id: string
         email: string | null
-        name: string | null
       }
 
       try {
@@ -202,7 +202,6 @@ export const inviteRouter = createTRPCRouter({
           // Create user
           const user = await tx.user.create({
             data: {
-              name: input.name,
               email: input.email,
               password: hashedPassword,
             },
@@ -234,10 +233,15 @@ export const inviteRouter = createTRPCRouter({
           }
 
           // Add user to family
+          const baseSlug = getMemberSlugBase(input.name)
+          const slug = await resolveUniqueMemberSlug(tx, invite.familyId, baseSlug)
+
           await tx.familyMember.create({
             data: {
               familyId: invite.familyId,
               userId: user.id,
+              name: input.name,
+              slug,
               role: "MEMBER",
             },
           })
@@ -262,7 +266,33 @@ export const inviteRouter = createTRPCRouter({
           })
         }
 
-        throw error
+        // Handle Prisma validation/client errors (e.g., schema/client mismatch)
+        if (error instanceof Error) {
+          const message = error.message || ""
+          if (
+            message.includes("Unknown argument") ||
+            message.includes("prisma") ||
+            message.includes("schema")
+          ) {
+            console.error(
+              `[invite:accept-error] Prisma schema/client mismatch: ${message}`,
+            )
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message:
+                "A database configuration error occurred. Please try again or contact support if this persists.",
+            })
+          }
+        }
+
+        // Handle other unexpected errors
+        console.error(
+          `[invite:accept-error] Unexpected error: ${error instanceof Error ? error.message : String(error)}`,
+        )
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "An unexpected error occurred. Please try again.",
+        })
       }
 
       console.log(
@@ -272,7 +302,6 @@ export const inviteRouter = createTRPCRouter({
       return {
         userId: result.id,
         email: result.email,
-        name: result.name,
       }
     }),
 
@@ -447,8 +476,8 @@ export const inviteRouter = createTRPCRouter({
       const invites = await ctx.db.invite.findMany({
         where: { familyId: input.familyId },
         include: {
-          createdBy: { select: { id: true, name: true, email: true } },
-          claimedBy: { select: { id: true, name: true, email: true } },
+          createdBy: { select: { id: true, email: true } },
+          claimedBy: { select: { id: true, email: true } },
         },
         orderBy: { createdAt: "desc" },
       })
@@ -471,14 +500,14 @@ export const inviteRouter = createTRPCRouter({
         createdAt: inv.createdAt,
         createdBy: {
           id: inv.createdBy.id,
-          name: inv.createdBy.name,
+          name: null,
           email: inv.createdBy.email,
         },
         claimedAt: inv.claimedAt,
         claimedBy: inv.claimedBy
           ? {
               id: inv.claimedBy.id,
-              name: inv.claimedBy.name,
+              name: null,
               email: inv.claimedBy.email,
             }
           : null,

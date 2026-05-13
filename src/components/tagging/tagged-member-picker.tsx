@@ -40,8 +40,7 @@ export function TaggedMemberPicker({
 
     return members.filter((member) => {
       return (
-        member.name.toLowerCase().includes(normalizedQuery) ||
-        member.relationship.toLowerCase().includes(normalizedQuery)
+        member.name.toLowerCase().includes(normalizedQuery)
       );
     });
   }, [members, query]);
@@ -120,7 +119,6 @@ export function TaggedMemberPicker({
                   </div>
                 </div>
 
-                <p className="text-xs text-muted-foreground sm:text-sm">{member.relationship}</p>
               </div>
             </button>
           );

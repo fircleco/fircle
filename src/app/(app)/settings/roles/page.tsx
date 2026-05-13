@@ -89,7 +89,7 @@ export default function RolesPage() {
 
                   <div className="min-w-0">
                     <p className="truncate font-medium text-sm">{member.name}</p>
-                    <p className="truncate text-muted-foreground text-xs">{member.relationship}</p>
+
                   </div>
                 </div>
 

@@ -1,9 +1,14 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { ArrowRight, ShieldCheck, UserRole, UserCheck } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
 import type { FamilyMemberProfile, MemberRole } from "~/lib/mocks/family-members";
 import { cn } from "~/lib/utils";
+import { api } from "~/trpc/react";
 
 import { EditProfileDialog } from "./edit-profile-dialog";
+import { GenerateClaimLinkDialog } from "./generate-claim-link-dialog";
 
 type MemberAdminPanelProps = {
   member: FamilyMemberProfile;
@@ -23,6 +28,42 @@ const roleBadgeClasses: Record<MemberRole, string> = {
 
 export function MemberAdminActionsPanel({ member }: MemberAdminPanelProps) {
   const isClaimed = member.status === "claimed";
+  const pendingClaimInvite = member.pendingClaimInvite ?? null;
+  const [isClaimLinkCopied, setIsClaimLinkCopied] = useState(false);
+  const [origin, setOrigin] = useState("");
+
+  useEffect(() => {
+    setOrigin(window.location.origin);
+  }, []);
+
+  const trpcUtils = api.useUtils();
+  const revokeInvite = api.invite.revokeInvite.useMutation({
+    onSuccess: async () => {
+      await Promise.all([
+        trpcUtils.familyMember.getMemberProfileBySlug.invalidate(),
+        trpcUtils.familyMember.listFamilyMembers.invalidate(),
+      ]);
+    },
+  });
+
+  const pendingClaimPath = pendingClaimInvite
+    ? `/auth/claim/${pendingClaimInvite.code}`
+    : null;
+  const pendingClaimUrl = pendingClaimPath && origin
+    ? `${origin}${pendingClaimPath}`
+    : pendingClaimPath;
+
+  const handleCopyClaimLink = async () => {
+    if (!pendingClaimUrl) return;
+    await navigator.clipboard.writeText(pendingClaimUrl);
+    setIsClaimLinkCopied(true);
+    setTimeout(() => setIsClaimLinkCopied(false), 2000);
+  };
+
+  const handleRevokeInvite = async () => {
+    if (!pendingClaimInvite) return;
+    await revokeInvite.mutateAsync({ inviteId: pendingClaimInvite.id });
+  };
 
   return (
     <details className="group rounded-3xl border bg-card p-5 shadow-sm sm:p-6">
@@ -88,22 +129,61 @@ export function MemberAdminActionsPanel({ member }: MemberAdminPanelProps) {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <div className="rounded-2xl border bg-muted/20 p-3">
-            <p className="text-xs text-muted-foreground">Claim management</p>
-            <p className="mt-1 text-sm font-medium">
-              {isClaimed ? "Claim handled" : "Invite this user to claim"}
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {isClaimed
-                ? "No claim invite is needed for this profile."
-                : "Send a claim invite so this person can take ownership."}
-            </p>
-            <Button className="mt-3 w-full" size="sm" type="button" variant={isClaimed ? "outline" : "default"}>
-              {isClaimed ? "Claim already complete" : "Send claim invite"}
+        <div className="rounded-2xl border bg-muted/20 p-3">
+          <p className="text-xs text-muted-foreground">Claim management</p>
+          <p className="mt-1 text-sm font-medium">
+            {isClaimed ? "Claim handled" : "Invite this user to claim"}
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+                {isClaimed
+                  ? "No claim invite is needed for this profile."
+                  : "Send a claim invite so this person can take ownership."}
+          </p>
+          {isClaimed ? (
+            <Button className="mt-3 w-full" size="sm" type="button" variant="outline" disabled>
+              Claim already complete
             </Button>
-          </div>
-
+          ) : pendingClaimInvite && pendingClaimUrl ? (
+            <div className="mt-3 space-y-2">
+              <div className="rounded-xl border bg-background/80 px-2 py-2">
+                <p className="truncate font-mono text-xs">{pendingClaimUrl}</p>
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {pendingClaimInvite.invitedEmail ? (
+                  <p className="text-xs text-muted-foreground">
+                    Email-bound to {pendingClaimInvite.invitedEmail} ▪ 
+                  </p>
+                ) : null}
+                <p className="text-xs text-muted-foreground">
+                  Expires {new Date(pendingClaimInvite.expiresAt).toLocaleString()}
+                </p>
+              </div>
+              {revokeInvite.error ? (
+                <p className="rounded-lg border border-destructive/30 bg-destructive/5 px-2 py-1.5 text-xs text-destructive">
+                  {revokeInvite.error.message}
+                </p>
+              ) : null}
+              <div className="flex flex-wrap gap-2">
+                <Button type="button" size="sm" variant="outline" onClick={handleCopyClaimLink}>
+                  {isClaimLinkCopied ? "Copied!" : "Copy link"}
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="destructive"
+                  onClick={handleRevokeInvite}
+                  disabled={revokeInvite.isPending}
+                >
+                  {revokeInvite.isPending ? "Revoking..." : "Revoke invite"}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <GenerateClaimLinkDialog memberId={member.id} memberName={member.name} />
+          )}
+        </div>
+        
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="rounded-2xl border bg-muted/20 p-3">
             <p className="text-xs text-muted-foreground">Password reset</p>
             <p className="mt-1 text-sm font-medium">Reset sign-in credentials</p>
@@ -114,34 +194,27 @@ export function MemberAdminActionsPanel({ member }: MemberAdminPanelProps) {
               Reset password
             </Button>
           </div>
-        </div>
+          <div className="rounded-2xl border bg-muted/20 p-3">
+            <p className="text-xs text-muted-foreground">Role management</p>
+            <p className="mt-1 text-sm font-medium">Promote or demote this member</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Pick the role that best matches how much control this member should have.
+            </p>
 
-        <div className="rounded-2xl border bg-muted/20 p-3">
-          <p className="text-xs text-muted-foreground">Role management</p>
-          <p className="mt-1 text-sm font-medium">Promote or demote this member</p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Pick the role that best matches how much control this member should have.
-          </p>
-
-          <div className="mt-3 flex flex-wrap gap-2">
-            <Button size="sm" type="button" variant={member.role === "member" ? "default" : "outline"}>
-              Member
-            </Button>
-            <Button size="sm" type="button" variant={member.role === "admin" ? "default" : "outline"}>
-              Admin
-            </Button>
-            <Button size="sm" type="button" variant={member.role === "owner" ? "default" : "outline"}>
-              Owner
-            </Button>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Button size="sm" type="button" variant={member.role === "member" ? "default" : "outline"}>
+                Member
+              </Button>
+              <Button size="sm" type="button" variant={member.role === "admin" ? "default" : "outline"}>
+                Admin
+              </Button>
+              <Button size="sm" type="button" variant={member.role === "owner" ? "default" : "outline"}>
+                Owner
+              </Button>
+            </div>
           </div>
         </div>
 
-        {member.note ? (
-          <div className="rounded-2xl border border-amber-500/30 bg-amber-500/5 px-3 py-2.5">
-            <p className="text-xs font-medium text-amber-700 dark:text-amber-400">Admin note</p>
-            <p className="mt-0.5 text-sm text-muted-foreground">{member.note}</p>
-          </div>
-        ) : null}
       </div>
     </details>
   );

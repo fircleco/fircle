@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import {
+  AlertCircle,
   Heart,
   Tag,
   UserRoundX,
@@ -13,13 +14,12 @@ import { useParams } from "next/navigation";
 import { MemberProfileHeader } from "~/components/members/member-profile-header";
 import { MemberAdminActionsPanel } from "~/components/members/member-admin-panel";
 import { PostCard } from "~/components/feed/post-card";
+import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { Button } from "~/components/ui/button";
-import { getFamilyMemberProfileById } from "~/lib/mocks/family-members";
+import type { FamilyMemberProfile } from "~/lib/mocks/family-members";
 import { feedPosts } from "~/lib/mocks/feed";
+import { api } from "~/trpc/react";
 import { cn } from "~/lib/utils";
-
-// In a real app this would come from the auth session / user context.
-const MOCK_CURRENT_USER_ROLE = "admin" as "owner" | "admin" | "member";
 
 type ProfileTab = "posts" | "tagged" | "liked";
 
@@ -30,11 +30,53 @@ const tabs: { id: ProfileTab; label: string; icon: typeof FileText }[] = [
 ];
 
 export default function MemberProfilePage() {
-  const params = useParams<{ memberId: string }>();
+  const params = useParams<{ slug: string }>();
   const [activeTab, setActiveTab] = useState<ProfileTab>("posts");
 
-  const member = getFamilyMemberProfileById(params.memberId);
-  const isAdmin = MOCK_CURRENT_USER_ROLE === "owner" || MOCK_CURRENT_USER_ROLE === "admin";
+  const managementContext = api.invite.getManagementContext.useQuery(undefined, {
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+
+  const familyId = managementContext.data?.family?.id;
+
+  const memberProfileQuery = api.familyMember.getMemberProfileBySlug.useQuery(
+    {
+      familyId: familyId ?? "",
+      slug: params.slug,
+    },
+    {
+      enabled: Boolean(familyId && params.slug),
+      retry: false,
+      refetchOnWindowFocus: false,
+    },
+  );
+
+  const member = memberProfileQuery.data
+    ? ({
+        id: memberProfileQuery.data.id,
+        name: memberProfileQuery.data.name,
+        nickname: memberProfileQuery.data.nickname ?? undefined,
+        slug: memberProfileQuery.data.slug,
+        status: memberProfileQuery.data.status,
+        role: memberProfileQuery.data.role.toLowerCase() as "owner" | "admin" | "member",
+        avatarUrl: memberProfileQuery.data.image ?? undefined,
+        addedByName: "Family organizer",
+        addedAtLabel: "Profile in family",
+        pendingClaimInvite: memberProfileQuery.data.pendingClaimInvite
+          ? {
+              id: memberProfileQuery.data.pendingClaimInvite.id,
+              code: memberProfileQuery.data.pendingClaimInvite.code,
+              invitedEmail: memberProfileQuery.data.pendingClaimInvite.invitedEmail,
+              expiresAt: new Date(memberProfileQuery.data.pendingClaimInvite.expiresAt),
+            }
+          : null,
+        recentActivity: [],
+      } satisfies FamilyMemberProfile)
+    : undefined;
+
+  const viewerRole = managementContext.data?.role?.toLowerCase();
+  const isAdmin = viewerRole === "owner" || viewerRole === "admin";
 
   const memberPosts = member
     ? feedPosts.filter((p) => p.author.name === member.name)
@@ -45,19 +87,35 @@ export default function MemberProfilePage() {
   // Liked posts: no mock data yet — shows empty state.
   const likedPosts: typeof feedPosts = [];
 
+  const isLoading = managementContext.isLoading || memberProfileQuery.isLoading;
+  const hasNoFamily = !managementContext.isLoading && !familyId;
+  const hasLookupError = memberProfileQuery.error != null;
+
   return (
     <section className="mx-auto w-full max-w-2xl px-4 py-8 sm:px-6">
-      {member ? (
+      {isLoading ? (
+        <Alert>
+          <AlertCircle className="size-5" aria-hidden="true" />
+          <AlertTitle>Loading member profile</AlertTitle>
+          <AlertDescription>
+            We&apos;re resolving this member from your active family context.
+          </AlertDescription>
+        </Alert>
+      ) : hasNoFamily ? (
+        <Alert>
+          <AlertCircle className="size-5" aria-hidden="true" />
+          <AlertTitle>No active family found</AlertTitle>
+          <AlertDescription>
+            Join a family first or switch into a family context before viewing member profiles.
+          </AlertDescription>
+        </Alert>
+      ) : member ? (
         <div className="space-y-5">
-          {/* ── Top: profile photo + name ── */}
           <MemberProfileHeader member={member} />
 
-          {/* ── Middle: admin-only info ── */}
           {isAdmin && <MemberAdminActionsPanel member={member} />}
 
-          {/* ── Bottom: tabbed posts ── */}
           <section>
-            {/* Tab bar */}
             <div className="flex border-b">
               {tabs.map(({ id, label, icon: Icon }) => (
                 <button
@@ -77,7 +135,6 @@ export default function MemberProfilePage() {
               ))}
             </div>
 
-            {/* Tab panels */}
             <div className="pt-4">
               {activeTab === "posts" && (
                 <>
@@ -142,7 +199,9 @@ export default function MemberProfilePage() {
           </div>
           <h1 className="mt-3 font-semibold text-xl tracking-tight">Member not found</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            No family member exists with id: {params.memberId}
+            {hasLookupError
+              ? memberProfileQuery.error.message
+              : `No family member exists with slug: ${params.slug}`}
           </p>
           <Button asChild className="mt-4">
             <Link href="/members">Back to members</Link>
@@ -172,4 +231,3 @@ function EmptyState({
     </div>
   );
 }
-

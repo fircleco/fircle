@@ -1,24 +1,102 @@
 "use client";
 
 import Link from "next/link";
-import { CheckCircle2, UserRoundPlus } from "~/components/ui/icons";
 import { useState } from "react";
+import { AlertCircle, Check, CheckCircle2, Copy, Link2, UserRoundPlus } from "~/components/ui/icons";
 
+import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import { api } from "~/trpc/react";
 
 export default function AddMemberPage() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [memberName, setMemberName] = useState("");
+  const [memberNickname, setMemberNickname] = useState("");
+  const [memberEmail, setMemberEmail] = useState("");
+  const [autoClaimInvite, setAutoClaimInvite] = useState<{
+    code: string;
+    invitedEmail: string | null;
+  } | null>(null);
+  const [isClaimLinkCopied, setIsClaimLinkCopied] = useState(false);
+  const [photoUrl, setPhotoUrl] = useState("");
+  const [formError, setFormError] = useState<string | null>(null);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const managementContext = api.invite.getManagementContext.useQuery(undefined, {
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+
+  const selectedFamilyId = managementContext.data?.family?.id ?? null;
+
+  const createMember = api.familyMember.createUnclaimedMember.useMutation({
+    onSuccess: (data) => {
+      setIsSubmitted(true);
+      setFormError(null);
+      setAutoClaimInvite(
+        data.claimInvite
+          ? {
+              code: data.claimInvite.code,
+              invitedEmail: data.claimInvite.invitedEmail,
+            }
+          : null,
+      );
+      setIsClaimLinkCopied(false);
+    },
+    onError(error) {
+      setFormError(error.message);
+    },
+  });
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setIsSubmitted(true);
+
+    const normalizedName = memberName.trim();
+    const normalizedNickname = memberNickname.trim();
+    const normalizedEmail = memberEmail.trim();
+    const normalizedPhotoUrl = photoUrl.trim();
+
+    if (!normalizedName) {
+      setFormError("Member name is required.");
+      return;
+    }
+
+    if (!selectedFamilyId) {
+      setFormError("No family context was found for your account.");
+      return;
+    }
+
+    setFormError(null);
+
+    await createMember.mutateAsync({
+      familyId: selectedFamilyId,
+      name: normalizedName,
+      nickname: normalizedNickname.length > 0 ? normalizedNickname : undefined,
+      email: normalizedEmail.length > 0 ? normalizedEmail : undefined,
+      image: normalizedPhotoUrl.length > 0 ? normalizedPhotoUrl : undefined,
+    });
   };
 
   const handleAddAnother = () => {
     setMemberName("");
+    setMemberNickname("");
+    setMemberEmail("");
+    setAutoClaimInvite(null);
+    setIsClaimLinkCopied(false);
+    setPhotoUrl("");
     setIsSubmitted(false);
+    setFormError(null);
+  };
+
+  const autoClaimUrl = autoClaimInvite
+    ? `${typeof window !== "undefined" ? window.location.origin : ""}/auth/claim/${autoClaimInvite.code}`
+    : null;
+
+  const handleCopyClaimLink = async () => {
+    if (!autoClaimUrl) return;
+    await navigator.clipboard.writeText(autoClaimUrl);
+    setIsClaimLinkCopied(true);
+    setTimeout(() => setIsClaimLinkCopied(false), 2000);
   };
 
   return (
@@ -44,6 +122,33 @@ export default function AddMemberPage() {
               <p className="text-sm text-muted-foreground">
                 They can claim this profile later using a claim invite.
               </p>
+              {autoClaimInvite && autoClaimUrl ? (
+                <div className="rounded-2xl border border-primary/30 bg-primary/5 p-3 text-sm">
+                  <p className="font-medium text-primary">Claim invite created automatically</p>
+                  <div className="mt-2 flex flex-wrap items-center gap-2 rounded-xl border bg-background/80 px-2 py-2">
+                    <Link2 className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                    <p className="min-w-0 flex-1 break-all font-mono text-xs sm:text-sm">{autoClaimUrl}</p>
+                    <Button type="button" size="sm" variant="outline" onClick={handleCopyClaimLink}>
+                      {isClaimLinkCopied ? (
+                        <>
+                          <Check className="size-4" aria-hidden="true" />
+                          Copied!
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="size-4" aria-hidden="true" />
+                          Copy link
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  {autoClaimInvite.invitedEmail ? (
+                    <p className="mt-1 text-muted-foreground">
+                      This link is email-bound to {autoClaimInvite.invitedEmail}.
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
           </div>
 
@@ -68,6 +173,24 @@ export default function AddMemberPage() {
             </div>
           </div>
 
+          {formError ? (
+            <Alert variant="destructive" className="mb-6">
+              <AlertCircle className="size-5" aria-hidden="true" />
+              <AlertTitle>Unable to create member</AlertTitle>
+              <AlertDescription>{formError}</AlertDescription>
+            </Alert>
+          ) : null}
+
+          {managementContext.isLoading ? (
+            <Alert className="mb-6">
+              <AlertCircle className="size-5" aria-hidden="true" />
+              <AlertTitle>Loading family context</AlertTitle>
+              <AlertDescription>
+                We&apos;re checking which family you can add this member to.
+              </AlertDescription>
+            </Alert>
+          ) : null}
+
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2 sm:col-span-2">
               <label htmlFor="name" className="text-sm font-medium">
@@ -79,80 +202,65 @@ export default function AddMemberPage() {
                 value={memberName}
                 onChange={(event) => setMemberName(event.target.value)}
                 required
+                disabled={createMember.isPending || managementContext.isLoading || !selectedFamilyId}
               />
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="relationship" className="text-sm font-medium">
-                Relationship
+              <label htmlFor="nickname" className="text-sm font-medium">
+                Nickname (optional)
               </label>
-              <select
-                id="relationship"
-                defaultValue=""
-                className="flex h-10 w-full min-w-0 rounded-2xl border border-input bg-transparent px-3 py-1 text-sm text-foreground shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
-                required
-              >
-                <option value="" disabled>
-                  Select relationship
-                </option>
-                <option value="Parent">Parent</option>
-                <option value="Sibling">Sibling</option>
-                <option value="Child">Child</option>
-                <option value="Grandparent">Grandparent</option>
-                <option value="Aunt/Uncle">Aunt/Uncle</option>
-                <option value="Cousin">Cousin</option>
-                <option value="Family Friend">Family Friend</option>
-              </select>
+              <Input
+                id="nickname"
+                placeholder="For example: Nana"
+                value={memberNickname}
+                onChange={(event) => setMemberNickname(event.target.value)}
+                disabled={createMember.isPending || managementContext.isLoading || !selectedFamilyId}
+              />
             </div>
 
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium">
                 Email (optional)
               </label>
-              <Input id="email" type="email" placeholder="name@family.com" />
+              <Input
+                id="email"
+                type="email"
+                placeholder="name@family.com"
+                value={memberEmail}
+                onChange={(event) => setMemberEmail(event.target.value)}
+                disabled={createMember.isPending || managementContext.isLoading || !selectedFamilyId}
+              />
+              {memberEmail.trim().length > 0 ? (
+                <p className="text-xs text-muted-foreground">
+                  A claim invite link will be created automatically and bound to this email.
+                </p>
+              ) : null}
             </div>
 
             <div className="space-y-2 sm:col-span-2">
               <label htmlFor="photoUrl" className="text-sm font-medium">
                 Photo URL (optional)
               </label>
-              <Input id="photoUrl" placeholder="https://example.com/photo.jpg" />
-            </div>
-
-            <div className="space-y-2 sm:col-span-2">
-              <label htmlFor="note" className="text-sm font-medium">
-                Short note (optional)
-              </label>
-              <textarea
-                id="note"
-                rows={4}
-                placeholder="Any context for this profile, such as preferred name or invite timing."
-                className="w-full rounded-2xl border border-input bg-transparent px-3 py-2 text-sm text-foreground shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground/80 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
+              <Input
+                id="photoUrl"
+                placeholder="https://example.com/photo.jpg"
+                value={photoUrl}
+                onChange={(event) => setPhotoUrl(event.target.value)}
+                disabled={createMember.isPending || managementContext.isLoading || !selectedFamilyId}
               />
-            </div>
-
-            <div className="sm:col-span-2">
-              <label className="inline-flex items-start gap-2 text-sm text-muted-foreground">
-                <input type="checkbox" defaultChecked className="mt-0.5" />
-                <span>
-                  They are not joining yet. I am only creating their profile now so they can be tagged
-                  in memories and claim later.
-                </span>
-              </label>
             </div>
           </div>
 
           <div className="mt-6 flex flex-wrap gap-2">
-            <Button type="submit">Create member</Button>
+            <Button type="submit" disabled={createMember.isPending || managementContext.isLoading || !selectedFamilyId}>
+              {createMember.isPending ? "Creating..." : "Create member"}
+            </Button>
             <Button asChild type="button" variant="outline">
               <Link href="/members">Back to members</Link>
             </Button>
           </div>
 
-          <p className="mt-4 text-sm text-muted-foreground">
-            Inline note: after this profile is created, you can send a claim invite whenever they are
-            ready to join.
-          </p>
         </form>
       )}
     </section>

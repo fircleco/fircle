@@ -2,20 +2,13 @@ export type FamilyMemberStatus = "claimed" | "unclaimed";
 
 export type MemberRole = "owner" | "admin" | "member";
 
-export type FamilyRelationship =
-  | "Parent"
-  | "Sibling"
-  | "Child"
-  | "Grandparent"
-  | "Aunt/Uncle"
-  | "Cousin"
-  | "Family Friend";
-
 export type FamilyMemberSummary = {
   id: string;
   name: string;
-  relationship: FamilyRelationship;
+  nickname?: string;
+  slug: string;
   status: FamilyMemberStatus;
+  hasPendingClaimInvite?: boolean;
   role: MemberRole;
   avatarUrl?: string;
   addedByName: string;
@@ -23,9 +16,12 @@ export type FamilyMemberSummary = {
 };
 
 export type FamilyMemberProfile = FamilyMemberSummary & {
-  bio?: string;
-  location?: string;
-  note?: string;
+  pendingClaimInvite?: {
+    id: string;
+    code: string;
+    invitedEmail: string | null;
+    expiresAt: Date;
+  } | null;
   recentActivity: string[];
 };
 
@@ -33,7 +29,6 @@ export type ClaimInvitePreview = {
   token: string;
   memberId: string;
   memberName: string;
-  relationship: FamilyRelationship;
   familyName: string;
   invitedByName: string;
   status: "valid" | "expired" | "claimed";
@@ -43,7 +38,8 @@ export const familyMembers: FamilyMemberSummary[] = [
   {
     id: "member-emma-shittabey",
     name: "Emma Shittabey",
-    relationship: "Parent",
+    nickname: "Em",
+    slug: "em",
     status: "claimed",
     role: "owner",
     avatarUrl:
@@ -54,7 +50,7 @@ export const familyMembers: FamilyMemberSummary[] = [
   {
     id: "member-noah-shittabey",
     name: "Noah Shittabey",
-    relationship: "Parent",
+    slug: "noah-shittabey",
     status: "claimed",
     role: "admin",
     avatarUrl:
@@ -65,7 +61,7 @@ export const familyMembers: FamilyMemberSummary[] = [
   {
     id: "member-lily-shittabey",
     name: "Lily Shittabey",
-    relationship: "Child",
+    slug: "lily-shittabey",
     status: "claimed",
     role: "member",
     avatarUrl:
@@ -76,7 +72,8 @@ export const familyMembers: FamilyMemberSummary[] = [
   {
     id: "member-evelyn-shittabey",
     name: "Evelyn Shittabey",
-    relationship: "Grandparent",
+    nickname: "Evie",
+    slug: "evie",
     status: "unclaimed",
     role: "member",
     avatarUrl:
@@ -87,7 +84,7 @@ export const familyMembers: FamilyMemberSummary[] = [
   {
     id: "member-logan-ross",
     name: "Logan Ross",
-    relationship: "Sibling",
+    slug: "logan-ross",
     status: "claimed",
     role: "member",
     avatarUrl:
@@ -98,7 +95,7 @@ export const familyMembers: FamilyMemberSummary[] = [
   {
     id: "member-nina-ross",
     name: "Nina Ross",
-    relationship: "Cousin",
+    slug: "nina-ross",
     status: "unclaimed",
     role: "member",
     addedByName: "Logan Ross",
@@ -107,7 +104,7 @@ export const familyMembers: FamilyMemberSummary[] = [
   {
     id: "member-ben-harper",
     name: "Ben Harper",
-    relationship: "Aunt/Uncle",
+    slug: "ben-harper",
     status: "unclaimed",
     role: "member",
     avatarUrl:
@@ -118,7 +115,8 @@ export const familyMembers: FamilyMemberSummary[] = [
   {
     id: "member-ava-kim",
     name: "Ava Kim",
-    relationship: "Family Friend",
+    nickname: "Av",
+    slug: "av",
     status: "claimed",
     role: "member",
     avatarUrl:
@@ -130,12 +128,6 @@ export const familyMembers: FamilyMemberSummary[] = [
 
 export const familyMemberProfiles: FamilyMemberProfile[] = familyMembers.map((member) => ({
   ...member,
-  bio:
-    member.status === "claimed"
-      ? `${member.name.split(" ")[0]} shares family updates and memories with the group.`
-      : `${member.name.split(" ")[0]} has a profile in the family circle and can claim this account later.`,
-  location: "Springfield",
-  note: member.status === "unclaimed" ? "Claim invite pending" : undefined,
   recentActivity: [
     "Tagged in a weekend dinner memory",
     "Mentioned in family planning chat",
@@ -148,7 +140,6 @@ export const claimInvitePreviews: ClaimInvitePreview[] = [
     token: "claim-rose-001",
     memberId: "member-evelyn-shittabey",
     memberName: "Evelyn Shittabey",
-    relationship: "Grandparent",
     familyName: "The Shittabey Family",
     invitedByName: "Noah Shittabey",
     status: "valid",
@@ -157,7 +148,6 @@ export const claimInvitePreviews: ClaimInvitePreview[] = [
     token: "claim-nina-002",
     memberId: "member-nina-ross",
     memberName: "Nina Ross",
-    relationship: "Cousin",
     familyName: "The Shittabey Family",
     invitedByName: "Logan Ross",
     status: "expired",
@@ -166,7 +156,6 @@ export const claimInvitePreviews: ClaimInvitePreview[] = [
     token: "claim-ben-003",
     memberId: "member-ben-harper",
     memberName: "Ben Harper",
-    relationship: "Aunt/Uncle",
     familyName: "The Shittabey Family",
     invitedByName: "Emma Shittabey",
     status: "claimed",
@@ -175,6 +164,9 @@ export const claimInvitePreviews: ClaimInvitePreview[] = [
 
 export const getFamilyMemberProfileById = (memberId: string) =>
   familyMemberProfiles.find((member) => member.id === memberId);
+
+export const getFamilyMemberProfileBySlug = (slug: string) =>
+  familyMemberProfiles.find((member) => member.slug === slug);
 
 export const getClaimInvitePreviewByToken = (token: string) =>
   claimInvitePreviews.find((preview) => preview.token === token);

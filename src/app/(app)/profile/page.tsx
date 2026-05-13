@@ -1,19 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 import { PostCard } from "~/components/feed/post-card";
 import { EditProfileDialog } from "~/components/members/edit-profile-dialog";
 import { MemberProfileHeader } from "~/components/members/member-profile-header";
 import { Button } from "~/components/ui/button";
 import { FileText, Heart, Tag, UserRoundX } from "~/components/ui/icons";
-import {
-  familyMembers,
-  getFamilyMemberProfileById,
-} from "~/lib/mocks/family-members";
 import { feedPosts } from "~/lib/mocks/feed";
 import { cn } from "~/lib/utils";
+import { api } from "~/trpc/react";
+import type { FamilyMemberProfile } from "~/lib/mocks/family-members";
 
 type ProfileTab = "posts" | "tagged" | "liked";
 
@@ -26,23 +24,53 @@ const tabs: { id: ProfileTab; label: string; icon: typeof FileText }[] = [
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState<ProfileTab>("posts");
 
-  // In a real app, this should come from the authenticated session user id.
-  const currentUserId = useMemo(() => {
-    return familyMembers.find((member) => member.role === "owner")?.id;
-  }, []);
+  // Get the authenticated user's family context
+  const managementContext = api.invite.getManagementContext.useQuery(undefined, {
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
 
-  const member = currentUserId ? getFamilyMemberProfileById(currentUserId) : undefined;
+  const familyId = managementContext.data?.family?.id
 
-  const memberPosts = member ? feedPosts.filter((p) => p.author.name === member.name) : [];
+  // Get the current user's member profile in their family
+  const memberQuery = api.familyMember.getCurrentUserMemberProfile.useQuery(
+    { familyId: familyId ?? "" },
+    { enabled: !!familyId }
+  )
+
+  // Transform member query data to FamilyMemberProfile type
+  const member = memberQuery.data
+    ? ({
+        id: memberQuery.data.id,
+        name: memberQuery.data.name,
+        nickname: memberQuery.data.nickname ?? undefined,
+        slug: memberQuery.data.slug,
+        status: memberQuery.data.status,
+        role: memberQuery.data.role.toLowerCase() as "owner" | "admin" | "member",
+        avatarUrl: memberQuery.data.image ?? undefined,
+        addedByName: "Family organizer",
+        addedAtLabel: "Profile in family",
+        recentActivity: [],
+      } satisfies FamilyMemberProfile)
+    : undefined
+
+  // Filter posts by current member name (using mock feed data for now)
+  const memberPosts = member ? feedPosts.filter((p) => p.author.name === member.name) : []
   const taggedPosts = member
     ? feedPosts.filter((p) => p.taggedMembers.some((t) => t.name === member.name))
-    : [];
+    : []
   // Liked posts: no mock data yet — shows empty state.
-  const likedPosts: typeof feedPosts = [];
+  const likedPosts: typeof feedPosts = []
+
+  const isLoading = managementContext.isLoading || memberQuery.isLoading
 
   return (
     <section className="mx-auto w-full max-w-2xl px-4 py-8 sm:px-6">
-      {member ? (
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center text-muted-foreground">Loading profile...</div>
+        </div>
+      ) : member ? (
         <div className="space-y-5">
           <MemberProfileHeader member={member} showStatus={false} />
           <div className="flex justify-center">

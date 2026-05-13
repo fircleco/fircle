@@ -202,8 +202,6 @@ export default function InviteAcceptancePage() {
             </div>
           </div>
 
-          <p className="text-sm text-muted-foreground">Relationship to family? (Optional)</p>
-
           {errorMessage ? (
             <Alert variant="destructive">
               <AlertCircle className="size-5" aria-hidden="true" />

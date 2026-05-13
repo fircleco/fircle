@@ -1,14 +1,12 @@
 import {
   familyMembers,
   type FamilyMemberStatus,
-  type FamilyRelationship,
 } from "~/lib/mocks/family-members";
 
 export type TaggedPerson = {
   memberId: string;
   name: string;
   status: FamilyMemberStatus;
-  relationship: FamilyRelationship;
   avatarUrl?: string;
 };
 
@@ -84,7 +82,6 @@ const getTaggedPerson = (memberId: string): TaggedPerson => {
     memberId: member.id,
     name: member.name,
     status: member.status,
-    relationship: member.relationship,
     avatarUrl: member.avatarUrl,
   };
 };

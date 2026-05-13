@@ -135,9 +135,7 @@ export default function PhotoTaggingPage() {
                   <div className="min-w-0 flex-1 space-y-1">
                     <p className="font-medium text-base">{selectedAnchor.person.name}</p>
                     <p className="text-sm text-muted-foreground">{selectedAnchor.label ?? "Photo tag"}</p>
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                      {selectedAnchor.person.relationship}
-                    </p>
+
                   </div>
                 </div>
               ) : (

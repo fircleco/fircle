@@ -1,3 +1,4 @@
+import { familyMemberRouter } from "~/server/api/routers/family-member";
 import { inviteRouter } from "~/server/api/routers/invite";
 import { postRouter } from "~/server/api/routers/post";
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
@@ -8,6 +9,7 @@ import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
  * All routers added in /api/routers should be manually added here.
  */
 export const appRouter = createTRPCRouter({
+  familyMember: familyMemberRouter,
   invite: inviteRouter,
   post: postRouter,
 });

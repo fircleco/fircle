@@ -23,6 +23,7 @@ export default function SignInPage() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") ?? "/";
   const errorType = searchParams.get("error");
+  const claimSuccess = searchParams.get("claimed") === "1";
 
   const errorMessageByType: Record<string, string> = {
     invalid: "Invalid email or password. Please try again.",
@@ -88,6 +89,16 @@ export default function SignInPage() {
               <AlertCircle className="size-5" aria-hidden="true" />
               <AlertTitle>Sign-in failed</AlertTitle>
               <AlertDescription>{errorMessage}</AlertDescription>
+            </Alert>
+          ) : null}
+
+          {claimSuccess ? (
+            <Alert>
+              <AlertCircle className="size-5" aria-hidden="true" />
+              <AlertTitle>Profile claimed</AlertTitle>
+              <AlertDescription>
+                Your family profile is ready. Sign in with the account you just created to continue.
+              </AlertDescription>
             </Alert>
           ) : null}
 

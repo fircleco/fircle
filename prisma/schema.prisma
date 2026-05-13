@@ -46,15 +46,21 @@ model Family {
 model FamilyMember {
   id        String     @id @default(cuid())
   familyId  String
-  userId    String
+  userId    String?
+  name      String
+  nickname  String?
+  slug      String
+  image     String?
   role      FamilyRole @default(MEMBER)
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
+  claimInvites Invite[] @relation("ClaimMemberInvites")
 
   family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@unique([familyId, userId])
+  @@unique([familyId, slug])
   @@index([userId])
 }
 
@@ -69,6 +75,7 @@ model Invite {
   expiresAt    DateTime
   claimedAt    DateTime?
   claimedById  String?
+  claimMemberId String?
   revokedAt    DateTime?
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
@@ -76,11 +83,13 @@ model Invite {
   family    Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
   createdBy User   @relation("UserCreatedInvites", fields: [createdById], references: [id], onDelete: Cascade)
   claimedBy User?  @relation("UserClaimedInvites", fields: [claimedById], references: [id], onDelete: SetNull)
+  claimMember FamilyMember? @relation("ClaimMemberInvites", fields: [claimMemberId], references: [id], onDelete: SetNull)
 
   @@index([familyId])
   @@index([status])
   @@index([expiresAt])
   @@index([invitedEmail])
+  @@index([claimMemberId])
 }
 
 model Post {
@@ -125,10 +134,8 @@ model Session {
 
 model User {
   id             String         @id @default(cuid())
-  name           String?
   email          String?        @unique
   emailVerified  DateTime?
-  image          String?
   password       String?
   accounts       Account[]
   sessions       Session[]

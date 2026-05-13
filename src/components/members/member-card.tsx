@@ -20,12 +20,12 @@ function getInitials(name: string) {
 }
 
 export function MemberCard({ member }: MemberCardProps) {
-  const isUnclaimed = member.status === "unclaimed";
+  const hasPendingInvite = member.status === "unclaimed" && member.hasPendingClaimInvite === true;
   const initials = getInitials(member.name);
 
   return (
     <Link
-      href={`/members/${member.id}`}
+      href={`/member/${member.slug}`}
       className="block rounded-3xl border bg-card p-4 shadow-sm transition hover:border-primary/30"
     >
       <article className="flex items-start gap-3">
@@ -40,13 +40,11 @@ export function MemberCard({ member }: MemberCardProps) {
             <MemberStatusBadge status={member.status} />
           </div>
 
-          <p className="text-xs text-muted-foreground sm:text-sm">{member.relationship}</p>
-
           <p className="text-xs text-muted-foreground">
             Added by {member.addedByName} · {member.addedAtLabel}
           </p>
 
-          {isUnclaimed ? (
+          {hasPendingInvite ? (
             <p className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2 py-1 text-xs text-muted-foreground">
               <Clock3 className="size-3.5" aria-hidden="true" />
               Invite/claim pending
