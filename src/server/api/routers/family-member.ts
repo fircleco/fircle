@@ -124,6 +124,60 @@ export const familyMemberRouter = createTRPCRouter({
     }),
 
   /**
+   * Protected query: List members for a family the caller belongs to.
+   */
+  listFamilyMembers: protectedProcedure
+    .input(
+      z.object({
+        familyId: z.string().cuid(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const membership = await ctx.db.familyMember.findUnique({
+        where: {
+          familyId_userId: {
+            familyId: input.familyId,
+            userId: ctx.session.user.id,
+          },
+        },
+        select: { id: true },
+      })
+
+      if (!membership) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You do not have access to this family",
+        })
+      }
+
+      const members = await ctx.db.familyMember.findMany({
+        where: { familyId: input.familyId },
+        orderBy: [{ role: "asc" }, { createdAt: "asc" }],
+        select: {
+          id: true,
+          slug: true,
+          name: true,
+          nickname: true,
+          image: true,
+          role: true,
+          userId: true,
+          createdAt: true,
+        },
+      })
+
+      return members.map((member) => ({
+        id: member.id,
+        slug: member.slug,
+        name: member.name,
+        nickname: member.nickname,
+        image: member.image,
+        role: member.role,
+        status: member.userId ? ("claimed" as const) : ("unclaimed" as const),
+        createdAt: member.createdAt,
+      }))
+    }),
+
+  /**
    * Protected mutation: Create an unclaimed family member profile.
    * Only owner/admin may create unclaimed members for a family.
    */

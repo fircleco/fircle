@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { Users } from "~/components/ui/icons";
 import { useMemo, useState } from "react";
+import { formatDistanceToNow } from "date-fns";
 
 import { MemberCard } from "~/components/members/member-card";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { familyMembers, type FamilyMemberStatus } from "~/lib/mocks/family-members";
+import type { FamilyMemberStatus } from "~/lib/mocks/family-members";
+import { api } from "~/trpc/react";
 
 type MemberFilter = "all" | FamilyMemberStatus;
 
@@ -22,10 +24,42 @@ export default function MembersPage() {
   const [filter, setFilter] = useState<MemberFilter>("all");
   const [showEmptyPreview, setShowEmptyPreview] = useState(false);
 
+  const managementContext = api.invite.getManagementContext.useQuery(undefined, {
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+
+  const familyId = managementContext.data?.family?.id;
+
+  const membersQuery = api.familyMember.listFamilyMembers.useQuery(
+    {
+      familyId: familyId ?? "",
+    },
+    {
+      enabled: Boolean(familyId),
+      retry: false,
+      refetchOnWindowFocus: false,
+    },
+  );
+
+  const members = useMemo(() => {
+    return (membersQuery.data ?? []).map((member) => ({
+      id: member.id,
+      slug: member.slug,
+      name: member.name,
+      nickname: member.nickname ?? undefined,
+      status: member.status,
+      role: member.role.toLowerCase() as "owner" | "admin" | "member",
+      avatarUrl: member.image ?? undefined,
+      addedByName: managementContext.data?.family?.name ?? "Family",
+      addedAtLabel: `Added ${formatDistanceToNow(new Date(member.createdAt), { addSuffix: true })}`,
+    }));
+  }, [managementContext.data?.family?.name, membersQuery.data]);
+
   const filteredMembers = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
 
-    return familyMembers.filter((member) => {
+    return members.filter((member) => {
       const matchesFilter = filter === "all" ? true : member.status === filter;
       const matchesQuery =
         normalizedQuery.length === 0
@@ -36,9 +70,10 @@ export default function MembersPage() {
 
       return matchesFilter && matchesQuery;
     });
-  }, [filter, query]);
+  }, [filter, members, query]);
 
   const visibleMembers = showEmptyPreview ? [] : filteredMembers;
+  const isLoading = managementContext.isLoading || membersQuery.isLoading;
 
   return (
     <section className="mx-auto w-full max-w-6xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
@@ -88,7 +123,13 @@ export default function MembersPage() {
           ))}
         </div>
 
-        {visibleMembers.length === 0 ? (
+        {isLoading ? (
+          <div className="rounded-2xl border border-dashed px-6 py-10 text-center text-sm text-muted-foreground">
+            Loading family members...
+          </div>
+        ) : null}
+
+        {!isLoading && visibleMembers.length === 0 ? (
           <div className="grid min-h-56 place-items-center rounded-2xl border border-dashed px-6 py-10 text-center">
             <div className="max-w-md space-y-3">
               <div className="mx-auto grid size-11 place-items-center rounded-full bg-muted text-muted-foreground">
