@@ -11,6 +11,9 @@ references:
   - type: prd
     url: .project/prds/007-invite-only-registration-flow/prd.md
     description: "Live invite-only registration flow and invite patterns"
+  - type: pr
+    url: https://github.com/babblebey/fircle/pull/13
+    description: "Implementation pull request - feat: implement unclaimed member creation and claim flow"
 ---
 
 > **Instructions for AI Agents:**
