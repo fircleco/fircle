@@ -178,6 +178,52 @@ export const familyMemberRouter = createTRPCRouter({
     }),
 
   /**
+   * Protected query: Get the current authenticated user's member profile for a family.
+   * Returns the member record for the calling user in the specified family, or null if not a member.
+   */
+  getCurrentUserMemberProfile: protectedProcedure
+    .input(
+      z.object({
+        familyId: z.string().cuid(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const member = await ctx.db.familyMember.findUnique({
+        where: {
+          familyId_userId: {
+            familyId: input.familyId,
+            userId: ctx.session.user.id,
+          },
+        },
+        select: {
+          id: true,
+          slug: true,
+          name: true,
+          nickname: true,
+          image: true,
+          role: true,
+          userId: true,
+          createdAt: true,
+        },
+      })
+
+      if (!member) {
+        return null
+      }
+
+      return {
+        id: member.id,
+        slug: member.slug,
+        name: member.name,
+        nickname: member.nickname,
+        image: member.image,
+        role: member.role,
+        status: member.userId ? ("claimed" as const) : ("unclaimed" as const),
+        createdAt: member.createdAt,
+      }
+    }),
+
+  /**
    * Protected mutation: Create an unclaimed family member profile.
    * Only owner/admin may create unclaimed members for a family.
    */
