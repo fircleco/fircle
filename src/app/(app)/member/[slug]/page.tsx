@@ -76,6 +76,10 @@ export default function MemberProfilePage() {
     : undefined;
 
   const viewerRole = managementContext.data?.role?.toLowerCase();
+  const callerRole: "owner" | "admin" | "member" =
+    viewerRole === "owner" || viewerRole === "admin" || viewerRole === "member"
+      ? viewerRole
+      : "member";
   const isAdmin = viewerRole === "owner" || viewerRole === "admin";
 
   const memberPosts = member
@@ -113,7 +117,7 @@ export default function MemberProfilePage() {
         <div className="space-y-5">
           <MemberProfileHeader member={member} />
 
-          {isAdmin && <MemberAdminActionsPanel member={member} />}
+          {isAdmin && <MemberAdminActionsPanel member={member} callerRole={callerRole} />}
 
           <section>
             <div className="flex border-b">

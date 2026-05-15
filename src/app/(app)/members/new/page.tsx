@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { AlertCircle, Check, CheckCircle2, Copy, Link2, UserRoundPlus } from "~/components/ui/icons";
 
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
@@ -10,6 +11,7 @@ import { Input } from "~/components/ui/input";
 import { api } from "~/trpc/react";
 
 export default function AddMemberPage() {
+  const router = useRouter();
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [memberName, setMemberName] = useState("");
   const [memberNickname, setMemberNickname] = useState("");
@@ -28,6 +30,16 @@ export default function AddMemberPage() {
   });
 
   const selectedFamilyId = managementContext.data?.family?.id ?? null;
+  const canManageMembers =
+    managementContext.data?.role === "OWNER" || managementContext.data?.role === "ADMIN";
+  const showPermissionDenied =
+    !managementContext.isLoading && selectedFamilyId && !canManageMembers;
+
+  useEffect(() => {
+    if (showPermissionDenied) {
+      router.replace("/members");
+    }
+  }, [router, showPermissionDenied]);
 
   const createMember = api.familyMember.createUnclaimedMember.useMutation({
     onSuccess: (data) => {
@@ -108,7 +120,23 @@ export default function AddMemberPage() {
         </p>
       </header>
 
-      {isSubmitted ? (
+      {showPermissionDenied ? (
+        <section className="rounded-3xl border bg-card p-6 shadow-sm sm:p-7">
+          <Alert variant="destructive">
+            <AlertCircle className="size-5" aria-hidden="true" />
+            <AlertTitle>Permission denied</AlertTitle>
+            <AlertDescription>
+              Only family owners and admins can create member profiles.
+            </AlertDescription>
+          </Alert>
+
+          <div className="mt-5 flex flex-wrap gap-2">
+            <Button asChild type="button" variant="outline">
+              <Link href="/members">Back to members</Link>
+            </Button>
+          </div>
+        </section>
+      ) : isSubmitted ? (
         <section className="rounded-3xl border bg-card p-6 shadow-sm sm:p-7">
           <div className="flex items-start gap-3">
             <div className="grid size-10 place-items-center rounded-full bg-primary/10 text-primary">
@@ -202,7 +230,12 @@ export default function AddMemberPage() {
                 value={memberName}
                 onChange={(event) => setMemberName(event.target.value)}
                 required
-                disabled={createMember.isPending || managementContext.isLoading || !selectedFamilyId}
+                disabled={
+                  createMember.isPending ||
+                  managementContext.isLoading ||
+                  !selectedFamilyId ||
+                  !canManageMembers
+                }
               />
             </div>
 
@@ -215,7 +248,12 @@ export default function AddMemberPage() {
                 placeholder="For example: Nana"
                 value={memberNickname}
                 onChange={(event) => setMemberNickname(event.target.value)}
-                disabled={createMember.isPending || managementContext.isLoading || !selectedFamilyId}
+                disabled={
+                  createMember.isPending ||
+                  managementContext.isLoading ||
+                  !selectedFamilyId ||
+                  !canManageMembers
+                }
               />
             </div>
 
@@ -229,7 +267,12 @@ export default function AddMemberPage() {
                 placeholder="name@family.com"
                 value={memberEmail}
                 onChange={(event) => setMemberEmail(event.target.value)}
-                disabled={createMember.isPending || managementContext.isLoading || !selectedFamilyId}
+                disabled={
+                  createMember.isPending ||
+                  managementContext.isLoading ||
+                  !selectedFamilyId ||
+                  !canManageMembers
+                }
               />
               {memberEmail.trim().length > 0 ? (
                 <p className="text-xs text-muted-foreground">
@@ -247,13 +290,26 @@ export default function AddMemberPage() {
                 placeholder="https://example.com/photo.jpg"
                 value={photoUrl}
                 onChange={(event) => setPhotoUrl(event.target.value)}
-                disabled={createMember.isPending || managementContext.isLoading || !selectedFamilyId}
+                disabled={
+                  createMember.isPending ||
+                  managementContext.isLoading ||
+                  !selectedFamilyId ||
+                  !canManageMembers
+                }
               />
             </div>
           </div>
 
           <div className="mt-6 flex flex-wrap gap-2">
-            <Button type="submit" disabled={createMember.isPending || managementContext.isLoading || !selectedFamilyId}>
+            <Button
+              type="submit"
+              disabled={
+                createMember.isPending ||
+                managementContext.isLoading ||
+                !selectedFamilyId ||
+                !canManageMembers
+              }
+            >
               {createMember.isPending ? "Creating..." : "Create member"}
             </Button>
             <Button asChild type="button" variant="outline">

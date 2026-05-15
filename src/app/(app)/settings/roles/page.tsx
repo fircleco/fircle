@@ -1,7 +1,14 @@
+"use client";
+
+import { useMemo } from "react";
 import { MemberStatusBadge } from "~/components/members/member-status-badge";
+import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
-import { familyMembers, type FamilyMemberSummary, type MemberRole } from "~/lib/mocks/family-members";
+import { Badge } from "~/components/ui/badge";
+import { AlertCircle } from "~/components/ui/icons";
+import type { FamilyMemberSummary, MemberRole } from "~/lib/mocks/family-members";
 import { cn } from "~/lib/utils";
+import { api } from "~/trpc/react";
 
 const roleSortOrder: Record<MemberRole, number> = {
   owner: 0,
@@ -56,7 +63,47 @@ function PermissionCell({ value }: { value: boolean }) {
 }
 
 export default function RolesPage() {
-  const sortedMembers = sortMembersByRole(familyMembers);
+  const managementContext = api.invite.getManagementContext.useQuery(undefined, {
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+
+  const familyId = managementContext.data?.family?.id;
+
+  const listMembersQuery = api.familyMember.listFamilyMembers.useQuery(
+    {
+      familyId: familyId ?? "",
+    },
+    {
+      enabled: Boolean(familyId),
+      retry: false,
+      refetchOnWindowFocus: false,
+    },
+  );
+
+  const members = useMemo<FamilyMemberSummary[]>(() => {
+    if (!listMembersQuery.data) {
+      return [];
+    }
+
+    return listMembersQuery.data.map((member) => ({
+      id: member.id,
+      name: member.name,
+      nickname: member.nickname ?? undefined,
+      slug: member.slug,
+      status: member.status,
+      hasPendingClaimInvite: member.hasPendingClaimInvite,
+      role: member.role.toLowerCase() as MemberRole,
+      avatarUrl: member.image ?? undefined,
+      addedByName: "",
+      addedAtLabel: "",
+    }));
+  }, [listMembersQuery.data]);
+
+  const sortedMembers = sortMembersByRole(members);
+  const isLoading = managementContext.isLoading || listMembersQuery.isLoading;
+  const hasNoFamily = !managementContext.isLoading && !familyId;
+  const hasError = listMembersQuery.error != null;
 
   return (
     <div className="space-y-6">
@@ -70,47 +117,72 @@ export default function RolesPage() {
       <section className="space-y-3 rounded-2xl border bg-card/60 p-5">
         <h3 className="font-medium text-base">Member roles</h3>
 
-        <ul className="space-y-2">
-          {sortedMembers.map((member) => {
-            const initials = getInitials(member.name);
+        {isLoading ? (
+          <Alert>
+            <AlertCircle className="size-5" aria-hidden="true" />
+            <AlertTitle>Loading family roles</AlertTitle>
+            <AlertDescription>
+              We&apos;re fetching role assignments for your active family.
+            </AlertDescription>
+          </Alert>
+        ) : hasNoFamily ? (
+          <Alert>
+            <AlertCircle className="size-5" aria-hidden="true" />
+            <AlertTitle>No active family found</AlertTitle>
+            <AlertDescription>
+              Join a family first or switch into a family context to view role assignments.
+            </AlertDescription>
+          </Alert>
+        ) : hasError ? (
+          <Alert>
+            <AlertCircle className="size-5" aria-hidden="true" />
+            <AlertTitle>Unable to load member roles</AlertTitle>
+            <AlertDescription>
+              {listMembersQuery.error?.message ?? "An unexpected error occurred."}
+            </AlertDescription>
+          </Alert>
+        ) : (
+          <ul className="space-y-2">
+            {sortedMembers.map((member) => {
+              const initials = getInitials(member.name);
 
-            return (
-              <li
-                key={member.id}
-                className="flex flex-col gap-3 rounded-xl border bg-background p-4 sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div className="flex min-w-0 items-center gap-3">
-                  <Avatar className="size-10 shrink-0 border">
-                    <AvatarImage src={member.avatarUrl} alt={member.name} />
-                    <AvatarFallback className="text-xs font-semibold text-foreground">
-                      {initials}
-                    </AvatarFallback>
-                  </Avatar>
+              return (
+                <li
+                  key={member.id}
+                  className="flex flex-col gap-3 rounded-xl border bg-background p-4 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div className="flex min-w-0 items-center gap-3">
+                    <Avatar className="size-10 shrink-0 border">
+                      <AvatarImage src={member.avatarUrl} alt={member.name} />
+                      <AvatarFallback className="text-xs font-semibold text-foreground">
+                        {initials}
+                      </AvatarFallback>
+                    </Avatar>
 
-                  <div className="min-w-0">
-                    <p className="truncate font-medium text-sm">{member.name}</p>
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-sm">{member.name}</p>
 
+                    </div>
                   </div>
-                </div>
 
-                <div className="flex flex-wrap items-center gap-2">
-                  <span
-                    className={cn(
-                      "inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium",
-                      roleBadgeStyles[member.role],
-                    )}
-                  >
-                    {roleLabel[member.role]}
-                  </span>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge
+                      variant="outline"
+                      className={cn(roleBadgeStyles[member.role])}
+                    >
+                      {roleLabel[member.role]}
+                    </Badge>
 
-                  {member.status === "unclaimed" ? (
-                    <MemberStatusBadge status={member.status} />
-                  ) : null}
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+                    <MemberStatusBadge
+                      status={member.status}
+                      hasPendingClaimInvite={member.hasPendingClaimInvite}
+                    />
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
 
         {/* Future PRD: add role editing controls (dropdowns/actions) for owner/admin. */}
       </section>

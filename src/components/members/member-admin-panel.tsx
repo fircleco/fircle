@@ -12,6 +12,7 @@ import { GenerateClaimLinkDialog } from "./generate-claim-link-dialog";
 
 type MemberAdminPanelProps = {
   member: FamilyMemberProfile;
+  callerRole: MemberRole;
 };
 
 const roleLabels: Record<MemberRole, string> = {
@@ -26,8 +27,9 @@ const roleBadgeClasses: Record<MemberRole, string> = {
   member: "bg-muted text-muted-foreground border-border",
 };
 
-export function MemberAdminActionsPanel({ member }: MemberAdminPanelProps) {
+export function MemberAdminActionsPanel({ member, callerRole }: MemberAdminPanelProps) {
   const isClaimed = member.status === "claimed";
+  const isCallerOwner = callerRole === "owner";
   const pendingClaimInvite = member.pendingClaimInvite ?? null;
   const [isClaimLinkCopied, setIsClaimLinkCopied] = useState(false);
   const [origin, setOrigin] = useState("");
@@ -38,6 +40,14 @@ export function MemberAdminActionsPanel({ member }: MemberAdminPanelProps) {
 
   const trpcUtils = api.useUtils();
   const revokeInvite = api.invite.revokeInvite.useMutation({
+    onSuccess: async () => {
+      await Promise.all([
+        trpcUtils.familyMember.getMemberProfileBySlug.invalidate(),
+        trpcUtils.familyMember.listFamilyMembers.invalidate(),
+      ]);
+    },
+  });
+  const updateRole = api.familyMember.updateMemberRole.useMutation({
     onSuccess: async () => {
       await Promise.all([
         trpcUtils.familyMember.getMemberProfileBySlug.invalidate(),
@@ -65,6 +75,14 @@ export function MemberAdminActionsPanel({ member }: MemberAdminPanelProps) {
     await revokeInvite.mutateAsync({ inviteId: pendingClaimInvite.id });
   };
 
+  const canManageRoleSection = isCallerOwner && member.role !== "owner";
+  const canChangeRole = canManageRoleSection && !updateRole.isPending;
+
+  const handleUpdateRole = (role: "MEMBER" | "ADMIN") => {
+    if (!canChangeRole) return;
+    updateRole.mutate({ memberId: member.id, role });
+  };
+
   return (
     <details className="group rounded-3xl border bg-card p-5 shadow-sm sm:p-6">
       <summary className="flex cursor-pointer list-none items-center justify-between">
@@ -90,7 +108,10 @@ export function MemberAdminActionsPanel({ member }: MemberAdminPanelProps) {
           <EditProfileDialog member={member} triggerText="Edit member profile" triggerClassName="mt-3 w-full" />
         </div>
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div
+          className="grid grid-cols-1 gap-3 sm:grid-cols-2"
+          data-caller-owner={isCallerOwner ? "true" : "false"}
+        >
           <div className="rounded-2xl border bg-muted/20 p-3">
             <div className="flex items-start gap-3">
               <UserCheck className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
@@ -183,7 +204,12 @@ export function MemberAdminActionsPanel({ member }: MemberAdminPanelProps) {
           )}
         </div>
         
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div
+          className={cn(
+            "grid grid-cols-1 gap-3",
+            canManageRoleSection ? "sm:grid-cols-2" : undefined,
+          )}
+        >
           <div className="rounded-2xl border bg-muted/20 p-3">
             <p className="text-xs text-muted-foreground">Password reset</p>
             <p className="mt-1 text-sm font-medium">Reset sign-in credentials</p>
@@ -194,25 +220,41 @@ export function MemberAdminActionsPanel({ member }: MemberAdminPanelProps) {
               Reset password
             </Button>
           </div>
-          <div className="rounded-2xl border bg-muted/20 p-3">
-            <p className="text-xs text-muted-foreground">Role management</p>
-            <p className="mt-1 text-sm font-medium">Promote or demote this member</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Pick the role that best matches how much control this member should have.
-            </p>
+          {canManageRoleSection ? (
+            <div className="rounded-2xl border bg-muted/20 p-3">
+              <p className="text-xs text-muted-foreground">Role management</p>
+              <p className="mt-1 text-sm font-medium">Promote or demote this member</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Pick the role that best matches how much control this member should have.
+              </p>
 
-            <div className="mt-3 flex flex-wrap gap-2">
-              <Button size="sm" type="button" variant={member.role === "member" ? "default" : "outline"}>
-                Member
-              </Button>
-              <Button size="sm" type="button" variant={member.role === "admin" ? "default" : "outline"}>
-                Admin
-              </Button>
-              <Button size="sm" type="button" variant={member.role === "owner" ? "default" : "outline"}>
-                Owner
-              </Button>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Button
+                  size="sm"
+                  type="button"
+                  variant={member.role === "member" ? "default" : "outline"}
+                  onClick={() => handleUpdateRole("MEMBER")}
+                  disabled={!canChangeRole}
+                >
+                  Member
+                </Button>
+                <Button
+                  size="sm"
+                  type="button"
+                  variant={member.role === "admin" ? "default" : "outline"}
+                  onClick={() => handleUpdateRole("ADMIN")}
+                  disabled={!canChangeRole}
+                >
+                  Admin
+                </Button>
+              </div>
+              {updateRole.error ? (
+                <p className="mt-2 rounded-lg border border-destructive/30 bg-destructive/5 px-2 py-1.5 text-xs text-destructive">
+                  {updateRole.error.message}
+                </p>
+              ) : null}
             </div>
-          </div>
+          ) : null}
         </div>
 
       </div>

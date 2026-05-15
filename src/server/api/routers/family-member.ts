@@ -58,6 +58,24 @@ async function requireAdminMembership(
   return membership
 }
 
+/** Throws FORBIDDEN if the user is not the owner of the family. */
+async function requireOwnerMembership(
+  db: Prisma.TransactionClient,
+  familyId: string,
+  userId: string,
+) {
+  const membership = await getMembership(db, familyId, userId)
+
+  if (!membership || membership.role !== "OWNER") {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Only the family owner can perform this action",
+    })
+  }
+
+  return membership
+}
+
 // ─── Router ───────────────────────────────────────────────────────────────────
 
 export const familyMemberRouter = createTRPCRouter({
@@ -420,6 +438,63 @@ export const familyMemberRouter = createTRPCRouter({
           message: "An unexpected error occurred. Please try again.",
         })
       }
+    }),
+
+  /**
+   * Protected mutation: Update a family member role.
+   * Only owners can change roles, and owner assignment is intentionally excluded.
+   */
+  updateMemberRole: protectedProcedure
+    .input(
+      z.object({
+        memberId: z.string().cuid(),
+        role: z.enum(["MEMBER", "ADMIN"]),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const member = await ctx.db.familyMember.findUnique({
+        where: { id: input.memberId },
+        select: {
+          id: true,
+          familyId: true,
+          role: true,
+        },
+      })
+
+      if (!member) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Family member not found" })
+      }
+
+      const callerMembership = await requireOwnerMembership(
+        ctx.db,
+        member.familyId,
+        ctx.session.user.id,
+      )
+
+      if (member.id === callerMembership.id) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "You cannot change your own role",
+        })
+      }
+
+      if (member.role === "OWNER") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Owner role changes require ownership transfer",
+        })
+      }
+
+      const updatedMember = await ctx.db.familyMember.update({
+        where: { id: member.id },
+        data: { role: input.role },
+        select: {
+          id: true,
+          role: true,
+        },
+      })
+
+      return updatedMember
     }),
 
   /**
