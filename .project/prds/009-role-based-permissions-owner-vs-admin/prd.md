@@ -32,6 +32,7 @@ The roles page (`/settings/roles`) already documents the intended differentiatio
 1. Enforcing Owner-only actions on the server.
 2. Wiring up role management UI so an Owner can promote/demote members.
 3. Ensuring the admin panel hides Role management controls when the role cannot be changed.
+4. Enforcing manager-only access to member creation UI so Members cannot see create-member controls or use `/members/new` directly.
 
 ### Design Decisions
 
@@ -40,6 +41,7 @@ The roles page (`/settings/roles`) already documents the intended differentiatio
 - **Caller role passed to `MemberAdminActionsPanel`**: The panel currently has no awareness of who is viewing it. Rather than fetching inside the component, the member profile page (which already has access to the management context) will pass `callerRole` as a prop.
 - **`requireOwnerMembership` is a sibling helper to `requireAdminMembership`**: Keeps permission logic co-located and consistent in `family-member.ts`.
 - **Hide Role management when not actionable**: Instead of showing disabled role buttons, the Role management card is hidden when the caller is not an Owner or the viewed member is already an Owner.
+- **Member creation access is role-gated at both entry point and route**: `Add family member` actions are hidden for non-managers, and unauthorized visits to `/members/new` are redirected back to `/members`.
 - **Role badge on roles page uses `Badge` component**: The roles page still uses hand-rolled badge spans. It will be updated to use the `Badge` + role-color variant consistent with the rest of the app.
 
 ### User Stories
@@ -137,3 +139,5 @@ The roles page (`/settings/roles`) already documents the intended differentiatio
 - [ ] Role buttons call the mutation and invalidate the correct queries on success
 - [ ] The roles settings page shows real member data (not mock)
 - [ ] Role badges on the roles page use the `Badge` component
+- [ ] Member users do not see `Add family member` CTAs on the members page
+- [ ] Unauthorized direct access to `/members/new` is blocked (redirected to `/members`)

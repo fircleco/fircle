@@ -30,6 +30,8 @@ export default function MembersPage() {
   });
 
   const familyId = managementContext.data?.family?.id;
+  const canManageMembers =
+    managementContext.data?.role === "OWNER" || managementContext.data?.role === "ADMIN";
 
   const membersQuery = api.familyMember.listFamilyMembers.useQuery(
     {
@@ -86,9 +88,11 @@ export default function MembersPage() {
           </p>
         </div>
 
-        <Button asChild>
-          <Link href="/members/new">Add family member</Link>
-        </Button>
+        {canManageMembers ? (
+          <Button asChild>
+            <Link href="/members/new">Add family member</Link>
+          </Button>
+        ) : null}
       </header>
 
       <section className="space-y-4 rounded-3xl border bg-card/80 p-4 sm:p-5">
@@ -140,9 +144,11 @@ export default function MembersPage() {
               <p className="text-sm text-muted-foreground">
                 Try clearing search/filter settings or add a new family member profile.
               </p>
-              <Button asChild size="sm">
-                <Link href="/members/new">Add family member</Link>
-              </Button>
+              {canManageMembers ? (
+                <Button asChild size="sm">
+                  <Link href="/members/new">Add family member</Link>
+                </Button>
+              ) : null}
             </div>
           </div>
         ) : (
