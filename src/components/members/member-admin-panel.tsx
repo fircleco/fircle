@@ -75,7 +75,8 @@ export function MemberAdminActionsPanel({ member, callerRole }: MemberAdminPanel
     await revokeInvite.mutateAsync({ inviteId: pendingClaimInvite.id });
   };
 
-  const canChangeRole = isCallerOwner && !updateRole.isPending;
+  const canManageRoleSection = isCallerOwner && member.role !== "owner";
+  const canChangeRole = canManageRoleSection && !updateRole.isPending;
 
   const handleUpdateRole = (role: "MEMBER" | "ADMIN") => {
     if (!canChangeRole) return;
@@ -203,7 +204,12 @@ export function MemberAdminActionsPanel({ member, callerRole }: MemberAdminPanel
           )}
         </div>
         
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div
+          className={cn(
+            "grid grid-cols-1 gap-3",
+            canManageRoleSection ? "sm:grid-cols-2" : undefined,
+          )}
+        >
           <div className="rounded-2xl border bg-muted/20 p-3">
             <p className="text-xs text-muted-foreground">Password reset</p>
             <p className="mt-1 text-sm font-medium">Reset sign-in credentials</p>
@@ -214,44 +220,41 @@ export function MemberAdminActionsPanel({ member, callerRole }: MemberAdminPanel
               Reset password
             </Button>
           </div>
-          <div className="rounded-2xl border bg-muted/20 p-3">
-            <p className="text-xs text-muted-foreground">Role management</p>
-            <p className="mt-1 text-sm font-medium">Promote or demote this member</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Pick the role that best matches how much control this member should have.
-            </p>
-            {!isCallerOwner ? (
+          {canManageRoleSection ? (
+            <div className="rounded-2xl border bg-muted/20 p-3">
+              <p className="text-xs text-muted-foreground">Role management</p>
+              <p className="mt-1 text-sm font-medium">Promote or demote this member</p>
               <p className="mt-1 text-xs text-muted-foreground">
-                Only the family owner can change roles.
+                Pick the role that best matches how much control this member should have.
               </p>
-            ) : null}
 
-            <div className="mt-3 flex flex-wrap gap-2">
-              <Button
-                size="sm"
-                type="button"
-                variant={member.role === "member" ? "default" : "outline"}
-                onClick={() => handleUpdateRole("MEMBER")}
-                disabled={!canChangeRole}
-              >
-                Member
-              </Button>
-              <Button
-                size="sm"
-                type="button"
-                variant={member.role === "admin" ? "default" : "outline"}
-                onClick={() => handleUpdateRole("ADMIN")}
-                disabled={!canChangeRole}
-              >
-                Admin
-              </Button>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Button
+                  size="sm"
+                  type="button"
+                  variant={member.role === "member" ? "default" : "outline"}
+                  onClick={() => handleUpdateRole("MEMBER")}
+                  disabled={!canChangeRole}
+                >
+                  Member
+                </Button>
+                <Button
+                  size="sm"
+                  type="button"
+                  variant={member.role === "admin" ? "default" : "outline"}
+                  onClick={() => handleUpdateRole("ADMIN")}
+                  disabled={!canChangeRole}
+                >
+                  Admin
+                </Button>
+              </div>
+              {updateRole.error ? (
+                <p className="mt-2 rounded-lg border border-destructive/30 bg-destructive/5 px-2 py-1.5 text-xs text-destructive">
+                  {updateRole.error.message}
+                </p>
+              ) : null}
             </div>
-            {updateRole.error ? (
-              <p className="mt-2 rounded-lg border border-destructive/30 bg-destructive/5 px-2 py-1.5 text-xs text-destructive">
-                {updateRole.error.message}
-              </p>
-            ) : null}
-          </div>
+          ) : null}
         </div>
 
       </div>

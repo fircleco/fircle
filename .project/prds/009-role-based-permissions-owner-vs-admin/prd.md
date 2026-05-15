@@ -31,7 +31,7 @@ The roles page (`/settings/roles`) already documents the intended differentiatio
 
 1. Enforcing Owner-only actions on the server.
 2. Wiring up role management UI so an Owner can promote/demote members.
-3. Ensuring the admin panel hides or disables Owner-only controls from Admins.
+3. Ensuring the admin panel hides Role management controls when the role cannot be changed.
 
 ### Design Decisions
 
@@ -39,6 +39,7 @@ The roles page (`/settings/roles`) already documents the intended differentiatio
 - **Self-demotion prevention**: An Owner cannot demote themselves via `updateMemberRole` to prevent accidental family lockout. A future ownership-transfer flow will handle that intentionally.
 - **Caller role passed to `MemberAdminActionsPanel`**: The panel currently has no awareness of who is viewing it. Rather than fetching inside the component, the member profile page (which already has access to the management context) will pass `callerRole` as a prop.
 - **`requireOwnerMembership` is a sibling helper to `requireAdminMembership`**: Keeps permission logic co-located and consistent in `family-member.ts`.
+- **Hide Role management when not actionable**: Instead of showing disabled role buttons, the Role management card is hidden when the caller is not an Owner or the viewed member is already an Owner.
 - **Role badge on roles page uses `Badge` component**: The roles page still uses hand-rolled badge spans. It will be updated to use the `Badge` + role-color variant consistent with the rest of the app.
 
 ### User Stories
@@ -93,7 +94,7 @@ The roles page (`/settings/roles`) already documents the intended differentiatio
 
 ### Phase 3: Client — wire role buttons and apply Owner gate
 
-**Goal:** Role buttons call `updateMemberRole`, are disabled for non-owners, and update the UI optimistically.
+**Goal:** Role buttons call `updateMemberRole`, render only when actionable, and update the UI optimistically.
 
 #### Tasks
 
@@ -110,7 +111,7 @@ The roles page (`/settings/roles`) already documents the intended differentiatio
   ```
 - [x] Connect each role button (`Member`, `Admin`) to call `updateRole.mutate({ memberId: member.id, role: ... })`
 - [x] Remove the `Owner` button from the role picker (assigning Owner is not supported here)
-- [x] Disable all role buttons when `!isCallerOwner` and add a visible tooltip or note: "Only the family owner can change roles"
+- [x] Hide the entire Role management block when role changes are not actionable (for example, when the caller is not an Owner)
 - [x] Disable role buttons while `updateRole.isPending`
 - [x] Show inline error if `updateRole.error` is set
 
@@ -132,7 +133,7 @@ The roles page (`/settings/roles`) already documents the intended differentiatio
 - [ ] An Owner can demote an Admin to Member and the change persists
 - [ ] An Owner cannot demote themselves via `updateMemberRole` (server rejects with a clear error)
 - [ ] An Owner cannot target another Owner via `updateMemberRole` (server rejects)
-- [ ] Role buttons in the admin panel are disabled/hidden when the viewer is not an Owner
+- [ ] Role management block is hidden when role changes are not controllable (viewer is not Owner or target member is Owner)
 - [ ] Role buttons call the mutation and invalidate the correct queries on success
 - [ ] The roles settings page shows real member data (not mock)
 - [ ] Role badges on the roles page use the `Badge` component
