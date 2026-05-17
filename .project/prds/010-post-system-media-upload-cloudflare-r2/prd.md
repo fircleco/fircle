@@ -1,6 +1,6 @@
 ---
 title: "Post System - Live Creation, Media Uploads, and Cloudflare R2 Storage"
-status: draft
+status: in-progress
 references:
   - type: doc
     url: .project/brief.md
@@ -60,15 +60,15 @@ This PRD intentionally sets the storage layer up for future Bring Your Own Stora
 
 #### Tasks
 
-- [ ] Update `prisma/schema.prisma`:
-  - [ ] Replace scaffold `Post` shape (`name`) with domain fields including `caption` (optional), `type`, and author relation to `FamilyMember`.
-  - [ ] Add `PostType` enum (`TEXT`, `PHOTO`, `VIDEO`, `MIXED`).
-  - [ ] Add `PostMedia` model with fields: `id`, `postId`, `provider`, `bucket`, `objectKey`, `url`, `mimeType`, `sizeBytes`, `width`, `height`, `durationMs`, `caption`, `sortOrder`, `createdAt`.
-  - [ ] Add `PostMediaType` enum (`IMAGE`, `VIDEO`).
-  - [ ] Add indexes needed for feed and media ordering (`postId`, `sortOrder`, `createdAt`).
-- [ ] Generate and apply Prisma migration for local/dev.
-- [ ] Regenerate Prisma client in `generated/prisma`.
-- [ ] Update any server types importing old `Post` fields to align with the new schema.
+- [x] Update `prisma/schema.prisma`:
+  - [x] Replace scaffold `Post` shape (`name`) with domain fields including `caption` (optional), `type`, and author relation to `FamilyMember`.
+  - [x] Add `PostType` enum (`TEXT`, `PHOTO`, `VIDEO`, `MIXED`).
+  - [x] Add `PostMedia` model with fields: `id`, `postId`, `provider`, `bucket`, `objectKey`, `url`, `mimeType`, `sizeBytes`, `width`, `height`, `durationMs`, `caption`, `sortOrder`, `createdAt`.
+  - [x] Add `PostMediaType` enum (`IMAGE`, `VIDEO`).
+  - [x] Add indexes needed for feed and media ordering (`postId`, `sortOrder`, `createdAt`).
+- [x] Generate and apply Prisma migration for local/dev.
+- [x] Regenerate Prisma client in `generated/prisma`.
+- [x] Update any server types importing old `Post` fields to align with the new schema.
 
 ### Phase 2: Storage Abstraction and R2 Adapter
 

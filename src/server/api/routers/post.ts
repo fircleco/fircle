@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 
 import {
   createTRPCRouter,
@@ -16,12 +17,31 @@ export const postRouter = createTRPCRouter({
     }),
 
   create: protectedProcedure
-    .input(z.object({ name: z.string().min(1) }))
+    .input(
+      z.object({
+        caption: z.string().trim().max(5000).optional(),
+        type: z.enum(["TEXT", "PHOTO", "VIDEO", "MIXED"]).default("TEXT"),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
+      const member = await ctx.db.familyMember.findFirst({
+        where: { userId: ctx.session.user.id },
+        select: { id: true },
+        orderBy: { createdAt: "asc" },
+      });
+
+      if (!member) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You must be a family member to create a post.",
+        });
+      }
+
       return ctx.db.post.create({
         data: {
-          name: input.name,
-          createdBy: { connect: { id: ctx.session.user.id } },
+          caption: input.caption,
+          type: input.type,
+          authorMember: { connect: { id: member.id } },
         },
       });
     }),
@@ -29,7 +49,7 @@ export const postRouter = createTRPCRouter({
   getLatest: protectedProcedure.query(async ({ ctx }) => {
     const post = await ctx.db.post.findFirst({
       orderBy: { createdAt: "desc" },
-      where: { createdBy: { id: ctx.session.user.id } },
+      where: { authorMember: { userId: ctx.session.user.id } },
     });
 
     return post ?? null;

@@ -33,6 +33,18 @@ enum InviteStatus {
   REVOKED
 }
 
+enum PostType {
+  TEXT
+  PHOTO
+  VIDEO
+  MIXED
+}
+
+enum PostMediaType {
+  IMAGE
+  VIDEO
+}
+
 model Family {
   id          String         @id @default(cuid())
   name        String
@@ -55,6 +67,7 @@ model FamilyMember {
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   claimInvites Invite[] @relation("ClaimMemberInvites")
+  posts     Post[]
 
   family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
   user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
@@ -93,15 +106,42 @@ model Invite {
 }
 
 model Post {
-  id        Int      @id @default(autoincrement())
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String      @id @default(cuid())
+  caption        String?
+  type           PostType
+  authorMemberId String
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  authorMember   FamilyMember @relation(fields: [authorMemberId], references: [id], onDelete: Cascade)
+  media          PostMedia[]
 
-  createdBy   User   @relation(fields: [createdById], references: [id])
-  createdById String
+  @@index([authorMemberId])
+  @@index([createdAt])
+  @@index([authorMemberId, createdAt])
+}
 
-  @@index([name])
+model PostMedia {
+  id         String        @id @default(cuid())
+  postId     String
+  type       PostMediaType
+  provider   String
+  bucket     String
+  objectKey  String
+  url        String
+  mimeType   String
+  sizeBytes  Int
+  width      Int?
+  height     Int?
+  durationMs Int?
+  caption    String?
+  sortOrder  Int
+  createdAt  DateTime      @default(now())
+  post       Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@index([sortOrder])
+  @@index([createdAt])
+  @@index([postId, sortOrder])
 }
 
 // Necessary for Next auth
@@ -139,7 +179,6 @@ model User {
   password       String?
   accounts       Account[]
   sessions       Session[]
-  posts          Post[]
   memberships    FamilyMember[]
   createdInvites Invite[]       @relation("UserCreatedInvites")
   claimedInvites Invite[]       @relation("UserClaimedInvites")
