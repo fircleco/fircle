@@ -76,19 +76,19 @@ This PRD intentionally sets the storage layer up for future Bring Your Own Stora
 
 #### Tasks
 
-- [ ] Add storage contract module under `src/server/storage/`:
-  - [ ] Define `StorageProvider` interface (sign upload, build object URL/read URL, delete object).
-  - [ ] Define typed input/output shapes (`UploadIntentRequest`, `UploadIntentResponse`, `StoredObjectRef`).
-- [ ] Implement `R2StorageProvider` using S3-compatible signing for Cloudflare R2.
-- [ ] Add provider factory/resolver that selects provider from env (`STORAGE_DRIVER=r2`).
-- [ ] Add env variables to `src/env.js` and docs references:
-  - [ ] `STORAGE_DRIVER`
-  - [ ] `R2_ACCOUNT_ID`
-  - [ ] `R2_BUCKET`
-  - [ ] `R2_ACCESS_KEY_ID`
-  - [ ] `R2_SECRET_ACCESS_KEY`
-  - [ ] `R2_PUBLIC_BASE_URL` (or equivalent read URL base)
-- [ ] Ensure post/media code consumes only the storage contract, not provider-specific classes.
+- [x] Add storage contract module under `src/server/storage/`:
+  - [x] Define `StorageProvider` interface (sign upload, build object URL/read URL, delete object).
+  - [x] Define typed input/output shapes (`UploadIntentRequest`, `UploadIntentResponse`, `StoredObjectRef`).
+- [x] Implement `R2StorageProvider` using S3-compatible signing for Cloudflare R2.
+- [x] Add provider factory/resolver that selects provider from env (`STORAGE_DRIVER=r2`).
+- [x] Add env variables to `src/env.js` and docs references:
+  - [x] `STORAGE_DRIVER`
+  - [x] `R2_ACCOUNT_ID`
+  - [x] `R2_BUCKET`
+  - [x] `R2_ACCESS_KEY_ID`
+  - [x] `R2_SECRET_ACCESS_KEY`
+  - [x] `R2_PUBLIC_BASE_URL` (or equivalent read URL base)
+- [x] Ensure post/media code consumes only the storage contract, not provider-specific classes.
 
 ### Phase 3: Upload Intent API and Validation
 

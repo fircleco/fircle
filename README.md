@@ -42,6 +42,12 @@ Required variables:
 - `DATABASE_URL` (PostgreSQL connection string)
 - `AUTH_SECRET` (required in production, optional in development)
 - `NODE_ENV` (`development`, `test`, or `production`)
+- `STORAGE_DRIVER` (`r2`)
+- `R2_ACCOUNT_ID` (Cloudflare account id)
+- `R2_BUCKET` (R2 bucket name)
+- `R2_ACCESS_KEY_ID` (R2 API access key id)
+- `R2_SECRET_ACCESS_KEY` (R2 API secret access key)
+- `R2_PUBLIC_BASE_URL` (public read URL base for uploaded objects)
 
 Example:
 
@@ -49,6 +55,12 @@ Example:
 DATABASE_URL="postgresql://postgres:password@localhost:5432/fircle"
 AUTH_SECRET="dev-secret"
 NODE_ENV="development"
+STORAGE_DRIVER="r2"
+R2_ACCOUNT_ID="your-cloudflare-account-id"
+R2_BUCKET="fircle-media"
+R2_ACCESS_KEY_ID="your-r2-access-key-id"
+R2_SECRET_ACCESS_KEY="your-r2-secret-access-key"
+R2_PUBLIC_BASE_URL="https://media.example.com"
 ```
 
 ### 3. Start a local database
