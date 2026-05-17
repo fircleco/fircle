@@ -3,8 +3,10 @@ import { ImagePlus, Video } from "~/components/ui/icons";
 import { Avatar, AvatarFallback } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 
+export type ComposerOpenMode = "photo" | "video";
+
 type ComposerEntryProps = {
-  onOpenComposer?: () => void;
+  onOpenComposer?: (mode?: ComposerOpenMode) => void;
 };
 
 export function ComposerEntry({ onOpenComposer }: ComposerEntryProps) {
@@ -20,17 +22,29 @@ export function ComposerEntry({ onOpenComposer }: ComposerEntryProps) {
             type="button"
             variant="outline"
             className="h-10 w-full justify-start rounded-2xl px-4 text-muted-foreground"
-            onClick={onOpenComposer}
+            onClick={() => onOpenComposer?.()}
           >
             Share a memory...
           </Button>
 
           <div className="flex items-center gap-2">
-            <Button type="button" variant="ghost" size="sm" className="rounded-2xl">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="rounded-2xl"
+              onClick={() => onOpenComposer?.("photo")}
+            >
               <ImagePlus className="size-4" />
               Photo
             </Button>
-            <Button type="button" variant="ghost" size="sm" className="rounded-2xl">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="rounded-2xl"
+              onClick={() => onOpenComposer?.("video")}
+            >
               <Video className="size-4" />
               Video
             </Button>

@@ -39,6 +39,7 @@ export class R2StorageProvider implements StorageProvider {
     this.client = new S3Client({
       region: "auto",
       endpoint: `https://${env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+      forcePathStyle: true,
       credentials: {
         accessKeyId: env.R2_ACCESS_KEY_ID,
         secretAccessKey: env.R2_SECRET_ACCESS_KEY,
@@ -54,7 +55,6 @@ export class R2StorageProvider implements StorageProvider {
       Bucket: this.bucket,
       Key: normalizedKey,
       ContentType: input.mimeType,
-      ContentLength: input.sizeBytes,
     });
 
     const uploadUrl = await getSignedUrl(this.client, command, { expiresIn });

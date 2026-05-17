@@ -3,7 +3,9 @@ import { PlayCircle } from "~/components/ui/icons";
 type MixedMediaItem = {
   id: string;
   type: "image" | "video";
+  url: string;
   alt: string;
+  caption?: string;
   durationLabel?: string;
 };
 
@@ -43,35 +45,47 @@ export function PostMixedMediaStack({ items, onItemClick }: PostMixedMediaStackP
               zIndex: index + 1,
             }}
           >
-            <div className="h-full p-1.5 sm:p-3">
-              <div className="relative flex h-full items-end justify-between rounded-xl border border-border/70 bg-background p-3">
-                {item.type === "video" ? (
-                  <PlayCircle
-                    className="pointer-events-none absolute left-1/2 top-1/2 size-7 -translate-x-1/2 -translate-y-1/2 text-muted-foreground sm:size-10 fill-accent-foreground"
-                    aria-hidden="true"
-                  />
-                ) : null}
+            <div className="relative h-full">
+              {item.type === "video" ? (
+                <video
+                  src={item.url}
+                  muted
+                  playsInline
+                  preload="metadata"
+                  className="h-full w-full object-cover"
+                  aria-label={item.alt}
+                />
+              ) : (
+                <img src={item.url} alt={item.alt} className="h-full w-full object-cover" />
+              )}
 
+              <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/80 via-black/35 to-transparent p-3 text-white">
                 <p
-                  className={`text-xs text-muted-foreground ${
-                    item.type === "video" ? "max-w-[75%] truncate" : "max-w-full truncate"
-                  }`}
+                  className={`text-xs ${item.type === "video" ? "max-w-[75%]" : "max-w-full"} line-clamp-1 font-medium`}
                 >
                   {item.alt}
                 </p>
-
-                {item.type === "video" && item.durationLabel ? (
-                  <span className="absolute bottom-2 right-2 rounded-full border border-border bg-background/90 px-2 py-0.5 text-[11px] text-foreground">
-                    {item.durationLabel}
-                  </span>
-                ) : null}
-
-                {isTopCard && overflowCount > 0 ? (
-                  <span className="absolute right-2 top-2 rounded-full border border-border bg-background/90 px-2.5 py-1 text-[11px] font-medium text-foreground">
-                    +{overflowCount} more
-                  </span>
-                ) : null}
+                {item.caption ? <p className="mt-0.5 line-clamp-2 text-[11px] text-white/80">{item.caption}</p> : null}
               </div>
+
+              {item.type === "video" ? (
+                <PlayCircle
+                  className="pointer-events-none absolute left-1/2 top-1/2 size-7 -translate-x-1/2 -translate-y-1/2 text-white sm:size-10 fill-white/85"
+                  aria-hidden="true"
+                />
+              ) : null}
+
+              {item.type === "video" && item.durationLabel ? (
+                <span className="absolute bottom-2 right-2 rounded-full border border-white/30 bg-black/65 px-2 py-0.5 text-[11px] text-white">
+                  {item.durationLabel}
+                </span>
+              ) : null}
+
+              {isTopCard && overflowCount > 0 ? (
+                <span className="absolute right-2 top-2 rounded-full border border-white/30 bg-black/65 px-2.5 py-1 text-[11px] font-medium text-white">
+                  +{overflowCount} more
+                </span>
+              ) : null}
             </div>
           </article>
         );

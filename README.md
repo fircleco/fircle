@@ -73,6 +73,18 @@ Option A (Linux/macOS, or Windows via WSL):
 
 Option B: use your own PostgreSQL instance and set `DATABASE_URL` accordingly.
 
+### Cloudflare R2 CORS (required for browser uploads)
+
+Direct uploads from the browser to signed R2 URLs require bucket CORS rules.
+If uploads fail with a network/CORS-style error, configure the R2 bucket CORS to allow:
+
+- `AllowedOrigins`: your app origin (for local dev, `http://localhost:3000`)
+- `AllowedMethods`: `PUT`, `GET`, `HEAD`
+- `AllowedHeaders`: `content-type`
+- `ExposeHeaders`: `etag`
+
+You can add additional origins for staging/production as needed.
+
 ### 4. Apply schema
 
 For local development:

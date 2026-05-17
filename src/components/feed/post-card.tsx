@@ -19,6 +19,7 @@ type PostMediaItem = {
   type: "image" | "video";
   url: string;
   alt: string;
+  caption?: string;
   durationLabel?: string;
   taggedMembers?: { name: string; avatarUrl: string }[];
 };
@@ -175,6 +176,8 @@ export function PostCard({ post }: PostCardProps) {
             <PostVideoCard
               key={item.id}
               title={item.alt}
+              caption={item.caption}
+              url={item.url}
               durationLabel={item.durationLabel}
               onClick={() => {
                 const globalIdx = post.mediaItems.findIndex((m) => m.id === item.id);

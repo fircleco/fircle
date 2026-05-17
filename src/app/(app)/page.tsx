@@ -1,14 +1,70 @@
 "use client";
 
 import { ImageOff } from "~/components/ui/icons";
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 
 import { ComposerEntry } from "~/components/feed/composer-entry";
+import type { ComposerOpenMode } from "~/components/feed/composer-entry";
 import { PostCard } from "~/components/feed/post-card";
 import type { PostCardData } from "~/components/feed/post-card";
 import { PostComposerDialog } from "~/components/feed/post-composer-dialog";
+import { api } from "~/trpc/react";
 import { Button } from "~/components/ui/button";
-import { feedPosts } from "~/lib/mocks/feed";
+
+function formatCreatedAtLabel(dateInput: Date | string) {
+  const date = dateInput instanceof Date ? dateInput : new Date(dateInput);
+  const diffMs = Date.now() - date.getTime();
+  const diffMinutes = Math.floor(diffMs / 60000);
+
+  if (diffMinutes < 1) return "just now";
+  if (diffMinutes < 60) return `${diffMinutes}m ago`;
+
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `${diffHours}h ago`;
+
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays < 7) return `${diffDays}d ago`;
+
+  return date.toLocaleDateString();
+}
+
+function mapFeedItemToPostCardData(item: {
+  id: string;
+  type: "TEXT" | "PHOTO" | "VIDEO" | "MIXED";
+  author: { name: string; avatarUrl: string };
+  createdAt: Date | string;
+  caption: string | null;
+  mediaItems: Array<{
+    id: string;
+    type: string;
+    url: string;
+    alt: string;
+    durationLabel?: string;
+    caption?: string | null;
+  }>;
+}): PostCardData {
+  return {
+    id: item.id,
+    type: item.type.toLowerCase() as PostCardData["type"],
+    author: {
+      name: item.author.name,
+      avatarUrl: item.author.avatarUrl,
+    },
+    createdAtLabel: formatCreatedAtLabel(item.createdAt),
+    body: item.caption ?? "",
+    mediaItems: item.mediaItems.map((media) => ({
+      id: media.id,
+      type: media.type === "video" ? "video" : "image",
+      url: media.url,
+      alt: media.alt,
+      caption: media.caption ?? undefined,
+      durationLabel: media.durationLabel,
+    })),
+    taggedMembers: [],
+    reactionCount: 0,
+    commentCount: 0,
+  };
+}
 
 function FeedEmptyState() {
   return (
@@ -64,19 +120,40 @@ function FeedSkeletonList() {
 }
 
 export default function FeedPage() {
-  const posts = feedPosts as unknown as PostCardData[];
   const [composerOpen, setComposerOpen] = useState(false);
-  const [showSkeletons, setShowSkeletons] = useState(true);
+  const [composerMode, setComposerMode] = useState<ComposerOpenMode | undefined>(undefined);
 
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      setShowSkeletons(false);
-    }, 700);
+  const managementContext = api.invite.getManagementContext.useQuery(undefined, {
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
 
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, []);
+  const familyId = managementContext.data?.family?.id;
+
+  const feedQuery = api.post.getFeed.useQuery(
+    {
+      familyId: familyId ?? "",
+      limit: 20,
+    },
+    {
+      enabled: Boolean(familyId),
+      retry: false,
+      refetchOnWindowFocus: false,
+    },
+  );
+
+  const posts = useMemo(() => {
+    const items = feedQuery.data?.items ?? [];
+    return items.map(mapFeedItemToPostCardData);
+  }, [feedQuery.data?.items]);
+
+  const isLoading = managementContext.isLoading || (Boolean(familyId) && feedQuery.isLoading);
+  const hasNoFamily = !managementContext.isLoading && !familyId;
+
+  const openComposer = (mode?: ComposerOpenMode) => {
+    setComposerMode(mode);
+    setComposerOpen(true);
+  };
 
   return (
     <>
@@ -90,11 +167,28 @@ export default function FeedPage() {
           </header>
 
           <div className="supports-backdrop-filter:bg-background/80 sticky top-0 z-20 -mx-1 rounded-3xl bg-background/95 px-1 pb-2 pt-1 backdrop-blur">
-            <ComposerEntry onOpenComposer={() => setComposerOpen(true)} />
+            <ComposerEntry onOpenComposer={openComposer} />
           </div>
 
-          {showSkeletons ? (
+          {hasNoFamily ? (
+            <section className="rounded-3xl border border-dashed border-border/80 bg-card/70 px-6 py-10 text-center">
+              <h2 className="font-semibold text-lg tracking-tight">No family membership found</h2>
+              <p className="mx-auto mt-2 max-w-sm text-muted-foreground text-sm sm:text-base">
+                Join a family to start posting memories.
+              </p>
+            </section>
+          ) : isLoading ? (
             <FeedSkeletonList />
+          ) : feedQuery.error ? (
+            <section className="rounded-3xl border border-border/80 bg-card/70 px-6 py-10 text-center">
+              <h2 className="font-semibold text-lg tracking-tight">Unable to load feed</h2>
+              <p className="mx-auto mt-2 max-w-sm text-muted-foreground text-sm sm:text-base">
+                {feedQuery.error.message}
+              </p>
+              <Button type="button" className="mt-5" size="lg" onClick={() => feedQuery.refetch()}>
+                Retry
+              </Button>
+            </section>
           ) : posts.length > 0 ? (
             <FeedList posts={posts} />
           ) : (
@@ -103,7 +197,12 @@ export default function FeedPage() {
         </div>
       </section>
 
-      <PostComposerDialog open={composerOpen} onOpenChange={setComposerOpen} />
+      <PostComposerDialog
+        open={composerOpen}
+        onOpenChange={setComposerOpen}
+        familyId={familyId}
+        initialMode={composerMode}
+      />
     </>
   );
 }

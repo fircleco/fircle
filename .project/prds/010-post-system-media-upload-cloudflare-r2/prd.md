@@ -126,17 +126,17 @@ This PRD intentionally sets the storage layer up for future Bring Your Own Stora
 
 #### Tasks
 
-- [ ] Update `src/components/feed/post-composer-dialog.tsx`:
-  - [ ] Add file input handling for photos/videos.
-  - [ ] Show selected media previews and allow removal before publish.
-  - [ ] Add optional caption input for each selected media item.
-  - [ ] Call upload intent API, perform direct uploads, and track per-file progress/errors.
-  - [ ] Publish via `api.post.create` after successful uploads.
-- [ ] Update `src/components/feed/composer-entry.tsx` shortcuts to open composer with intended media mode.
-- [ ] Replace mocked feed in `src/app/(app)/page.tsx` with `api.post.getFeed` query.
-- [ ] Update media rendering components (`post-media-grid`, `post-video-card`, viewer) to consume real media URLs and metadata.
-- [ ] Render per-media captions in gallery/carousel/viewer contexts without replacing the post-level caption.
-- [ ] Preserve loading/empty/error states for good first-use UX.
+- [x] Update `src/components/feed/post-composer-dialog.tsx`:
+  - [x] Add file input handling for photos/videos.
+  - [x] Show selected media previews and allow removal before publish.
+  - [x] Add optional caption input for each selected media item.
+  - [x] Call upload intent API, perform direct uploads, and track per-file progress/errors.
+  - [x] Publish via `api.post.create` after successful uploads.
+- [x] Update `src/components/feed/composer-entry.tsx` shortcuts to open composer with intended media mode.
+- [x] Replace mocked feed in `src/app/(app)/page.tsx` with `api.post.getFeed` query.
+- [x] Update media rendering components (`post-media-grid`, `post-video-card`, viewer) to consume real media URLs and metadata.
+- [x] Render per-media captions in gallery/carousel/viewer contexts without replacing the post-level caption.
+- [x] Preserve loading/empty/error states for good first-use UX.
 
 ### Phase 6: Security, Reliability, and Test Coverage
 
