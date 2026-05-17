@@ -24,7 +24,7 @@ function isAllowedMediaUrl(value: string) {
   return isAbsoluteUrl(trimmedValue) || trimmedValue.startsWith("/api/media/");
 }
 
-const createPostInputSchema = z
+export const createPostInputSchema = z
   .object({
     familyId: z.string().cuid(),
     caption: z.string().trim().max(5000).optional(),
@@ -87,7 +87,7 @@ const createPostInputSchema = z
     }
   });
 
-const getFeedInputSchema = z.object({
+export const getFeedInputSchema = z.object({
   familyId: z.string().cuid(),
   limit: z.number().int().min(1).max(50).default(20),
   cursor: z.string().optional(),
@@ -147,6 +147,129 @@ function toReadUrl(input: { provider: string; bucket: string; objectKey: string;
     bucket: input.bucket,
     objectKey: input.objectKey,
   });
+}
+
+function formatDuration(durationMs: number | null | undefined) {
+  if (durationMs === null || durationMs === undefined) {
+    return undefined;
+  }
+
+  return `${Math.floor(durationMs / 60000)
+    .toString()
+    .padStart(2, "0")}:${Math.floor((durationMs % 60000) / 1000)
+    .toString()
+    .padStart(2, "0")}`;
+}
+
+function mapMediaRecord<T extends {
+  id: string;
+  type: "IMAGE" | "VIDEO";
+  provider: string;
+  bucket: string;
+  objectKey: string;
+  url: string;
+  mimeType: string;
+  sizeBytes: number;
+  width: number | null;
+  height: number | null;
+  durationMs: number | null;
+  caption: string | null;
+  sortOrder: number;
+  createdAt: Date;
+}>(media: T) {
+  const readUrl = toReadUrl({
+    provider: media.provider,
+    bucket: media.bucket,
+    objectKey: media.objectKey,
+    fallbackUrl: media.url,
+  });
+
+  return {
+    id: media.id,
+    type: media.type,
+    provider: media.provider,
+    bucket: media.bucket,
+    objectKey: media.objectKey,
+    url: readUrl,
+    mimeType: media.mimeType,
+    sizeBytes: media.sizeBytes,
+    width: media.width,
+    height: media.height,
+    durationMs: media.durationMs,
+    caption: media.caption,
+    sortOrder: media.sortOrder,
+    createdAt: media.createdAt,
+  };
+}
+
+function mapFeedMediaItem<T extends {
+  id: string;
+  type: "IMAGE" | "VIDEO";
+  provider: string;
+  bucket: string;
+  objectKey: string;
+  url: string;
+  durationMs: number | null;
+  caption: string | null;
+}>(media: T, postCaption: string | null) {
+  const readUrl = toReadUrl({
+    provider: media.provider,
+    bucket: media.bucket,
+    objectKey: media.objectKey,
+    fallbackUrl: media.url,
+  });
+
+  return {
+    id: media.id,
+    type: media.type === "IMAGE" ? "image" : "video",
+    url: readUrl,
+    alt: media.caption ?? postCaption ?? "Post media",
+    durationLabel: formatDuration(media.durationMs),
+    caption: media.caption,
+  };
+}
+
+function mapPostResponse(post: {
+  id: string;
+  type: "TEXT" | "PHOTO" | "VIDEO" | "MIXED";
+  caption: string | null;
+  createdAt: Date;
+  authorMember: { id: string; name: string; image: string | null };
+  media: Array<{
+    id: string;
+    type: "IMAGE" | "VIDEO";
+    provider: string;
+    bucket: string;
+    objectKey: string;
+    url: string;
+    mimeType: string;
+    sizeBytes: number;
+    width: number | null;
+    height: number | null;
+    durationMs: number | null;
+    caption: string | null;
+    sortOrder: number;
+    createdAt: Date;
+  }>;
+}) {
+  return {
+    id: post.id,
+    type: post.type,
+    caption: post.caption,
+    body: post.caption ?? "",
+    createdAt: post.createdAt,
+    createdAtLabel: post.createdAt.toISOString(),
+    author: {
+      id: post.authorMember.id,
+      name: post.authorMember.name,
+      avatarUrl: post.authorMember.image ?? "",
+    },
+    media: post.media.map((media) => mapMediaRecord(media)),
+    mediaItems: post.media.map((media) => mapFeedMediaItem(media, post.caption)),
+    taggedMembers: [],
+    reactionCount: 0,
+    commentCount: 0,
+  };
 }
 
 async function requireFamilyMembership(familyId: string, userId: string, db: typeof import("~/server/db").db) {
@@ -257,71 +380,7 @@ export const postRouter = createTRPCRouter({
           });
         }
 
-        return {
-          id: createdPost.id,
-          type: createdPost.type,
-          caption: createdPost.caption,
-          body: createdPost.caption ?? "",
-          createdAt: createdPost.createdAt,
-          createdAtLabel: createdPost.createdAt.toISOString(),
-          author: {
-            id: createdPost.authorMember.id,
-            name: createdPost.authorMember.name,
-            avatarUrl: createdPost.authorMember.image ?? "",
-          },
-          media: createdPost.media.map((media) => {
-            const readUrl = toReadUrl({
-              provider: media.provider,
-              bucket: media.bucket,
-              objectKey: media.objectKey,
-              fallbackUrl: media.url,
-            });
-
-            return {
-              id: media.id,
-              type: media.type,
-              provider: media.provider,
-              bucket: media.bucket,
-              objectKey: media.objectKey,
-              url: readUrl,
-              mimeType: media.mimeType,
-              sizeBytes: media.sizeBytes,
-              width: media.width,
-              height: media.height,
-              durationMs: media.durationMs,
-              caption: media.caption,
-              sortOrder: media.sortOrder,
-              createdAt: media.createdAt,
-            };
-          }),
-          mediaItems: createdPost.media.map((media) => {
-            const readUrl = toReadUrl({
-              provider: media.provider,
-              bucket: media.bucket,
-              objectKey: media.objectKey,
-              fallbackUrl: media.url,
-            });
-
-            return {
-              id: media.id,
-              type: media.type === "IMAGE" ? "image" : "video",
-              url: readUrl,
-              alt: media.caption ?? createdPost.caption ?? "Post media",
-              durationLabel:
-                media.durationMs !== null && media.durationMs !== undefined
-                  ? `${Math.floor(media.durationMs / 60000)
-                      .toString()
-                      .padStart(2, "0")}:${Math.floor((media.durationMs % 60000) / 1000)
-                      .toString()
-                      .padStart(2, "0")}`
-                  : undefined,
-              caption: media.caption,
-            };
-          }),
-          taggedMembers: [],
-          reactionCount: 0,
-          commentCount: 0,
-        };
+        return mapPostResponse(createdPost);
       });
     }),
 
@@ -399,71 +458,7 @@ export const postRouter = createTRPCRouter({
       : null;
 
     return {
-      items: items.map((post) => ({
-        id: post.id,
-        type: post.type,
-        caption: post.caption,
-        body: post.caption ?? "",
-        createdAt: post.createdAt,
-        createdAtLabel: post.createdAt.toISOString(),
-        author: {
-          id: post.authorMember.id,
-          name: post.authorMember.name,
-          avatarUrl: post.authorMember.image ?? "",
-        },
-        media: post.media.map((media) => {
-          const readUrl = toReadUrl({
-            provider: media.provider,
-            bucket: media.bucket,
-            objectKey: media.objectKey,
-            fallbackUrl: media.url,
-          });
-
-          return {
-            id: media.id,
-            type: media.type,
-            provider: media.provider,
-            bucket: media.bucket,
-            objectKey: media.objectKey,
-            url: readUrl,
-            mimeType: media.mimeType,
-            sizeBytes: media.sizeBytes,
-            width: media.width,
-            height: media.height,
-            durationMs: media.durationMs,
-            caption: media.caption,
-            sortOrder: media.sortOrder,
-            createdAt: media.createdAt,
-          };
-        }),
-        mediaItems: post.media.map((media) => {
-          const readUrl = toReadUrl({
-            provider: media.provider,
-            bucket: media.bucket,
-            objectKey: media.objectKey,
-            fallbackUrl: media.url,
-          });
-
-          return {
-            id: media.id,
-            type: media.type === "IMAGE" ? "image" : "video",
-            url: readUrl,
-            alt: media.caption ?? post.caption ?? "Post media",
-            durationLabel:
-              media.durationMs !== null && media.durationMs !== undefined
-                ? `${Math.floor(media.durationMs / 60000)
-                    .toString()
-                    .padStart(2, "0")}:${Math.floor((media.durationMs % 60000) / 1000)
-                    .toString()
-                    .padStart(2, "0")}`
-                : undefined,
-            caption: media.caption,
-          };
-        }),
-        taggedMembers: [],
-        reactionCount: 0,
-        commentCount: 0,
-      })),
+      items: items.map((post) => mapPostResponse(post)),
       nextCursor,
     };
   }),

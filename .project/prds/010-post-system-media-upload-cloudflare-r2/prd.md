@@ -150,12 +150,12 @@ This PRD intentionally sets the storage layer up for future Bring Your Own Stora
 
 #### Tasks
 
-- [ ] Add server-side authorization checks for post create/feed read by family membership.
-- [ ] Enforce max media count and allowed file types on both intent and mutation boundaries.
-- [ ] Add unit tests for post input validation and storage key generation.
-- [ ] Add integration tests for post creation with mixed media metadata persistence.
-- [ ] Add UI tests for composer happy path and publish blocking on failed uploads.
-- [ ] Ensure no secrets are logged in error paths.
+- [x] Add server-side authorization checks for post create/feed read by family membership.
+- [x] Enforce max media count and allowed file types on both intent and mutation boundaries.
+- [x] Add unit tests for post input validation and storage key generation.
+- [x] Add integration-style tests for post creation with mixed media metadata persistence.
+- [x] Add UI behavior tests for composer publish gating (text-only happy path and block-on-upload-error) via extracted composer logic helpers.
+- [x] Ensure no secrets are logged in error paths.
 
 ## Acceptance Criteria
 

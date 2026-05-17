@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "~/trpc/react";
 import { Button } from "~/components/ui/button";
 import type { ComposerOpenMode } from "./composer-entry";
+import { canPublishComposerPost } from "./post-composer-logic";
 
 type UploadIntentItem = {
   provider: string;
@@ -118,15 +119,17 @@ export function PostComposerDialog({
   const trpcUtils = api.useUtils();
   const createPost = api.post.create.useMutation();
 
-  const canPublish = useMemo(() => {
-    if (!familyId || isUploading || createPost.isPending) {
-      return false;
-    }
-
-    const hasContent = caption.trim().length > 0 || selectedMedia.length > 0;
-    const hasUploadErrors = selectedMedia.some((item) => item.uploadError);
-    return hasContent && !hasUploadErrors;
-  }, [caption, createPost.isPending, familyId, isUploading, selectedMedia]);
+  const canPublish = useMemo(
+    () =>
+      canPublishComposerPost({
+        familyId,
+        caption,
+        selectedMedia,
+        isUploading,
+        isPending: createPost.isPending,
+      }),
+    [caption, createPost.isPending, familyId, isUploading, selectedMedia],
+  );
 
   const revokeObjectUrls = useCallback((media: SelectedMedia[]) => {
     media.forEach((item) => {
