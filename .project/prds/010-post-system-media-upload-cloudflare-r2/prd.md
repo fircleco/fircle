@@ -96,14 +96,14 @@ This PRD intentionally sets the storage layer up for future Bring Your Own Stora
 
 #### Tasks
 
-- [ ] Add authenticated upload route under `src/app/api/` (for example `src/app/api/uploads/intent/route.ts`).
-- [ ] Validate request payload on server:
-  - [ ] accepted mime types for image/video
-  - [ ] max file size per type
-  - [ ] max files per post
-- [ ] Return signed upload URLs plus required headers/fields and canonical object references.
-- [ ] Scope object keys by family/member and date prefix to avoid collisions.
-- [ ] Add explicit error responses for unsupported media, oversize files, and auth/permission failures.
+- [x] Add authenticated upload route under `src/app/api/` (for example `src/app/api/uploads/intent/route.ts`).
+- [x] Validate request payload on server:
+  - [x] accepted mime types for image/video
+  - [x] max file size per type
+  - [x] max files per post
+- [x] Return signed upload URLs plus required headers/fields and canonical object references.
+- [x] Scope object keys by family/member and date prefix to avoid collisions.
+- [x] Add explicit error responses for unsupported media, oversize files, and auth/permission failures.
 
 ### Phase 4: tRPC Post Mutations and Queries
 
