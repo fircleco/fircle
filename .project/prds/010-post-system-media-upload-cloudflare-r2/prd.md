@@ -111,14 +111,14 @@ This PRD intentionally sets the storage layer up for future Bring Your Own Stora
 
 #### Tasks
 
-- [ ] Replace scaffold procedures in `src/server/api/routers/post.ts`:
-  - [ ] remove scaffold-only `hello` and `getSecretMessage` procedures.
-  - [ ] implement `create` mutation accepting caption, type, and uploaded media object references including optional per-media captions.
-  - [ ] in `create`, resolve caller's `FamilyMember` membership and enforce family access.
-  - [ ] persist `Post` and ordered `PostMedia` records transactionally.
-- [ ] Implement `getFeed` query with cursor pagination ordered by newest first.
-- [ ] Include author identity (member name/avatar) and media records, including per-media captions, in feed response.
-- [ ] Keep API response shapes aligned with feed UI component needs.
+- [x] Replace scaffold procedures in `src/server/api/routers/post.ts`:
+  - [x] remove scaffold-only `hello` and `getSecretMessage` procedures.
+  - [x] implement `create` mutation accepting caption, type, and uploaded media object references including optional per-media captions.
+  - [x] in `create`, resolve caller's `FamilyMember` membership and enforce family access.
+  - [x] persist `Post` and ordered `PostMedia` records transactionally.
+- [x] Implement `getFeed` query with cursor pagination ordered by newest first.
+- [x] Include author identity (member name/avatar) and media records, including per-media captions, in feed response.
+- [x] Keep API response shapes aligned with feed UI component needs.
 
 ### Phase 5: Composer and Feed Integration
 
