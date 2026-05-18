@@ -93,6 +93,11 @@ export const getFeedInputSchema = z.object({
   cursor: z.string().optional(),
 });
 
+export const getPostByIdInputSchema = z.object({
+  familyId: z.string().cuid(),
+  postId: z.string().cuid(),
+});
+
 function parseCursor(cursor?: string) {
   if (!cursor) {
     return null;
@@ -382,6 +387,59 @@ export const postRouter = createTRPCRouter({
 
         return mapPostResponse(createdPost);
       });
+    }),
+
+  getById: protectedProcedure
+    .input(getPostByIdInputSchema)
+    .query(async ({ ctx, input }) => {
+      await requireFamilyMembership(input.familyId, ctx.session.user.id, ctx.db);
+
+      const post = await ctx.db.post.findFirst({
+        where: {
+          id: input.postId,
+          authorMember: {
+            familyId: input.familyId,
+          },
+        },
+        select: {
+          id: true,
+          type: true,
+          caption: true,
+          createdAt: true,
+          authorMember: {
+            select: {
+              id: true,
+              name: true,
+              image: true,
+            },
+          },
+          media: {
+            orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+            select: {
+              id: true,
+              type: true,
+              provider: true,
+              bucket: true,
+              objectKey: true,
+              url: true,
+              mimeType: true,
+              sizeBytes: true,
+              width: true,
+              height: true,
+              durationMs: true,
+              caption: true,
+              sortOrder: true,
+              createdAt: true,
+            },
+          },
+        },
+      });
+
+      if (!post) {
+        return null;
+      }
+
+      return mapPostResponse(post);
     }),
 
   getFeed: protectedProcedure.input(getFeedInputSchema).query(async ({ ctx, input }) => {

@@ -8,8 +8,73 @@ import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import { PostCard } from "~/components/feed/post-card";
 import type { PostCardData } from "~/components/feed/post-card";
-import { feedPosts, postComments } from "~/lib/mocks/feed";
-import type { PostComment } from "~/lib/mocks/feed";
+import { api } from "~/trpc/react";
+
+type PostComment = {
+  id: string;
+  author: {
+    name: string;
+    avatarUrl: string;
+  };
+  createdAtLabel: string;
+  body: string;
+  reactionCount: number;
+};
+
+function formatCreatedAtLabel(dateInput: Date | string) {
+  const date = dateInput instanceof Date ? dateInput : new Date(dateInput);
+  const diffMs = Date.now() - date.getTime();
+  const diffMinutes = Math.floor(diffMs / 60000);
+
+  if (diffMinutes < 1) return "just now";
+  if (diffMinutes < 60) return `${diffMinutes}m ago`;
+
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `${diffHours}h ago`;
+
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays < 7) return `${diffDays}d ago`;
+
+  return date.toLocaleDateString();
+}
+
+function mapPostToPostCardData(item: {
+  id: string;
+  type: "TEXT" | "PHOTO" | "VIDEO" | "MIXED";
+  author: { name: string; avatarUrl: string };
+  createdAt: Date | string;
+  caption: string | null;
+  mediaItems: Array<{
+    id: string;
+    type: string;
+    url: string;
+    alt: string;
+    durationLabel?: string;
+    caption?: string | null;
+  }>;
+}): PostCardData {
+  return {
+    id: item.id,
+    type: item.type.toLowerCase() as PostCardData["type"],
+    author: {
+      name: item.author.name,
+      avatarUrl: item.author.avatarUrl,
+    },
+    createdAtLabel: formatCreatedAtLabel(item.createdAt),
+    body: item.caption ?? "",
+    mediaItems: item.mediaItems.map((media) => ({
+      id: media.id,
+      type: media.type === "video" ? "video" : "image",
+      url: media.url,
+      alt: media.alt,
+      caption: media.caption ?? undefined,
+      durationLabel: media.durationLabel,
+    })),
+    taggedMembers: [],
+    reactionCount: 0,
+    commentCount: 0,
+  };
+}
 
 function getInitials(name: string) {
   return name
@@ -133,9 +198,95 @@ function CommentInput() {
 export default function SinglePostPage() {
   const router = useRouter();
   const params = useParams<{ postId: string }>();
+  const postId = params.postId;
 
-  const post = feedPosts.find((p) => p.id === params.postId) as PostCardData | undefined;
-  const comments = postComments[params.postId] ?? [];
+  const managementContext = api.invite.getManagementContext.useQuery(undefined, {
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+
+  const familyId = managementContext.data?.family?.id;
+
+  const postQuery = api.post.getById.useQuery(
+    {
+      familyId: familyId ?? "",
+      postId,
+    },
+    {
+      enabled: Boolean(familyId && postId),
+      retry: false,
+      refetchOnWindowFocus: false,
+    },
+  );
+
+  const post = postQuery.data ? mapPostToPostCardData(postQuery.data) : undefined;
+  const comments: PostComment[] = [];
+
+  const isLoading = managementContext.isLoading || (Boolean(familyId) && postQuery.isLoading);
+  const hasNoFamily = !managementContext.isLoading && !familyId;
+
+  if (isLoading) {
+    return (
+      <section className="mx-auto w-full max-w-2xl px-4 py-8 sm:px-6">
+        <div className="animate-pulse space-y-4">
+          <div className="h-9 w-20 rounded-2xl bg-muted" />
+          <div className="rounded-3xl border border-border/80 bg-card/90 p-4 sm:p-5">
+            <div className="h-5 w-40 rounded-full bg-muted" />
+            <div className="mt-4 h-4 w-full rounded-full bg-muted" />
+            <div className="mt-2 h-4 w-3/4 rounded-full bg-muted" />
+            <div className="mt-4 aspect-video rounded-2xl bg-muted/80" />
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (hasNoFamily) {
+    return (
+      <section className="mx-auto w-full max-w-2xl px-4 py-8 sm:px-6">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="mb-6 -ml-1 rounded-2xl"
+          onClick={() => router.back()}
+        >
+          <ArrowLeft className="size-4" />
+          Back
+        </Button>
+        <div className="rounded-3xl border border-dashed border-border/80 bg-card/70 px-6 py-12 text-center">
+          <p className="font-semibold text-lg">No family membership found</p>
+          <p className="mt-1 text-muted-foreground text-sm">
+            Join a family to view and comment on posts.
+          </p>
+        </div>
+      </section>
+    );
+  }
+
+  if (postQuery.error) {
+    return (
+      <section className="mx-auto w-full max-w-2xl px-4 py-8 sm:px-6">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="mb-6 -ml-1 rounded-2xl"
+          onClick={() => router.back()}
+        >
+          <ArrowLeft className="size-4" />
+          Back
+        </Button>
+        <div className="rounded-3xl border border-border/80 bg-card/70 px-6 py-12 text-center">
+          <p className="font-semibold text-lg">Unable to load post</p>
+          <p className="mt-1 text-muted-foreground text-sm">{postQuery.error.message}</p>
+          <Button type="button" className="mt-4" onClick={() => postQuery.refetch()}>
+            Retry
+          </Button>
+        </div>
+      </section>
+    );
+  }
 
   if (!post) {
     return (
