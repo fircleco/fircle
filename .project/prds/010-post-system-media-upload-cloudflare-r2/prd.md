@@ -1,6 +1,6 @@
 ---
 title: "Post System - Live Creation, Media Uploads, and Cloudflare R2 Storage"
-status: in-progress
+status: completed
 references:
   - type: doc
     url: .project/brief.md
@@ -159,12 +159,12 @@ This PRD intentionally sets the storage layer up for future Bring Your Own Stora
 
 ## Acceptance Criteria
 
-- [ ] Authenticated family members can create text-only, photo-only, video-only, and mixed-media posts from the composer.
-- [ ] Media uploads go directly to Cloudflare R2 using short-lived signed upload intents from the app backend.
-- [ ] Persisted post media records include provider-agnostic object metadata (`provider`, `bucket`, `objectKey`, `mimeType`, `sizeBytes`) and display URL.
-- [ ] Persisted post media records can store and return optional per-media captions distinct from the post caption.
-- [ ] Feed renders live posts from database data (not local mocks) with correct media ordering and author identity.
-- [ ] Feed and viewer UI can display per-media captions for mixed-photo or mixed-video posts without losing the overall post caption.
-- [ ] Upload and create flows reject unsupported mime types, oversized files, and over-limit media counts with clear errors.
-- [ ] Storage implementation is isolated behind an internal provider interface so adding a second provider does not require changing composer/feed domain logic.
-- [ ] Existing invite/member/role features continue to function without regression.
+- [x] Authenticated family members can create text-only, photo-only, video-only, and mixed-media posts from the composer.
+- [x] Media uploads go directly to Cloudflare R2 using short-lived signed upload intents from the app backend.
+- [x] Persisted post media records include provider-agnostic object metadata (`provider`, `bucket`, `objectKey`, `mimeType`, `sizeBytes`) and display URL.
+- [x] Persisted post media records can store and return optional per-media captions distinct from the post caption.
+- [x] Feed renders live posts from database data (not local mocks) with correct media ordering and author identity.
+- [x] Feed and viewer UI can display per-media captions for mixed-photo or mixed-video posts without losing the overall post caption.
+- [x] Upload and create flows reject unsupported mime types, oversized files, and over-limit media counts with clear errors.
+- [x] Storage implementation is isolated behind an internal provider interface so adding a second provider does not require changing composer/feed domain logic.
+- [x] Existing invite/member/role features continue to function without regression.
