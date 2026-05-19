@@ -22,6 +22,27 @@ function getGridClass(count: number) {
   return "grid-cols-2";
 }
 
+function getTileRadiusClass(count: number, index: number) {
+  if (count <= 1) {
+    return "rounded-2xl";
+  }
+
+  if (count === 2) {
+    return index === 0 ? "rounded-l-2xl" : "rounded-r-2xl";
+  }
+
+  if (count === 3) {
+    if (index === 0) return "rounded-tl-2xl";
+    if (index === 1) return "rounded-tr-2xl";
+    return "rounded-b-2xl";
+  }
+
+  if (index === 0) return "rounded-tl-2xl";
+  if (index === 1) return "rounded-tr-2xl";
+  if (index === 2) return "rounded-bl-2xl";
+  return "rounded-br-2xl";
+}
+
 export function PostMediaGrid({ items, onItemClick }: PostMediaGridProps) {
   if (items.length === 0) {
     return null;
@@ -31,9 +52,10 @@ export function PostMediaGrid({ items, onItemClick }: PostMediaGridProps) {
   const overflowCount = Math.max(items.length - visibleItems.length, 0);
 
   return (
-    <div className={`grid gap-2 ${getGridClass(visibleItems.length)}`}>
+    <div className={`grid gap-0.5 ${getGridClass(visibleItems.length)}`}>
       {visibleItems.map((item, index) => {
         const shouldSpanTwo = visibleItems.length === 3 && index === 2;
+        const tileRadiusClass = getTileRadiusClass(visibleItems.length, index);
         const isVideo = item.type === "video";
         const isOverflowTile = overflowCount > 0 && index === visibleItems.length - 1;
         const overlayTitle = item.alt && item.alt !== item.caption ? item.alt : "";
@@ -44,7 +66,7 @@ export function PostMediaGrid({ items, onItemClick }: PostMediaGridProps) {
           <article
             key={item.id}
             onClick={() => onItemClick?.(index)}
-            className={`relative overflow-hidden rounded-2xl border border-border/80 bg-muted/40 ${
+            className={`relative overflow-hidden rounded border border-border/80 bg-muted/40 ${tileRadiusClass} ${
               shouldSpanTwo ? "col-span-2" : ""
             } ${onItemClick ? "cursor-pointer" : ""}`}
           >
