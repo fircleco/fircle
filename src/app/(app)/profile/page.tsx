@@ -8,10 +8,23 @@ import { EditProfileDialog } from "~/components/members/edit-profile-dialog";
 import { MemberProfileHeader } from "~/components/members/member-profile-header";
 import { Button } from "~/components/ui/button";
 import { FileText, Heart, Tag, UserRoundX } from "~/components/ui/icons";
-import { feedPosts } from "~/lib/mocks/feed";
 import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
 import type { FamilyMemberProfile } from "~/lib/mocks/family-members";
+import type { PostCardData } from "~/components/feed/post-card";
+
+function formatCreatedAtLabel(dateInput: Date | string) {
+  const date = dateInput instanceof Date ? dateInput : new Date(dateInput);
+  const diffMs = Date.now() - date.getTime();
+  const diffMinutes = Math.floor(diffMs / 60000);
+  if (diffMinutes < 1) return "just now";
+  if (diffMinutes < 60) return `${diffMinutes}m ago`;
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `${diffHours}h ago`;
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return date.toLocaleDateString();
+}
 
 type ProfileTab = "posts" | "tagged" | "liked";
 
@@ -54,13 +67,33 @@ export default function ProfilePage() {
       } satisfies FamilyMemberProfile)
     : undefined
 
-  // Filter posts by current member name (using mock feed data for now)
-  const memberPosts = member ? feedPosts.filter((p) => p.author.name === member.name) : []
-  const taggedPosts = member
-    ? feedPosts.filter((p) => p.taggedMembers.some((t) => t.name === member.name))
-    : []
-  // Liked posts: no mock data yet — shows empty state.
-  const likedPosts: typeof feedPosts = []
+  const memberPostsQuery = api.post.getPostsByMember.useQuery(
+    { familyId: familyId ?? "", memberId: member?.id ?? "", limit: 20 },
+    { enabled: Boolean(familyId && member?.id), retry: false, refetchOnWindowFocus: false },
+  );
+
+  const memberPosts: PostCardData[] = (memberPostsQuery.data?.items ?? []).map((item) => ({
+    id: item.id,
+    type: item.type.toLowerCase() as PostCardData["type"],
+    author: { name: item.author.name, avatarUrl: item.author.avatarUrl },
+    createdAtLabel: formatCreatedAtLabel(item.createdAt),
+    body: item.caption ?? "",
+    mediaItems: item.mediaItems.map((m) => ({
+      id: m.id,
+      type: m.type === "video" ? "video" : "image",
+      url: m.url,
+      alt: m.alt,
+      caption: m.caption ?? undefined,
+      durationLabel: m.durationLabel,
+    })),
+    taggedMembers: [],
+    reactionCount: 0,
+    commentCount: 0,
+  }));
+
+  // Tagged / liked posts require dedicated backend support — show empty state for now.
+  const taggedPosts: PostCardData[] = [];
+  const likedPosts: PostCardData[] = [];
 
   const isLoading = managementContext.isLoading || memberQuery.isLoading
 

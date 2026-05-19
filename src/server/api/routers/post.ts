@@ -93,6 +93,13 @@ export const getFeedInputSchema = z.object({
   cursor: z.string().optional(),
 });
 
+export const getPostsByMemberInputSchema = z.object({
+  familyId: z.string().cuid(),
+  memberId: z.string().cuid(),
+  limit: z.number().int().min(1).max(50).default(20),
+  cursor: z.string().optional(),
+});
+
 export const getPostByIdInputSchema = z.object({
   familyId: z.string().cuid(),
   postId: z.string().cuid(),
@@ -520,4 +527,77 @@ export const postRouter = createTRPCRouter({
       nextCursor,
     };
   }),
+
+  getPostsByMember: protectedProcedure
+    .input(getPostsByMemberInputSchema)
+    .query(async ({ ctx, input }) => {
+      await requireFamilyMembership(input.familyId, ctx.session.user.id, ctx.db);
+
+      const cursor = parseCursor(input.cursor);
+
+      const posts = await ctx.db.post.findMany({
+        take: input.limit + 1,
+        where: {
+          authorMemberId: input.memberId,
+          authorMember: {
+            familyId: input.familyId,
+          },
+          ...(cursor
+            ? {
+                OR: [
+                  { createdAt: { lt: cursor.createdAt } },
+                  { createdAt: cursor.createdAt, id: { lt: cursor.id } },
+                ],
+              }
+            : {}),
+        },
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        select: {
+          id: true,
+          type: true,
+          caption: true,
+          createdAt: true,
+          authorMember: {
+            select: {
+              id: true,
+              name: true,
+              image: true,
+            },
+          },
+          media: {
+            orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+            select: {
+              id: true,
+              type: true,
+              provider: true,
+              bucket: true,
+              objectKey: true,
+              url: true,
+              mimeType: true,
+              sizeBytes: true,
+              width: true,
+              height: true,
+              durationMs: true,
+              caption: true,
+              sortOrder: true,
+              createdAt: true,
+            },
+          },
+        },
+      });
+
+      const hasNextPage = posts.length > input.limit;
+      const items = hasNextPage ? posts.slice(0, input.limit) : posts;
+      const nextCursor = hasNextPage
+        ? encodeCursor({
+            createdAt: items[items.length - 1]!.createdAt,
+            id: items[items.length - 1]!.id,
+          })
+        : null;
+
+      return {
+        items: items.map((post) => mapPostResponse(post)),
+        nextCursor,
+      };
+    }),
 });
