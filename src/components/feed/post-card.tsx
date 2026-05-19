@@ -40,6 +40,8 @@ export type PostCardData = {
 
 type PostCardProps = {
   post: PostCardData;
+  showHeaderTimestamp?: boolean;
+  footerMeta?: string;
 };
 
 function renderBody(
@@ -90,7 +92,7 @@ function getInitials(name: string) {
     .join("");
 }
 
-export function PostCard({ post }: PostCardProps) {
+export function PostCard({ post, showHeaderTimestamp = true, footerMeta }: PostCardProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [viewerOpen, setViewerOpen] = useState(false);
@@ -141,7 +143,9 @@ export function PostCard({ post }: PostCardProps) {
           </Avatar>
           <div>
             <p className="font-medium text-sm text-foreground">{post.author.name}</p>
-            <p className="text-muted-foreground text-xs">{post.createdAtLabel}</p>
+            {showHeaderTimestamp ? (
+              <p className="text-muted-foreground text-xs">{post.createdAtLabel}</p>
+            ) : null}
           </div>
         </div>
 
@@ -190,6 +194,10 @@ export function PostCard({ post }: PostCardProps) {
         <div className="mt-3 space-y-2" onClick={(event) => event.stopPropagation()}>
           <PostMediaGrid items={post.mediaItems} onItemClick={openViewer} />
         </div>
+      ) : null}
+
+      {footerMeta ? (
+        <p className="mt-4 text-muted-foreground text-sm">{footerMeta}</p>
       ) : null}
 
       <div

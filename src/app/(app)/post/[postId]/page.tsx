@@ -38,6 +38,23 @@ function formatCreatedAtLabel(dateInput: Date | string) {
   return date.toLocaleDateString();
 }
 
+function formatFullPostTimestamp(dateInput: Date | string) {
+  const date = dateInput instanceof Date ? dateInput : new Date(dateInput);
+
+  const time = date.toLocaleTimeString(undefined, {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+
+  const fullDate = date.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+
+  return `${time} · ${fullDate}`;
+}
+
 function mapPostToPostCardData(item: {
   id: string;
   type: "TEXT" | "PHOTO" | "VIDEO" | "MIXED";
@@ -220,6 +237,9 @@ export default function SinglePostPage() {
   );
 
   const post = postQuery.data ? mapPostToPostCardData(postQuery.data) : undefined;
+  const fullPostTimestamp = postQuery.data
+    ? formatFullPostTimestamp(postQuery.data.createdAt)
+    : undefined;
   const comments: PostComment[] = [];
 
   const isLoading = managementContext.isLoading || (Boolean(familyId) && postQuery.isLoading);
@@ -326,7 +346,7 @@ export default function SinglePostPage() {
       </Button>
 
       {/* Post */}
-      <PostCard post={post} />
+      <PostCard post={post} showHeaderTimestamp={false} footerMeta={fullPostTimestamp} />
       
       {/* Comment input */}
       <div className="mt-6">
