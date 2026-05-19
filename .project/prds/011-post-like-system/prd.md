@@ -1,6 +1,6 @@
 ---
 title: "Post Like System"
-status: in-progress
+status: completed
 references:
   - type: doc
     url: .project/brief.md
@@ -67,13 +67,13 @@ This PRD introduces a durable like system for posts, allowing authenticated fami
 - [x] Wire heart button to toggleLike mutation with optimistic update and rollback
 - [x] Invalidate/refetch feed queries on mutation success
 - [x] Add pending/disabled state and accessibility attributes (aria-pressed, aria-label)
-- [ ] Manual QA for mobile/desktop, error handling, and persistence
+- [x] Manual QA for mobile/desktop, error handling, and persistence
 
 ## Acceptance Criteria
-- [ ] Likes are persisted and reflected in the UI for all posts in the feed
-- [ ] Like/unlike is idempotent and safe from double-tap/race conditions
-- [ ] Optimistic UI updates on tap, with rollback on error
-- [ ] Like counts and current-user like state are accurate after refresh
-- [ ] Rate limiting prevents excessive like/unlike attempts
-- [ ] All new code is covered by backend tests and passes lint/type checks
-- [ ] Manual QA confirms correct behavior on desktop and mobile
+- [x] Likes are persisted and reflected in the UI for all posts in the feed
+- [x] Like/unlike is idempotent and safe from double-tap/race conditions
+- [x] Optimistic UI updates on tap, with rollback on error
+- [x] Like counts and current-user like state are accurate after refresh
+- [x] Rate limiting prevents excessive like/unlike attempts
+- [x] All new code is covered by backend tests and passes lint/type checks
+- [x] Manual QA confirms correct behavior on desktop and mobile
