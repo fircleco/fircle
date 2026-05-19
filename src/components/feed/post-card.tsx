@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
 import { Heart, Comment, Share } from "~/components/ui/icons";
@@ -112,6 +112,7 @@ export function PostCard({
   const trpcUtils = api.useUtils();
   const [viewerOpen, setViewerOpen] = useState(false);
   const [viewerStart, setViewerStart] = useState(0);
+  const likeIconRef = useRef<HTMLSpanElement>(null);
   const [optimisticLikedByCurrentUser, setOptimisticLikedByCurrentUser] = useState<
     boolean | undefined
   >(undefined);
@@ -149,6 +150,26 @@ export function PostCard({
     const nextReactionCount = nextLikedByCurrentUser
       ? previousReactionCount + 1
       : Math.max(previousReactionCount - 1, 0);
+
+    const likeIcon = likeIconRef.current;
+    if (
+      likeIcon &&
+      !window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      likeIcon.getAnimations().forEach((animation) => animation.cancel());
+      likeIcon.animate(
+        [
+          { transform: "scale(1)" },
+          { transform: "scale(1.5)" },
+          { transform: "scale(1)" },
+        ],
+        {
+          duration: 540,
+          easing: "cubic-bezier(0.2, 0.9, 0.2, 1)",
+          iterations: 1,
+        },
+      );
+    }
 
     setOptimisticLikedByCurrentUser(nextLikedByCurrentUser);
     setOptimisticReactionCount(nextReactionCount);
@@ -315,21 +336,23 @@ export function PostCard({
           aria-pressed={likedByCurrentUser}
           aria-label={likedByCurrentUser ? "Unlike this post" : "Like this post"}
         >
-          <Heart className={`size-4 ${likedByCurrentUser ? "text-red-500 fill-red-500" : ""}`} />
+          <span ref={likeIconRef} className="inline-flex items-center justify-center">
+            <Heart className={`size-5 ${likedByCurrentUser ? "text-red-500 fill-red-500" : ""}`} />
+          </span>
           Like
           <span className="rounded-full bg-muted px-1.5 py-0.5 text-xs tabular-nums text-muted-foreground">
             {reactionCount}
           </span>
         </Button>
         <Button type="button" variant="ghost" size="sm" className="rounded-2xl px-3">
-          <Comment className="size-4" />
+          <Comment className="size-5" />
           Comment
           <span className="rounded-full bg-muted px-1.5 py-0.5 text-xs tabular-nums text-muted-foreground">
             {post.commentCount}
           </span>
         </Button>
         <Button type="button" variant="ghost" size="sm" className="ml-auto rounded-2xl px-3">
-          <Share className="size-4" />
+          <Share className="size-5" />
           Share
         </Button>
       </div>
