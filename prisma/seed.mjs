@@ -274,10 +274,221 @@ async function main() {
     });
   }
 
+  // ── Posts ────────────────────────────────────────────────────────────────────
+
+  const now = Date.now();
+
+  const postFixtures = [
+    // ── Emma Shittabey ──────────────────────────────────────────────────────
+    {
+      authorName: "Emma Shittabey",
+      caption: "Family game night is back on this Friday! @Noah Shittabey please don't forget the snacks this time 😅",
+      type: "TEXT",
+      createdAt: new Date(now - 1 * 60 * 60 * 1000),
+      media: [],
+    },
+    {
+      authorName: "Emma Shittabey",
+      caption: "Baked Grandma Evelyn's famous lemon cake for the first time. Not bad for a first try!",
+      type: "PHOTO",
+      createdAt: new Date(now - 3 * 24 * 60 * 60 * 1000),
+      media: [
+        {
+          type: "IMAGE",
+          url: "https://images.unsplash.com/photo-1519915028121-7d3463d20b13?w=1280&h=720&fit=crop",
+          caption: "Homemade lemon cake on the kitchen counter",
+          sortOrder: 0,
+        },
+        {
+          type: "IMAGE",
+          url: "https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?w=1280&h=720&fit=crop",
+          caption: "A slice of the lemon cake on a plate",
+          sortOrder: 1,
+        },
+      ],
+    },
+
+    // ── Noah Shittabey ──────────────────────────────────────────────────────
+    {
+      authorName: "Noah Shittabey",
+      caption: "Finished putting together the new bookshelf. Took three hours and one minor injury but we got there. @Emma Shittabey — your turn to decide what goes on it.",
+      type: "TEXT",
+      createdAt: new Date(now - 2 * 60 * 60 * 1000),
+      media: [],
+    },
+    {
+      authorName: "Noah Shittabey",
+      caption: "Saturday morning hike with @Lily Shittabey and @Logan Ross. The views were absolutely worth it.",
+      type: "PHOTO",
+      createdAt: new Date(now - 5 * 24 * 60 * 60 * 1000),
+      media: [
+        {
+          type: "IMAGE",
+          url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1280&h=720&fit=crop",
+          caption: "Mountain trail at sunrise",
+          sortOrder: 0,
+        },
+        {
+          type: "IMAGE",
+          url: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1280&h=720&fit=crop",
+          caption: "Panoramic valley view from the summit",
+          sortOrder: 1,
+        },
+        {
+          type: "IMAGE",
+          url: "https://images.unsplash.com/photo-1551632811-561732d1e306?w=1280&h=720&fit=crop",
+          caption: "Forest path through pine trees",
+          sortOrder: 2,
+        },
+      ],
+    },
+
+    // ── Lily Shittabey ──────────────────────────────────────────────────────
+    {
+      authorName: "Lily Shittabey",
+      caption: "Just got my exam results back — passed with distinction! Couldn't have done it without the support from this whole family 🎉",
+      type: "TEXT",
+      createdAt: new Date(now - 30 * 60 * 1000),
+      media: [],
+    },
+    {
+      authorName: "Lily Shittabey",
+      caption: "Quick clip from our pottery class. @Ava Kim this one's for you — told you I'd share it!",
+      type: "VIDEO",
+      createdAt: new Date(now - 7 * 24 * 60 * 60 * 1000),
+      media: [
+        {
+          type: "VIDEO",
+          url: "https://www.w3schools.com/html/mov_bbb.mp4",
+          caption: "Hands shaping clay on a pottery wheel",
+          durationMs: 45000,
+          sortOrder: 0,
+        },
+      ],
+    },
+
+    // ── Logan Ross ──────────────────────────────────────────────────────────
+    {
+      authorName: "Logan Ross",
+      caption: "Anyone up for a barbecue this weekend? I'm thinking Sunday afternoon. @Noah Shittabey already volunteered to man the grill.",
+      type: "TEXT",
+      createdAt: new Date(now - 4 * 60 * 60 * 1000),
+      media: [],
+    },
+    {
+      authorName: "Logan Ross",
+      caption: "Weekend in the city. Highlights: street food, live music, and getting completely lost twice.",
+      type: "MIXED",
+      createdAt: new Date(now - 6 * 24 * 60 * 60 * 1000),
+      media: [
+        {
+          type: "IMAGE",
+          url: "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=1280&h=720&fit=crop",
+          caption: "City skyline at dusk",
+          sortOrder: 0,
+        },
+        {
+          type: "VIDEO",
+          url: "https://www.w3schools.com/html/movie.mp4",
+          caption: "Street musician performing on a busy corner",
+          durationMs: 32000,
+          sortOrder: 1,
+        },
+        {
+          type: "IMAGE",
+          url: "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1280&h=720&fit=crop",
+          caption: "Food market stalls lit up at night",
+          sortOrder: 2,
+        },
+      ],
+    },
+
+    // ── Ava Kim ─────────────────────────────────────────────────────────────
+    {
+      authorName: "Ava Kim",
+      caption: "So grateful to the Shittabey family for making me feel like one of their own. @Emma Shittabey your hospitality is unmatched!",
+      type: "TEXT",
+      createdAt: new Date(now - 5 * 60 * 60 * 1000),
+      media: [],
+    },
+    {
+      authorName: "Ava Kim",
+      caption: "Pottery class recap! @Lily Shittabey this was such a fun idea. We're definitely going back.",
+      type: "MIXED",
+      createdAt: new Date(now - 2 * 24 * 60 * 60 * 1000),
+      media: [
+        {
+          type: "IMAGE",
+          url: "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=1280&h=720&fit=crop",
+          caption: "Completed pottery pieces drying on a shelf",
+          sortOrder: 0,
+        },
+        {
+          type: "VIDEO",
+          url: "https://www.w3schools.com/html/mov_bbb.mp4",
+          caption: "Timelapse of shaping a bowl on the wheel",
+          durationMs: 22000,
+          sortOrder: 1,
+        },
+      ],
+    },
+  ];
+
+  // Build a memberId lookup: name → familyMember.id
+  const memberIdByName = new Map();
+  for (const [name, user] of usersByName.entries()) {
+    const member = await db.familyMember.findUnique({
+      where: { familyId_userId: { familyId: family.id, userId: user.id } },
+      select: { id: true },
+    });
+    if (member) memberIdByName.set(name, member.id);
+  }
+
+  let postsSeeded = 0;
+
+  for (const fixture of postFixtures) {
+    const authorMemberId = memberIdByName.get(fixture.authorName);
+    if (!authorMemberId) continue;
+
+    // Idempotency: skip if this member already has posts
+    const existingCount = await db.post.count({ where: { authorMemberId } });
+    if (existingCount > 0) continue;
+
+    const post = await db.post.create({
+      data: {
+        caption: fixture.caption,
+        type: fixture.type,
+        authorMemberId,
+        createdAt: fixture.createdAt,
+      },
+    });
+
+    if (fixture.media.length > 0) {
+      await db.postMedia.createMany({
+        data: fixture.media.map((m) => ({
+          postId: post.id,
+          type: m.type,
+          provider: "seed",
+          bucket: "seed",
+          objectKey: m.url,
+          url: m.url,
+          mimeType: m.type === "VIDEO" ? "video/mp4" : "image/jpeg",
+          sizeBytes: 0,
+          durationMs: m.durationMs ?? null,
+          caption: m.caption ?? null,
+          sortOrder: m.sortOrder,
+        })),
+      });
+    }
+
+    postsSeeded++;
+  }
+
   console.log("Seed complete");
   console.log(`Family: ${family.name} (${family.id})`);
   console.log(`Users seeded: ${usersFromMocks.length + 1}`);
   console.log(`Invites seeded: ${inviteFixtures.length}`);
+  console.log(`Posts seeded: ${postsSeeded}`);
   console.log(`Seed sign-in password for all users: ${SEED_PASSWORD}`);
 }
 
