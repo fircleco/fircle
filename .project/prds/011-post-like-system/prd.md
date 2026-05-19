@@ -8,6 +8,9 @@ references:
   - type: prd
     url: .project/prds/010-post-system-media-upload-cloudflare-r2/prd.md
     description: "Post system foundation"
+  - type: pr
+    url: https://github.com/babblebey/fircle/pull/18
+    description: "Implementation pull request - feat: implement post like system"
 ---
 
 > **Instructions for AI Agents:**
