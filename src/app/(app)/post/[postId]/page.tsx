@@ -344,7 +344,7 @@ export default function SinglePostPage() {
 
               return {
                 ...item,
-                replies: mergeReplies(item.replies as CommentApiItem[], incomingReplies),
+                replies: mergeReplies(item.replies, incomingReplies),
               };
             }),
           };

@@ -151,13 +151,13 @@ The implementation should follow the same architectural patterns already used by
 
 ## Acceptance Criteria
 
-- [ ] Authenticated family members can create top-level comments on a post detail page.
-- [ ] Authenticated family members can reply to existing comments with one level of nesting.
-- [ ] Only the author of a comment can edit or delete it in v1.
-- [ ] Comment likes are persisted, idempotent, and reflected accurately after refresh.
-- [ ] Comment counts on feed cards and post detail views are accurate after comment create and delete actions.
-- [ ] All comment mutations enforce family membership and reject cross-post or cross-family parent comment references.
-- [ ] Thread queries paginate predictably using stable cursors, even when multiple comments share the same timestamp.
-- [ ] Optimistic UI updates are used for comment creation and comment likes, with rollback on failure.
+- [x] Authenticated family members can create top-level comments on a post detail page.
+- [x] Authenticated family members can reply to existing comments with one level of nesting.
+- [x] Only the author of a comment can edit or delete it in v1.
+- [x] Comment likes are persisted, idempotent, and reflected accurately after refresh.
+- [x] Comment counts on feed cards and post detail views are accurate after comment create and delete actions.
+- [x] All comment mutations enforce family membership and reject cross-post or cross-family parent comment references.
+- [x] Thread queries paginate predictably using stable cursors, even when multiple comments share the same timestamp.
+- [x] Optimistic UI updates are used for comment creation and comment likes, with rollback on failure.
 - [ ] The post detail comment experience works on mobile and desktop and preserves existing accessibility patterns.
 - [ ] New backend tests pass, and the full affected code passes project lint, type checks, and relevant automated tests.
