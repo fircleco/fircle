@@ -1,14 +1,66 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, Check, CheckCircle2, Copy, Link2, UserRoundPlus } from "~/components/ui/icons";
+import { AlertCircle, Camera, Check, CheckCircle2, Copy, Link2, Loader, User, UserRoundPlus } from "~/components/ui/icons";
 
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
+import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { api } from "~/trpc/react";
+
+type UploadIntentItem = {
+  uploadUrl: string;
+  requiredHeaders: Record<string, string>;
+  readUrl: string;
+};
+
+const ACCEPTED_AVATAR_MIME_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/heic",
+  "image/heif",
+]);
+
+const MAX_AVATAR_BYTES = 15 * 1024 * 1024;
+
+function uploadFileWithProgress(
+  url: string,
+  file: File,
+  headers: Record<string, string>,
+  onProgress: (percent: number) => void,
+) {
+  return new Promise<void>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("PUT", url);
+
+    Object.entries(headers).forEach(([key, value]) => {
+      xhr.setRequestHeader(key, value);
+    });
+
+    xhr.upload.onprogress = (event) => {
+      if (!event.lengthComputable) return;
+      onProgress(Math.min(100, Math.round((event.loaded / event.total) * 100)));
+    };
+
+    xhr.onerror = () => {
+      reject(new Error("Network error while uploading photo."));
+    };
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve();
+        return;
+      }
+      reject(new Error(`Upload failed with status ${xhr.status}`));
+    };
+
+    xhr.send(file);
+  });
+}
 
 export default function AddMemberPage() {
   const router = useRouter();
@@ -21,8 +73,13 @@ export default function AddMemberPage() {
     invitedEmail: string | null;
   } | null>(null);
   const [isClaimLinkCopied, setIsClaimLinkCopied] = useState(false);
-  const [photoUrl, setPhotoUrl] = useState("");
+  const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(null);
+  const [selectedAvatarPreviewUrl, setSelectedAvatarPreviewUrl] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isSaving, setIsSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const managementContext = api.invite.getManagementContext.useQuery(undefined, {
     retry: false,
@@ -41,32 +98,56 @@ export default function AddMemberPage() {
     }
   }, [router, showPermissionDenied]);
 
-  const createMember = api.familyMember.createUnclaimedMember.useMutation({
-    onSuccess: (data) => {
-      setIsSubmitted(true);
-      setFormError(null);
-      setAutoClaimInvite(
-        data.claimInvite
-          ? {
-              code: data.claimInvite.code,
-              invitedEmail: data.claimInvite.invitedEmail,
-            }
-          : null,
-      );
-      setIsClaimLinkCopied(false);
-    },
-    onError(error) {
-      setFormError(error.message);
-    },
-  });
+  useEffect(() => {
+    return () => {
+      if (selectedAvatarPreviewUrl) {
+        URL.revokeObjectURL(selectedAvatarPreviewUrl);
+      }
+    };
+  }, [selectedAvatarPreviewUrl]);
+
+  const createMember = api.familyMember.createUnclaimedMember.useMutation();
+  const updateMemberProfile = api.familyMember.updateMemberProfile.useMutation();
+
+  const handleAvatarSelected = (file: File | null) => {
+    if (!file) return;
+    setFormError(null);
+
+    if (!ACCEPTED_AVATAR_MIME_TYPES.has(file.type)) {
+      setFormError("Please select a supported image format (jpg, png, webp, heic, heif).");
+      return;
+    }
+
+    if (file.size > MAX_AVATAR_BYTES) {
+      setFormError("Avatar image exceeds the 15MB size limit.");
+      return;
+    }
+
+    if (selectedAvatarPreviewUrl) {
+      URL.revokeObjectURL(selectedAvatarPreviewUrl);
+    }
+
+    setSelectedAvatarFile(file);
+    setSelectedAvatarPreviewUrl(URL.createObjectURL(file));
+    setUploadProgress(0);
+  };
+
+  const handleRemoveAvatar = () => {
+    if (selectedAvatarPreviewUrl) {
+      URL.revokeObjectURL(selectedAvatarPreviewUrl);
+    }
+    setSelectedAvatarFile(null);
+    setSelectedAvatarPreviewUrl(null);
+    setUploadProgress(0);
+  };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (isSaving) return;
 
     const normalizedName = memberName.trim();
     const normalizedNickname = memberNickname.trim();
     const normalizedEmail = memberEmail.trim();
-    const normalizedPhotoUrl = photoUrl.trim();
 
     if (!normalizedName) {
       setFormError("Member name is required.");
@@ -79,14 +160,76 @@ export default function AddMemberPage() {
     }
 
     setFormError(null);
+    setIsSaving(true);
 
-    await createMember.mutateAsync({
-      familyId: selectedFamilyId,
-      name: normalizedName,
-      nickname: normalizedNickname.length > 0 ? normalizedNickname : undefined,
-      email: normalizedEmail.length > 0 ? normalizedEmail : undefined,
-      image: normalizedPhotoUrl.length > 0 ? normalizedPhotoUrl : undefined,
-    });
+    try {
+      const data = await createMember.mutateAsync({
+        familyId: selectedFamilyId,
+        name: normalizedName,
+        nickname: normalizedNickname.length > 0 ? normalizedNickname : undefined,
+        email: normalizedEmail.length > 0 ? normalizedEmail : undefined,
+      });
+
+      if (selectedAvatarFile) {
+        const intentsResponse = await fetch("/api/uploads/intent", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            familyId: selectedFamilyId,
+            uploadFor: "avatar",
+            memberId: data.id,
+            files: [
+              {
+                fileName: selectedAvatarFile.name,
+                mimeType: selectedAvatarFile.type,
+                sizeBytes: selectedAvatarFile.size,
+              },
+            ],
+          }),
+        });
+
+        const intentBody = (await intentsResponse.json()) as {
+          intents?: UploadIntentItem[];
+          error?: { message?: string };
+        };
+
+        if (!intentsResponse.ok || !intentBody.intents?.[0]) {
+          throw new Error(intentBody.error?.message ?? "Failed to create avatar upload intent.");
+        }
+
+        const avatarIntent = intentBody.intents[0];
+        await uploadFileWithProgress(
+          avatarIntent.uploadUrl,
+          selectedAvatarFile,
+          avatarIntent.requiredHeaders,
+          setUploadProgress,
+        );
+
+        await updateMemberProfile.mutateAsync({
+          familyId: selectedFamilyId,
+          memberId: data.id,
+          name: normalizedName,
+          image: avatarIntent.readUrl,
+        });
+      }
+
+      setIsSubmitted(true);
+      setAutoClaimInvite(
+        data.claimInvite
+          ? {
+              code: data.claimInvite.code,
+              invitedEmail: data.claimInvite.invitedEmail,
+            }
+          : null,
+      );
+      setIsClaimLinkCopied(false);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "An unexpected error occurred. Please try again.";
+      setFormError(message);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleAddAnother = () => {
@@ -95,7 +238,12 @@ export default function AddMemberPage() {
     setMemberEmail("");
     setAutoClaimInvite(null);
     setIsClaimLinkCopied(false);
-    setPhotoUrl("");
+    if (selectedAvatarPreviewUrl) {
+      URL.revokeObjectURL(selectedAvatarPreviewUrl);
+    }
+    setSelectedAvatarFile(null);
+    setSelectedAvatarPreviewUrl(null);
+    setUploadProgress(0);
     setIsSubmitted(false);
     setFormError(null);
   };
@@ -231,7 +379,7 @@ export default function AddMemberPage() {
                 onChange={(event) => setMemberName(event.target.value)}
                 required
                 disabled={
-                  createMember.isPending ||
+                  isSaving ||
                   managementContext.isLoading ||
                   !selectedFamilyId ||
                   !canManageMembers
@@ -249,7 +397,7 @@ export default function AddMemberPage() {
                 value={memberNickname}
                 onChange={(event) => setMemberNickname(event.target.value)}
                 disabled={
-                  createMember.isPending ||
+                  isSaving ||
                   managementContext.isLoading ||
                   !selectedFamilyId ||
                   !canManageMembers
@@ -268,7 +416,7 @@ export default function AddMemberPage() {
                 value={memberEmail}
                 onChange={(event) => setMemberEmail(event.target.value)}
                 disabled={
-                  createMember.isPending ||
+                  isSaving ||
                   managementContext.isLoading ||
                   !selectedFamilyId ||
                   !canManageMembers
@@ -282,21 +430,65 @@ export default function AddMemberPage() {
             </div>
 
             <div className="space-y-2 sm:col-span-2">
-              <label htmlFor="photoUrl" className="text-sm font-medium">
-                Photo URL (optional)
-              </label>
-              <Input
-                id="photoUrl"
-                placeholder="https://example.com/photo.jpg"
-                value={photoUrl}
-                onChange={(event) => setPhotoUrl(event.target.value)}
-                disabled={
-                  createMember.isPending ||
-                  managementContext.isLoading ||
-                  !selectedFamilyId ||
-                  !canManageMembers
-                }
+              <p className="text-sm font-medium">Profile photo (optional)</p>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+                className="hidden"
+                onChange={(event) => {
+                  handleAvatarSelected(event.currentTarget.files?.[0] ?? null);
+                  event.currentTarget.value = "";
+                }}
               />
+              <div className="flex items-center gap-3 rounded-2xl border bg-muted/20 p-3">
+                <Avatar className="size-12 shrink-0 border">
+                  <AvatarImage
+                    src={selectedAvatarPreviewUrl ?? undefined}
+                    alt={memberName || "Profile photo"}
+                  />
+                  <AvatarFallback>
+                    <User className="size-5 text-muted-foreground" aria-hidden="true" />
+                  </AvatarFallback>
+                </Avatar>
+                <div className="ml-auto flex items-center gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isSaving || managementContext.isLoading || !selectedFamilyId || !canManageMembers}
+                  >
+                    <Camera className="size-4" aria-hidden="true" />
+                    {selectedAvatarFile ? "Change photo" : "Choose photo"}
+                  </Button>
+                  {selectedAvatarFile ? (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={handleRemoveAvatar}
+                      disabled={isSaving}
+                    >
+                      Remove
+                    </Button>
+                  ) : null}
+                </div>
+              </div>
+              {selectedAvatarFile ? (
+                <p className="text-xs text-muted-foreground">Selected: {selectedAvatarFile.name}</p>
+              ) : null}
+              {isSaving && uploadProgress > 0 ? (
+                <div className="space-y-1">
+                  <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full bg-primary transition-all"
+                      style={{ width: `${uploadProgress}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">Uploading photo: {uploadProgress}%</p>
+                </div>
+              ) : null}
             </div>
           </div>
 
@@ -304,13 +496,20 @@ export default function AddMemberPage() {
             <Button
               type="submit"
               disabled={
-                createMember.isPending ||
+                isSaving ||
                 managementContext.isLoading ||
                 !selectedFamilyId ||
                 !canManageMembers
               }
             >
-              {createMember.isPending ? "Creating..." : "Create member"}
+              {isSaving ? (
+                <>
+                  <Loader className="size-4 animate-spin" aria-hidden="true" />
+                  {uploadProgress > 0 ? "Uploading..." : "Creating..."}
+                </>
+              ) : (
+                "Create member"
+              )}
             </Button>
             <Button asChild type="button" variant="outline">
               <Link href="/members">Back to members</Link>

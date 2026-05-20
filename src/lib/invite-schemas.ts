@@ -58,6 +58,13 @@ export type InviteRevokeInput = z.infer<typeof inviteRevokeInputSchema>
 
 // ─── Claim schemas ────────────────────────────────────────────────────────────
 
+const internalMediaUrlSchema = z
+  .string()
+  .max(2048)
+  .refine((value) => value.startsWith("/api/media/r2/"), "Invalid url")
+
+const memberImageInputSchema = z.union([z.string().url().max(2048), internalMediaUrlSchema])
+
 export const createUnclaimedMemberInputSchema = z.object({
   familyId: z.string().cuid(),
   name: z.string().trim().min(1).max(120),
@@ -70,7 +77,7 @@ export const createUnclaimedMemberInputSchema = z.object({
     .transform(normalizeEmail)
     .optional(),
   /** Optional URL for the member's profile image. */
-  image: z.string().url().max(2048).optional(),
+  image: memberImageInputSchema.optional(),
 })
 
 export const createClaimLinkInputSchema = z.object({
