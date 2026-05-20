@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  buildAvatarObjectKey,
   buildMediaObjectKey,
   validateMediaFileConstraints,
 } from "~/server/storage/media-object-key";
@@ -67,5 +68,20 @@ describe("validateMediaFileConstraints", () => {
       expect(result.code).toBe("PAYLOAD_TOO_LARGE");
       expect(result.status).toBe(413);
     }
+  });
+});
+
+describe("buildAvatarObjectKey", () => {
+  it("scopes avatar keys by family and member with avatar segment", () => {
+    const key = buildAvatarObjectKey({
+      familyId: "clh0000000000000000000000",
+      memberId: "clh0000000000000000000001",
+      mimeType: "image/webp",
+      fileName: "avatar.webp",
+    });
+
+    expect(key).toMatch(
+      /^families\/clh0000000000000000000000\/members\/clh0000000000000000000001\/avatars\/[0-9a-f-]{36}\.webp$/,
+    );
   });
 });

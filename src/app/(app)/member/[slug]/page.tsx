@@ -155,7 +155,9 @@ export default function MemberProfilePage() {
         <div className="space-y-5">
           <MemberProfileHeader member={member} />
 
-          {isAdmin && <MemberAdminActionsPanel member={member} callerRole={callerRole} />}
+          {isAdmin && (
+            <MemberAdminActionsPanel member={member} callerRole={callerRole} familyId={familyId} />
+          )}
 
           <section>
             <div className="flex border-b">

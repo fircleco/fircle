@@ -91,15 +91,15 @@ The implementation should reuse existing architecture patterns: Prisma-backed da
 
 #### Tasks
 
-- [ ] Extend upload intent handling in [src/app/api/uploads/intent/route.ts](src/app/api/uploads/intent/route.ts) to support avatar uploads with image-only constraints and single-file behavior.
-- [ ] Add avatar object-key helper in [src/server/storage/media-object-key.ts](src/server/storage/media-object-key.ts) for a dedicated avatar path segment under family/member scope.
-- [ ] Update [src/components/members/edit-profile-dialog.tsx](src/components/members/edit-profile-dialog.tsx):
-  - [ ] Remove demo-only save behavior.
-  - [ ] Add local file picker, preview, upload progress, and upload error states.
-  - [ ] Call signed upload intent + upload to storage + submit `updateMemberProfile` mutation.
-  - [ ] Keep fields limited to `name` and `profile image`.
-- [ ] Ensure [src/components/members/member-admin-panel.tsx](src/components/members/member-admin-panel.tsx) uses the same live dialog flow for admin edits.
-- [ ] Invalidate/refetch member profile queries after successful update so avatars and names refresh immediately.
+- [x] Extend upload intent handling in [src/app/api/uploads/intent/route.ts](src/app/api/uploads/intent/route.ts) to support avatar uploads with image-only constraints and single-file behavior.
+- [x] Add avatar object-key helper in [src/server/storage/media-object-key.ts](src/server/storage/media-object-key.ts) for a dedicated avatar path segment under family/member scope.
+- [x] Update [src/components/members/edit-profile-dialog.tsx](src/components/members/edit-profile-dialog.tsx):
+  - [x] Remove demo-only save behavior.
+  - [x] Add local file picker, preview, upload progress, and upload error states.
+  - [x] Call signed upload intent + upload to storage + submit `updateMemberProfile` mutation.
+  - [x] Keep fields limited to `name` and `profile image`.
+- [x] Ensure [src/components/members/member-admin-panel.tsx](src/components/members/member-admin-panel.tsx) uses the same live dialog flow for admin edits.
+- [x] Invalidate/refetch member profile queries after successful update so avatars and names refresh immediately.
 
 ### Phase 3: Settings Account Password UI and Admin Reset UX
 

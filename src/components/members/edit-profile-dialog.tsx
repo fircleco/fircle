@@ -1,18 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { format } from "date-fns";
+import { useEffect, useMemo, useRef, useState } from "react";
 
-import { Button } from "~/components/ui/button";
-import { Calendar } from "~/components/ui/calendar";
-import { Input } from "~/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
-import { CalendarDays, Camera, User, X } from "~/components/ui/icons";
+import { Button } from "~/components/ui/button";
+import { Camera, Loader, User, X } from "~/components/ui/icons";
+import { Input } from "~/components/ui/input";
 import type { FamilyMemberProfile } from "~/lib/mocks/family-members";
+import { api } from "~/trpc/react";
 
 type EditProfileDialogProps = {
   member: FamilyMemberProfile;
+  familyId?: string;
   triggerText?: string;
   triggerVariant?: React.ComponentProps<typeof Button>["variant"];
   triggerSize?: React.ComponentProps<typeof Button>["size"];
@@ -22,8 +21,29 @@ type EditProfileDialogProps = {
 type EditProfileFormState = {
   name: string;
   avatarUrl: string;
-  dateOfBirth?: Date;
 };
+
+type UploadIntentItem = {
+  provider: string;
+  uploadUrl: string;
+  requiredHeaders: Record<string, string>;
+  object: {
+    provider: string;
+    bucket: string;
+    objectKey: string;
+  };
+  readUrl: string;
+};
+
+const ACCEPTED_AVATAR_MIME_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/heic",
+  "image/heif",
+]);
+
+const MAX_AVATAR_BYTES = 15 * 1024 * 1024;
 
 function getInitials(name: string) {
   return name
@@ -34,8 +54,61 @@ function getInitials(name: string) {
     .join("");
 }
 
+function getUploadErrorMessage(error: unknown) {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  return "Upload failed. Please try again.";
+}
+
+function uploadFileWithProgress(
+  url: string,
+  file: File,
+  headers: Record<string, string>,
+  onProgress: (percent: number) => void,
+) {
+  return new Promise<void>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("PUT", url);
+
+    Object.entries(headers).forEach(([key, value]) => {
+      xhr.setRequestHeader(key, value);
+    });
+
+    xhr.upload.onprogress = (event) => {
+      if (!event.lengthComputable) {
+        return;
+      }
+
+      const percent = Math.min(100, Math.round((event.loaded / event.total) * 100));
+      onProgress(percent);
+    };
+
+    xhr.onerror = () => {
+      reject(
+        new Error(
+          "Network error while uploading avatar. Check storage CORS and signed upload URL configuration.",
+        ),
+      );
+    };
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve();
+        return;
+      }
+
+      reject(new Error(`Upload failed with status ${xhr.status}`));
+    };
+
+    xhr.send(file);
+  });
+}
+
 export function EditProfileDialog({
   member,
+  familyId,
   triggerText = "Edit profile",
   triggerVariant = "outline",
   triggerSize = "sm",
@@ -43,11 +116,18 @@ export function EditProfileDialog({
 }: EditProfileDialogProps) {
   const [open, setOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(null);
+  const [selectedAvatarPreviewUrl, setSelectedAvatarPreviewUrl] = useState<string | null>(null);
   const [form, setForm] = useState<EditProfileFormState>({
     name: member.name,
     avatarUrl: member.avatarUrl ?? "",
-    dateOfBirth: undefined,
   });
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const trpcUtils = api.useUtils();
+  const updateProfile = api.familyMember.updateMemberProfile.useMutation();
 
   useEffect(() => {
     if (!open) return;
@@ -55,9 +135,23 @@ export function EditProfileDialog({
     setForm({
       name: member.name,
       avatarUrl: member.avatarUrl ?? "",
-      dateOfBirth: undefined,
     });
-  }, [member, open]);
+    setSaveError(null);
+    setUploadProgress(0);
+    setSelectedAvatarFile(null);
+    if (selectedAvatarPreviewUrl) {
+      URL.revokeObjectURL(selectedAvatarPreviewUrl);
+    }
+    setSelectedAvatarPreviewUrl(null);
+  }, [member, open, selectedAvatarPreviewUrl]);
+
+  useEffect(() => {
+    return () => {
+      if (selectedAvatarPreviewUrl) {
+        URL.revokeObjectURL(selectedAvatarPreviewUrl);
+      }
+    };
+  }, [selectedAvatarPreviewUrl]);
 
   useEffect(() => {
     if (!open) return;
@@ -73,20 +167,127 @@ export function EditProfileDialog({
   }, [isSaving, open]);
 
   const previewInitials = useMemo(() => getInitials(form.name || member.name), [form.name, member.name]);
+  const avatarPreviewUrl = selectedAvatarPreviewUrl ?? form.avatarUrl;
 
   const closeDialog = () => {
     if (isSaving) return;
     setOpen(false);
   };
 
-  const handleSave = () => {
+  const handleAvatarSelected = (file: File | null) => {
+    if (!file) {
+      return;
+    }
+
+    setSaveError(null);
+
+    if (!ACCEPTED_AVATAR_MIME_TYPES.has(file.type)) {
+      setSaveError("Please select a supported image format (jpg, png, webp, heic, heif).");
+      return;
+    }
+
+    if (file.size > MAX_AVATAR_BYTES) {
+      setSaveError("Avatar image exceeds the 15MB size limit.");
+      return;
+    }
+
+    if (selectedAvatarPreviewUrl) {
+      URL.revokeObjectURL(selectedAvatarPreviewUrl);
+    }
+
+    setSelectedAvatarFile(file);
+    setSelectedAvatarPreviewUrl(URL.createObjectURL(file));
+    setUploadProgress(0);
+  };
+
+  const handleRemoveAvatar = () => {
+    if (selectedAvatarPreviewUrl) {
+      URL.revokeObjectURL(selectedAvatarPreviewUrl);
+    }
+
+    setSelectedAvatarFile(null);
+    setSelectedAvatarPreviewUrl(null);
+    setUploadProgress(0);
+    setForm((prev) => ({ ...prev, avatarUrl: "" }));
+  };
+
+  const handleSave = async () => {
     if (isSaving) return;
+    setSaveError(null);
+
+    if (!familyId) {
+      setSaveError("Unable to update profile without an active family context.");
+      return;
+    }
+
+    const trimmedName = form.name.trim();
+    if (trimmedName.length === 0) {
+      setSaveError("Name is required.");
+      return;
+    }
+
     setIsSaving(true);
 
-    window.setTimeout(() => {
+    try {
+      let nextAvatarUrl = form.avatarUrl.trim();
+
+      if (selectedAvatarFile) {
+        const intentsResponse = await fetch("/api/uploads/intent", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            familyId,
+            uploadFor: "avatar",
+            memberId: member.id,
+            files: [
+              {
+                fileName: selectedAvatarFile.name,
+                mimeType: selectedAvatarFile.type,
+                sizeBytes: selectedAvatarFile.size,
+              },
+            ],
+          }),
+        });
+
+        const intentBody = (await intentsResponse.json()) as {
+          intents?: UploadIntentItem[];
+          error?: { message?: string };
+        };
+
+        if (!intentsResponse.ok || !intentBody.intents?.[0]) {
+          throw new Error(intentBody.error?.message ?? "Failed to create avatar upload intent.");
+        }
+
+        const avatarIntent = intentBody.intents[0];
+        await uploadFileWithProgress(
+          avatarIntent.uploadUrl,
+          selectedAvatarFile,
+          avatarIntent.requiredHeaders,
+          setUploadProgress,
+        );
+
+        nextAvatarUrl = avatarIntent.readUrl;
+      }
+
+      await updateProfile.mutateAsync({
+        familyId,
+        memberId: member.id,
+        name: trimmedName,
+        image: nextAvatarUrl.length > 0 ? nextAvatarUrl : null,
+      });
+
+      await Promise.all([
+        trpcUtils.familyMember.getCurrentUserMemberProfile.invalidate(),
+        trpcUtils.familyMember.getMemberProfileBySlug.invalidate(),
+        trpcUtils.familyMember.listFamilyMembers.invalidate(),
+      ]);
+
       setIsSaving(false);
       setOpen(false);
-    }, 500);
+    } catch (error) {
+      setSaveError(getUploadErrorMessage(error));
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -116,9 +317,7 @@ export function EditProfileDialog({
             <header className="flex items-start justify-between gap-4">
               <div>
                 <h2 className="font-semibold text-xl tracking-tight">Edit profile</h2>
-                <p className="mt-1 text-muted-foreground text-sm">
-                  Update basic profile details like name, picture, and personal info.
-                </p>
+                <p className="mt-1 text-muted-foreground text-sm">Update the member name and avatar.</p>
               </div>
 
               <Button
@@ -133,9 +332,20 @@ export function EditProfileDialog({
             </header>
 
             <div className="mt-4 space-y-4">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+                className="hidden"
+                onChange={(event) => {
+                  handleAvatarSelected(event.currentTarget.files?.[0] ?? null);
+                  event.currentTarget.value = "";
+                }}
+              />
+
               <div className="flex items-center gap-3 rounded-2xl border bg-muted/20 p-3">
                 <Avatar className="size-14 shrink-0 border">
-                  <AvatarImage src={form.avatarUrl} alt={form.name || member.name} />
+                  <AvatarImage src={avatarPreviewUrl || undefined} alt={form.name || member.name} />
                   <AvatarFallback className="text-sm font-semibold text-foreground">
                     {previewInitials}
                   </AvatarFallback>
@@ -145,74 +355,84 @@ export function EditProfileDialog({
                   <p className="font-medium text-sm">Live preview</p>
                   <p className="truncate text-muted-foreground text-xs">{form.name || member.name}</p>
                 </div>
+
+                <div className="ml-auto flex items-center gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isSaving}
+                  >
+                    <Camera className="size-4" aria-hidden="true" />
+                    Choose image
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={handleRemoveAvatar}
+                    disabled={isSaving || (!avatarPreviewUrl && !selectedAvatarFile)}
+                  >
+                    Remove
+                  </Button>
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <label className="space-y-1.5 text-sm">
-                  <span className="inline-flex items-center gap-1.5 text-muted-foreground text-xs">
-                    <User className="size-3.5" aria-hidden="true" />
-                    Full name
-                  </span>
-                  <Input
-                    value={form.name}
-                    onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
-                    placeholder="Enter full name"
-                  />
-                </label>
+              {selectedAvatarFile ? (
+                <p className="text-muted-foreground text-xs">Selected image: {selectedAvatarFile.name}</p>
+              ) : null}
 
-                <label className="space-y-1.5 text-sm">
-                  <span className="inline-flex items-center gap-1.5 text-muted-foreground text-xs">
-                    <CalendarDays className="size-3.5" aria-hidden="true" />
-                    Date of birth
-                  </span>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        data-empty={!form.dateOfBirth}
-                        className="w-full justify-start text-left font-normal data-[empty=true]:text-muted-foreground"
-                      >
-                        <CalendarDays className="size-4" aria-hidden="true" />
-                        {form.dateOfBirth ? format(form.dateOfBirth, "PPP") : <span>Select date</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={form.dateOfBirth}
-                        onSelect={(date) => setForm((prev) => ({ ...prev, dateOfBirth: date }))}
-                        captionLayout="dropdown"
-                        defaultMonth={form.dateOfBirth ?? new Date(2000, 0, 1)}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </label>
-
-              </div>
+              {isSaving && uploadProgress > 0 ? (
+                <div className="space-y-1">
+                  <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full bg-primary transition-all"
+                      style={{ width: `${uploadProgress}%` }}
+                    />
+                  </div>
+                  <p className="text-muted-foreground text-xs">Uploading avatar: {uploadProgress}%</p>
+                </div>
+              ) : null}
 
               <label className="space-y-1.5 text-sm">
                 <span className="inline-flex items-center gap-1.5 text-muted-foreground text-xs">
-                  <Camera className="size-3.5" aria-hidden="true" />
-                  Profile picture URL
+                  <User className="size-3.5" aria-hidden="true" />
+                  Full name
                 </span>
                 <Input
-                  value={form.avatarUrl}
-                  onChange={(event) => setForm((prev) => ({ ...prev, avatarUrl: event.target.value }))}
-                  placeholder="https://..."
+                  value={form.name}
+                  onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
+                  placeholder="Enter full name"
                 />
               </label>
 
-              <p className="text-muted-foreground text-xs">
-                Demo mode: changes in this popup are for preview only and are not saved permanently yet.
-              </p>
+              {saveError ? (
+                <p
+                  role="alert"
+                  className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive"
+                >
+                  {saveError}
+                </p>
+              ) : null}
 
-              <div className="flex items-center justify-end gap-2">
+              <div className="flex items-center justify-end gap-2 mt-4">
                 <Button type="button" variant="ghost" onClick={closeDialog}>
                   Cancel
                 </Button>
-                <Button type="button" onClick={handleSave} disabled={isSaving || form.name.trim().length === 0}>
-                  {isSaving ? "Saving..." : "Save changes"}
+                <Button
+                  type="button"
+                  onClick={handleSave}
+                  disabled={isSaving || form.name.trim().length === 0}
+                >
+                  {isSaving ? (
+                    <>
+                      <Loader className="size-4 animate-spin" aria-hidden="true" />
+                      Saving...
+                    </>
+                  ) : (
+                    "Save changes"
+                  )}
                 </Button>
               </div>
             </div>

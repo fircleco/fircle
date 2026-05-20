@@ -13,6 +13,7 @@ import { GenerateClaimLinkDialog } from "./generate-claim-link-dialog";
 type MemberAdminPanelProps = {
   member: FamilyMemberProfile;
   callerRole: MemberRole;
+  familyId?: string;
 };
 
 const roleLabels: Record<MemberRole, string> = {
@@ -27,7 +28,7 @@ const roleBadgeClasses: Record<MemberRole, string> = {
   member: "bg-muted text-muted-foreground border-border",
 };
 
-export function MemberAdminActionsPanel({ member, callerRole }: MemberAdminPanelProps) {
+export function MemberAdminActionsPanel({ member, callerRole, familyId }: MemberAdminPanelProps) {
   const isClaimed = member.status === "claimed";
   const isCallerOwner = callerRole === "owner";
   const pendingClaimInvite = member.pendingClaimInvite ?? null;
@@ -103,9 +104,14 @@ export function MemberAdminActionsPanel({ member, callerRole }: MemberAdminPanel
           <p className="text-xs text-muted-foreground">Profile management</p>
           <p className="mt-1 text-sm font-medium">Edit member basics</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Update this member&apos;s name, profile picture, date of birth, and related profile details.
+            Update this member&apos;s name and profile picture.
           </p>
-          <EditProfileDialog member={member} triggerText="Edit member profile" triggerClassName="mt-3 w-full" />
+          <EditProfileDialog
+            member={member}
+            familyId={familyId}
+            triggerText="Edit member profile"
+            triggerClassName="mt-3 w-full"
+          />
         </div>
 
         <div

@@ -108,7 +108,7 @@ export default function ProfilePage() {
         <div className="space-y-5">
           <MemberProfileHeader member={member} showStatus={false} />
           <div className="flex justify-center">
-            <EditProfileDialog member={member} triggerText="Edit my profile" />
+            <EditProfileDialog member={member} familyId={familyId} triggerText="Edit my profile" />
           </div>
 
           <section>

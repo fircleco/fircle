@@ -92,6 +92,24 @@ export function buildMediaObjectKey(input: {
   ].join("/");
 }
 
+export function buildAvatarObjectKey(input: {
+  familyId: string;
+  memberId: string;
+  mimeType: string;
+  fileName: string;
+}) {
+  const ext = sanitizePathSegment(getSafeExtension(input.fileName, input.mimeType));
+
+  return [
+    "families",
+    sanitizePathSegment(input.familyId),
+    "members",
+    sanitizePathSegment(input.memberId),
+    "avatars",
+    `${randomUUID()}.${ext}`,
+  ].join("/");
+}
+
 export function validateMediaFileConstraints(
   file: MediaFileConstraintInput,
 ): MediaFileConstraintResult {

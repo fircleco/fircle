@@ -10,12 +10,16 @@ import {
   MAX_IMAGE_BYTES,
   MAX_VIDEO_BYTES,
   MAX_FILES_PER_POST,
+  buildAvatarObjectKey,
   buildMediaObjectKey,
+  getMediaKind,
   validateMediaFileConstraints,
 } from "~/server/storage/media-object-key";
 
 const uploadIntentSchema = z.object({
   familyId: z.string().cuid(),
+  uploadFor: z.enum(["post", "avatar"]).default("post"),
+  memberId: z.string().cuid().optional(),
   files: z
     .array(
       z.object({
@@ -35,6 +39,7 @@ function jsonError(
   code:
     | "UNAUTHORIZED"
     | "FORBIDDEN"
+    | "NOT_FOUND"
     | "BAD_REQUEST"
     | "UNSUPPORTED_MEDIA_TYPE"
     | "PAYLOAD_TOO_LARGE",
@@ -57,6 +62,18 @@ function validateFileConstraints(file: UploadIntentInput["files"][number]) {
   return validateMediaFileConstraints(file);
 }
 
+function getConstraintPayload(uploadFor: UploadIntentInput["uploadFor"]) {
+  return {
+    uploadFor,
+    maxFilesPerPost: MAX_FILES_PER_POST,
+    maxAvatarFiles: 1,
+    maxImageBytes: MAX_IMAGE_BYTES,
+    maxVideoBytes: MAX_VIDEO_BYTES,
+    acceptedImageMimeTypes: [...ACCEPTED_IMAGE_MIME_TYPES.values()],
+    acceptedVideoMimeTypes: [...ACCEPTED_VIDEO_MIME_TYPES.values()],
+  };
+}
+
 export async function POST(request: NextRequest) {
   const session = await auth();
 
@@ -70,11 +87,7 @@ export async function POST(request: NextRequest) {
   if (!parsed.success) {
     return jsonError(400, "BAD_REQUEST", "Invalid upload intent payload", {
       issues: parsed.error.flatten(),
-      limits: {
-        maxFilesPerPost: MAX_FILES_PER_POST,
-        maxImageBytes: MAX_IMAGE_BYTES,
-        maxVideoBytes: MAX_VIDEO_BYTES,
-      },
+      limits: getConstraintPayload("post"),
     });
   }
 
@@ -88,6 +101,7 @@ export async function POST(request: NextRequest) {
     select: {
       id: true,
       familyId: true,
+      role: true,
     },
   });
 
@@ -95,20 +109,58 @@ export async function POST(request: NextRequest) {
     return jsonError(403, "FORBIDDEN", "You do not have access to this family");
   }
 
+  const { uploadFor } = parsed.data;
+
+  if (uploadFor === "avatar" && parsed.data.files.length !== 1) {
+    return jsonError(400, "BAD_REQUEST", "Avatar uploads support exactly one file", {
+      limits: getConstraintPayload(uploadFor),
+    });
+  }
+
+  let targetMemberId = membership.id;
+
+  if (uploadFor === "avatar") {
+    if (!parsed.data.memberId) {
+      return jsonError(400, "BAD_REQUEST", "memberId is required for avatar uploads", {
+        limits: getConstraintPayload(uploadFor),
+      });
+    }
+
+    const targetMember = await db.familyMember.findUnique({
+      where: { id: parsed.data.memberId },
+      select: { id: true, familyId: true },
+    });
+
+    if (!targetMember || targetMember.familyId !== membership.familyId) {
+      return jsonError(404, "NOT_FOUND", "Target member was not found in this family");
+    }
+
+    const isSelf = membership.id === targetMember.id;
+    const isAdmin = membership.role === "ADMIN" || membership.role === "OWNER";
+
+    if (!isSelf && !isAdmin) {
+      return jsonError(403, "FORBIDDEN", "You do not have permission to upload this avatar");
+    }
+
+    targetMemberId = targetMember.id;
+  }
+
   for (const file of parsed.data.files) {
+    if (uploadFor === "avatar") {
+      const mediaKind = getMediaKind(file.mimeType);
+      if (mediaKind !== "image") {
+        return jsonError(415, "UNSUPPORTED_MEDIA_TYPE", "Avatar uploads must be images", {
+          file,
+          limits: getConstraintPayload(uploadFor),
+        });
+      }
+    }
+
     const validation = validateFileConstraints(file);
     if (!validation.ok) {
       return jsonError(validation.status, validation.code, validation.message, {
         file,
-        limits: {
-          maxFilesPerPost: MAX_FILES_PER_POST,
-          maxImageBytes: MAX_IMAGE_BYTES,
-          maxVideoBytes: MAX_VIDEO_BYTES,
-          acceptedMimeTypes: [
-            ...ACCEPTED_IMAGE_MIME_TYPES.values(),
-            ...ACCEPTED_VIDEO_MIME_TYPES.values(),
-          ],
-        },
+        limits: getConstraintPayload(uploadFor),
       });
     }
   }
@@ -116,12 +168,20 @@ export async function POST(request: NextRequest) {
   const storage = getStorageProvider();
   const intents = await Promise.all(
     parsed.data.files.map(async (file) => {
-      const objectKey = buildMediaObjectKey({
-        familyId: membership.familyId,
-        memberId: membership.id,
-        mimeType: file.mimeType,
-        fileName: file.fileName,
-      });
+      const objectKey =
+        uploadFor === "avatar"
+          ? buildAvatarObjectKey({
+              familyId: membership.familyId,
+              memberId: targetMemberId,
+              mimeType: file.mimeType,
+              fileName: file.fileName,
+            })
+          : buildMediaObjectKey({
+              familyId: membership.familyId,
+              memberId: membership.id,
+              mimeType: file.mimeType,
+              fileName: file.fileName,
+            });
 
       const intent = await storage.signUpload({
         objectKey,
@@ -140,14 +200,6 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({
     intents,
-    constraints: {
-      maxFilesPerPost: MAX_FILES_PER_POST,
-      maxImageBytes: MAX_IMAGE_BYTES,
-      maxVideoBytes: MAX_VIDEO_BYTES,
-      acceptedMimeTypes: [
-        ...ACCEPTED_IMAGE_MIME_TYPES.values(),
-        ...ACCEPTED_VIDEO_MIME_TYPES.values(),
-      ],
-    },
+    constraints: getConstraintPayload(uploadFor),
   });
 }
