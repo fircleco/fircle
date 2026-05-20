@@ -2,7 +2,13 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
-import { Heart, Comment } from "~/components/ui/icons";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
+import { Heart, Comment, More, Edit, Delete } from "~/components/ui/icons";
 
 export type FeedComment = {
   id: string;
@@ -85,6 +91,32 @@ export function CommentCard({
           <p className="text-sm font-medium leading-none text-foreground">{comment.author.name}</p>
           <p className="mt-0.5 text-xs text-muted-foreground">{formatCreatedAtLabel(comment.createdAt)}</p>
         </div>
+
+        {isOwnComment ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="size-8 rounded-full"
+                aria-label="Open comment actions"
+              >
+                <More className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-fit rounded-xl" align="end">
+              <DropdownMenuItem className="cursor-pointer" onSelect={() => onStartEdit(comment.id)}>
+                <Edit className="mr-2 size-4" />
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem className="text-destructive cursor-pointer hover:bg-destructive/20" onSelect={() => onDelete(comment.id)}>
+                <Delete className="mr-2 size-4" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : null}
       </header>
 
       <p className="mt-3 whitespace-pre-wrap leading-relaxed text-foreground">{comment.content}</p>
@@ -122,29 +154,6 @@ export function CommentCard({
           </Button>
         ) : null}
 
-        {isOwnComment ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="rounded-2xl px-3"
-            onClick={() => onStartEdit(comment.id)}
-          >
-            Edit
-          </Button>
-        ) : null}
-
-        {isOwnComment ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="rounded-2xl px-3 text-destructive"
-            onClick={() => onDelete(comment.id)}
-          >
-            Delete
-          </Button>
-        ) : null}
       </div>
 
       {children ? <div className="mt-3">{children}</div> : null}
