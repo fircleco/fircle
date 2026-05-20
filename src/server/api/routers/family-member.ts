@@ -95,11 +95,21 @@ const adminResetMemberPasswordInputSchema = z.object({
   temporaryPassword: z.string().min(8).max(72),
 })
 
+const internalMediaUrlSchema = z
+  .string()
+  .max(2048)
+  .refine(
+    (value) => value.startsWith("/api/media/r2/"),
+    "Invalid url",
+  )
+
+const profileImageInputSchema = z.union([z.string().url().max(2048), internalMediaUrlSchema])
+
 const updateMemberProfileInputSchema = z.object({
   familyId: z.string().cuid(),
   memberId: z.string().cuid(),
   name: z.string().trim().min(1).max(120),
-  image: z.string().url().max(2048).nullable(),
+  image: profileImageInputSchema.nullable(),
 })
 
 // ─── Router ───────────────────────────────────────────────────────────────────

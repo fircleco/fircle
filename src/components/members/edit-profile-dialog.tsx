@@ -139,11 +139,13 @@ export function EditProfileDialog({
     setSaveError(null);
     setUploadProgress(0);
     setSelectedAvatarFile(null);
-    if (selectedAvatarPreviewUrl) {
-      URL.revokeObjectURL(selectedAvatarPreviewUrl);
-    }
-    setSelectedAvatarPreviewUrl(null);
-  }, [member, open, selectedAvatarPreviewUrl]);
+    setSelectedAvatarPreviewUrl((previousPreviewUrl) => {
+      if (previousPreviewUrl) {
+        URL.revokeObjectURL(previousPreviewUrl);
+      }
+      return null;
+    });
+  }, [member, open]);
 
   useEffect(() => {
     return () => {
@@ -178,6 +180,8 @@ export function EditProfileDialog({
     if (!file) {
       return;
     }
+
+    console.log("Selected avatar file:", file);
 
     setSaveError(null);
 
