@@ -210,6 +210,10 @@ export function PostCard({
     router.push(`/post/${post.id}`);
   }
 
+  function handleOpenComments() {
+    router.push(`/post/${post.id}`);
+  }
+
   return (
     <article
       role={isClickable ? "link" : undefined}
@@ -344,7 +348,14 @@ export function PostCard({
             {reactionCount}
           </span>
         </Button>
-        <Button type="button" variant="ghost" size="sm" className="rounded-2xl px-3">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="rounded-2xl px-3"
+          onClick={handleOpenComments}
+          aria-label={`Open comments for this post (${post.commentCount})`}
+        >
           <Comment className="size-5" />
           Comment
           <span className="rounded-full bg-muted px-1.5 py-0.5 text-xs tabular-nums text-muted-foreground">

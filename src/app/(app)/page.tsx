@@ -35,6 +35,7 @@ function mapFeedItemToPostCardData(item: {
   caption: string | null;
   likedByCurrentUser?: boolean;
   reactionCount?: number;
+  commentCount?: number;
   mediaItems: Array<{
     id: string;
     type: string;
@@ -65,7 +66,7 @@ function mapFeedItemToPostCardData(item: {
     taggedMembers: [],
     likedByCurrentUser: item.likedByCurrentUser ?? false,
     reactionCount: item.reactionCount ?? 0,
-    commentCount: 0,
+    commentCount: item.commentCount ?? 0,
   };
 }
 

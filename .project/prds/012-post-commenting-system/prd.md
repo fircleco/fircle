@@ -133,14 +133,14 @@ The implementation should follow the same architectural patterns already used by
 
 #### Tasks
 
-- [ ] Update `src/components/feed/post-card.tsx` so the comment action navigates to `/post/[postId]` as the primary thread entry point.
-- [ ] Ensure feed cards display the live `commentCount` returned from the post router.
-- [ ] Invalidate or refresh the relevant post queries after comment create, edit, delete, and like actions so feed and detail views remain consistent.
-- [ ] Preserve existing accessibility conventions:
-  - [ ] `aria-label` text for comment actions.
-  - [ ] `aria-pressed` on like toggles.
-  - [ ] `aria-live` messaging for async errors or status updates.
-  - [ ] Keyboard-friendly focus behavior for inputs, buttons, and destructive actions.
+- [x] Update `src/components/feed/post-card.tsx` so the comment action navigates to `/post/[postId]` as the primary thread entry point.
+- [x] Ensure feed cards display the live `commentCount` returned from the post router.
+- [x] Invalidate or refresh the relevant post queries after comment create, edit, delete, and like actions so feed and detail views remain consistent.
+- [x] Preserve existing accessibility conventions:
+  - [x] `aria-label` text for comment actions.
+  - [x] `aria-pressed` on like toggles.
+  - [x] `aria-live` messaging for async errors or status updates.
+  - [x] Keyboard-friendly focus behavior for inputs, buttons, and destructive actions.
 - [ ] Validate mobile responsiveness for thread layout, nested replies, and composer actions in narrow viewports.
 - [ ] Perform manual QA for create, reply, edit, delete, and like flows across desktop and mobile.
 

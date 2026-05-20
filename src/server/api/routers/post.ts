@@ -1041,12 +1041,10 @@ export const postRouter = createTRPCRouter({
         : null;
 
       return {
-        items: items.map((comment) =>
-          mapCommentResponse(
-            comment,
-            "replies" in comment ? comment.replies : [],
-          ),
-        ),
+        items: items.map((comment) => {
+          const replies = (comment as { replies?: CommentRecordBase[] }).replies ?? [];
+          return mapCommentResponse(comment, replies);
+        }),
         nextCursor,
       };
     }),

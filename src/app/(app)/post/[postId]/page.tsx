@@ -169,6 +169,7 @@ export default function SinglePostPage() {
   const [activeEditCommentId, setActiveEditCommentId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState("");
   const [commentActionError, setCommentActionError] = useState<string | null>(null);
+  const [commentActionStatus, setCommentActionStatus] = useState<string | null>(null);
   const [likeOverrides, setLikeOverrides] = useState<Record<string, LikeOverride>>({});
   const [pendingLikeIds, setPendingLikeIds] = useState<string[]>([]);
 
@@ -258,6 +259,17 @@ export default function SinglePostPage() {
     return comments.find((comment) => comment.id === commentId) ?? null;
   }
 
+  async function invalidatePostSurfaceQueries() {
+    if (!familyId || !postId) return;
+
+    await Promise.all([
+      trpcUtils.post.getById.invalidate({ familyId, postId }),
+      trpcUtils.post.getComments.invalidate({ familyId, postId, limit: 20 }),
+      trpcUtils.post.getFeed.invalidate(),
+      trpcUtils.post.getPostsByMember.invalidate(),
+    ]);
+  }
+
   function handleSubmitTopLevelComment() {
     if (!commentsInput || !memberProfileQuery.data) return;
 
@@ -265,6 +277,7 @@ export default function SinglePostPage() {
     if (!content) return;
 
     setCommentActionError(null);
+    setCommentActionStatus("Posting comment...");
 
     const tempId = `temp-comment-${Date.now()}`;
     const now = new Date();
@@ -321,6 +334,9 @@ export default function SinglePostPage() {
               items: previous.items.map((item) => (item.id === tempId ? created : item)),
             };
           });
+
+          setCommentActionStatus("Comment posted.");
+          void invalidatePostSurfaceQueries();
         },
         onError: (error) => {
           trpcUtils.post.getComments.setData(commentsInput, (previous) => {
@@ -334,6 +350,7 @@ export default function SinglePostPage() {
           incrementPostCommentCount(-1);
           setTopLevelDraft(content);
           setCommentActionError(error.message);
+          setCommentActionStatus("Failed to post comment.");
         },
       },
     );
@@ -368,6 +385,7 @@ export default function SinglePostPage() {
     if (!content) return;
 
     setCommentActionError(null);
+    setCommentActionStatus("Posting reply...");
 
     createCommentMutation.mutate(
       {
@@ -400,9 +418,12 @@ export default function SinglePostPage() {
           incrementPostCommentCount(1);
           setReplyDraft("");
           setActiveReplyCommentId(null);
+          setCommentActionStatus("Reply posted.");
+          void invalidatePostSurfaceQueries();
         },
         onError: (error) => {
           setCommentActionError(error.message);
+          setCommentActionStatus("Failed to post reply.");
         },
       },
     );
@@ -415,6 +436,7 @@ export default function SinglePostPage() {
     if (!content) return;
 
     setCommentActionError(null);
+    setCommentActionStatus("Saving comment...");
 
     updateCommentMutation.mutate(
       {
@@ -439,9 +461,12 @@ export default function SinglePostPage() {
 
           setActiveEditCommentId(null);
           setEditDraft("");
+          setCommentActionStatus("Comment updated.");
+          void invalidatePostSurfaceQueries();
         },
         onError: (error) => {
           setCommentActionError(error.message);
+          setCommentActionStatus("Failed to update comment.");
         },
       },
     );
@@ -458,6 +483,7 @@ export default function SinglePostPage() {
     }
 
     setCommentActionError(null);
+    setCommentActionStatus("Deleting comment...");
 
     deleteCommentMutation.mutate(
       {
@@ -467,11 +493,12 @@ export default function SinglePostPage() {
       {
         onSuccess: () => {
           clearInlineEditors();
-          void commentsQuery.refetch();
-          void postQuery.refetch();
+          setCommentActionStatus("Comment deleted.");
+          void invalidatePostSurfaceQueries();
         },
         onError: (error) => {
           setCommentActionError(error.message);
+          setCommentActionStatus("Failed to delete comment.");
         },
       },
     );
@@ -492,6 +519,8 @@ export default function SinglePostPage() {
     const nextLikeCount = nextLikedByCurrentUser
       ? previousLikeCount + 1
       : Math.max(previousLikeCount - 1, 0);
+
+    setCommentActionStatus(nextLikedByCurrentUser ? "Liking comment..." : "Removing like...");
 
     setPendingLikeIds((previous) => [...previous, commentId]);
     setLikeOverrides((previous) => ({
@@ -516,6 +545,8 @@ export default function SinglePostPage() {
               likeCount: result.likeCount,
             },
           }));
+          setCommentActionStatus(result.likedByCurrentUser ? "Comment liked." : "Comment unliked.");
+          void invalidatePostSurfaceQueries();
         },
         onError: () => {
           setLikeOverrides((previous) => ({
@@ -525,6 +556,7 @@ export default function SinglePostPage() {
               likeCount: previousLikeCount,
             },
           }));
+          setCommentActionStatus("Failed to update comment like.");
         },
         onSettled: () => {
           setPendingLikeIds((previous) => previous.filter((id) => id !== commentId));
@@ -653,18 +685,30 @@ export default function SinglePostPage() {
       </div>
 
       <section className="mt-5" aria-label="Comments">
+        <p className="sr-only" role="status" aria-live="polite">
+          {commentActionStatus ?? ""}
+        </p>
+
         <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
           {comments.length} {comments.length === 1 ? "Comment" : "Comments"}
         </h2>
 
         {commentsQuery.error ? (
-          <div className="mb-4 rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          <div
+            className="mb-4 rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+            role="status"
+            aria-live="polite"
+          >
             {commentsQuery.error.message}
           </div>
         ) : null}
 
         {commentActionError ? (
-          <div className="mb-4 rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          <div
+            className="mb-4 rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+            role="status"
+            aria-live="polite"
+          >
             {commentActionError}
           </div>
         ) : null}

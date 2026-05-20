@@ -89,7 +89,7 @@ export default function ProfilePage() {
     taggedMembers: [],
     likedByCurrentUser: item.likedByCurrentUser,
     reactionCount: item.reactionCount,
-    commentCount: 0,
+    commentCount: item.commentCount,
   }));
 
   // Tagged / liked posts require dedicated backend support — show empty state for now.
