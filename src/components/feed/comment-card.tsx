@@ -2,7 +2,7 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
-import { Heart } from "~/components/ui/icons";
+import { Heart, Comment } from "~/components/ui/icons";
 
 export type FeedComment = {
   id: string;
@@ -117,6 +117,7 @@ export function CommentCard({
             className="rounded-2xl px-3"
             onClick={() => onStartReply(comment.id)}
           >
+            <Comment className="size-4" />
             Reply
           </Button>
         ) : null}
