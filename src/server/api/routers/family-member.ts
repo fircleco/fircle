@@ -76,9 +76,210 @@ async function requireOwnerMembership(
   return membership
 }
 
+const changeMyPasswordInputSchema = z
+  .object({
+    familyId: z.string().cuid(),
+    currentPassword: z.string().min(1).max(72),
+    newPassword: z.string().min(8).max(72),
+    confirmPassword: z.string().min(8).max(72),
+  })
+  .refine((value) => value.newPassword === value.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  })
+
+const adminResetMemberPasswordInputSchema = z.object({
+  familyId: z.string().cuid(),
+  memberId: z.string().cuid(),
+  temporaryPassword: z.string().min(8).max(72),
+})
+
+const updateMemberProfileInputSchema = z.object({
+  familyId: z.string().cuid(),
+  memberId: z.string().cuid(),
+  name: z.string().trim().min(1).max(120),
+  image: z.string().url().max(2048).nullable(),
+})
+
 // ─── Router ───────────────────────────────────────────────────────────────────
 
 export const familyMemberRouter = createTRPCRouter({
+  /**
+   * Protected mutation: Change the current user's password in a family context.
+   */
+  changeMyPassword: protectedProcedure
+    .input(changeMyPasswordInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const membership = await getMembership(
+        ctx.db,
+        input.familyId,
+        ctx.session.user.id,
+      )
+
+      if (!membership) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You do not have access to this family",
+        })
+      }
+
+      const user = await ctx.db.user.findUnique({
+        where: { id: ctx.session.user.id },
+        select: { id: true, password: true },
+      })
+
+      if (!user?.password) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Current password is incorrect",
+        })
+      }
+
+      const isValidCurrentPassword = await bcrypt.compare(
+        input.currentPassword,
+        user.password,
+      )
+
+      if (!isValidCurrentPassword) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Current password is incorrect",
+        })
+      }
+
+      const hashedPassword = await bcrypt.hash(input.newPassword, 12)
+
+      await ctx.db.user.update({
+        where: { id: user.id },
+        data: { password: hashedPassword },
+      })
+
+      console.log(
+        `[security:password-changed] userId=${user.id} familyId=${input.familyId} memberId=${membership.id} at=${new Date().toISOString()}`,
+      )
+
+      return { success: true as const }
+    }),
+
+  /**
+   * Protected mutation: Reset a claimed member's password to a temporary value.
+   */
+  adminResetMemberPassword: protectedProcedure
+    .input(adminResetMemberPasswordInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      await requireAdminMembership(ctx.db, input.familyId, ctx.session.user.id)
+
+      const member = await ctx.db.familyMember.findUnique({
+        where: { id: input.memberId },
+        select: {
+          id: true,
+          familyId: true,
+          userId: true,
+          name: true,
+        },
+      })
+
+      if (!member || member.familyId !== input.familyId) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Family member not found",
+        })
+      }
+
+      if (!member.userId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Only claimed members can have their password reset",
+        })
+      }
+
+      const hashedPassword = await bcrypt.hash(input.temporaryPassword, 12)
+
+      await ctx.db.user.update({
+        where: { id: member.userId },
+        data: { password: hashedPassword },
+      })
+
+      console.log(
+        `[security:admin-password-reset] actorUserId=${ctx.session.user.id} targetUserId=${member.userId} familyId=${input.familyId} memberId=${member.id} at=${new Date().toISOString()}`,
+      )
+
+      return { success: true as const }
+    }),
+
+  /**
+   * Protected mutation: Update a family member's display name and profile image.
+   */
+  updateMemberProfile: protectedProcedure
+    .input(updateMemberProfileInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const callerMembership = await getMembership(
+        ctx.db,
+        input.familyId,
+        ctx.session.user.id,
+      )
+
+      if (!callerMembership) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You do not have access to this family",
+        })
+      }
+
+      const targetMember = await ctx.db.familyMember.findUnique({
+        where: { id: input.memberId },
+        select: {
+          id: true,
+          familyId: true,
+        },
+      })
+
+      if (!targetMember || targetMember.familyId !== input.familyId) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Family member not found",
+        })
+      }
+
+      const canEditSelf = callerMembership.id === targetMember.id
+      const canEditAsAdmin =
+        callerMembership.role === "ADMIN" || callerMembership.role === "OWNER"
+
+      if (!canEditSelf && !canEditAsAdmin) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You do not have permission to perform this action in this family",
+        })
+      }
+
+      const updatedMember = await ctx.db.familyMember.update({
+        where: { id: targetMember.id },
+        data: {
+          name: input.name,
+          image: input.image,
+        },
+        select: {
+          id: true,
+          familyId: true,
+          name: true,
+          image: true,
+          slug: true,
+          userId: true,
+          role: true,
+        },
+      })
+
+      return {
+        id: updatedMember.id,
+        familyId: updatedMember.familyId,
+        name: updatedMember.name,
+        image: updatedMember.image,
+        slug: updatedMember.slug,
+        status: updatedMember.userId ? ("claimed" as const) : ("unclaimed" as const),
+        role: updatedMember.role,
+      }
+    }),
+
   /**
    * Protected query: Resolve a family member profile by slug within a family.
    * Caller must be a member of the target family.

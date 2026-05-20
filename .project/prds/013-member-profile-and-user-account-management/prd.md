@@ -1,6 +1,6 @@
 ---
 title: "Member Profile and User Account Management"
-status: draft
+status: in-progress
 references:
   - type: doc
     url: .project/brief.md
@@ -61,29 +61,29 @@ The implementation should reuse existing architecture patterns: Prisma-backed da
 
 #### Tasks
 
-- [ ] Add/update input schemas in [src/server/api/routers/family-member.ts](src/server/api/routers/family-member.ts) for:
-  - [ ] `changeMyPassword` (`familyId`, `currentPassword`, `newPassword`, `confirmPassword` validation on server contract).
-  - [ ] `adminResetMemberPassword` (`familyId`, `memberId`, `temporaryPassword`).
-  - [ ] `updateMemberProfile` (`familyId`, `memberId`, `name`, `image`).
-- [ ] Implement `changeMyPassword` mutation:
-  - [ ] Resolve caller membership in `familyId`.
-  - [ ] Fetch `User.password` and verify current password via `bcrypt.compare`.
-  - [ ] Reject invalid current password with non-leaking error message.
-  - [ ] Hash new password and update `User.password`.
-- [ ] Implement `adminResetMemberPassword` mutation:
-  - [ ] Enforce owner/admin via existing admin membership helper.
-  - [ ] Ensure target member belongs to same family and is claimed (`userId` not null).
-  - [ ] Hash and persist temporary password to target user account.
-  - [ ] Record admin reset event in audit persistence (new model or minimal existing-compatible logging strategy).
-- [ ] Implement `updateMemberProfile` mutation:
-  - [ ] Allow self-edit when caller owns target member record.
-  - [ ] Allow owner/admin edit for any member in same family.
-  - [ ] Persist `name` and `image` updates on `FamilyMember`.
-- [ ] Add or update router tests for permissions and negative paths:
-  - [ ] Wrong current password.
-  - [ ] Member attempting admin reset.
-  - [ ] Admin reset on unclaimed member.
-  - [ ] Cross-family member targeting.
+- [x] Add/update input schemas in [src/server/api/routers/family-member.ts](src/server/api/routers/family-member.ts) for:
+  - [x] `changeMyPassword` (`familyId`, `currentPassword`, `newPassword`, `confirmPassword` validation on server contract).
+  - [x] `adminResetMemberPassword` (`familyId`, `memberId`, `temporaryPassword`).
+  - [x] `updateMemberProfile` (`familyId`, `memberId`, `name`, `image`).
+- [x] Implement `changeMyPassword` mutation:
+  - [x] Resolve caller membership in `familyId`.
+  - [x] Fetch `User.password` and verify current password via `bcrypt.compare`.
+  - [x] Reject invalid current password with non-leaking error message.
+  - [x] Hash new password and update `User.password`.
+- [x] Implement `adminResetMemberPassword` mutation:
+  - [x] Enforce owner/admin via existing admin membership helper.
+  - [x] Ensure target member belongs to same family and is claimed (`userId` not null).
+  - [x] Hash and persist temporary password to target user account.
+  - [x] Record admin reset event in audit persistence (new model or minimal existing-compatible logging strategy).
+- [x] Implement `updateMemberProfile` mutation:
+  - [x] Allow self-edit when caller owns target member record.
+  - [x] Allow owner/admin edit for any member in same family.
+  - [x] Persist `name` and `image` updates on `FamilyMember`.
+- [x] Add or update router tests for permissions and negative paths:
+  - [x] Wrong current password.
+  - [x] Member attempting admin reset.
+  - [x] Admin reset on unclaimed member.
+  - [x] Cross-family member targeting.
 
 ### Phase 2: Avatar Upload and Profile Edit UX
 
