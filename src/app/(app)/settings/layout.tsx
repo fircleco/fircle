@@ -7,6 +7,7 @@ import { cn } from "~/lib/utils";
 
 const settingsNav = [
   { href: "/settings", label: "Family Settings" },
+  { href: "/settings/account", label: "Account" },
   { href: "/settings/invites", label: "Invites" },
   { href: "/settings/roles", label: "Roles" },
 ];

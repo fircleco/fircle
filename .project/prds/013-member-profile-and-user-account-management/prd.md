@@ -107,15 +107,15 @@ The implementation should reuse existing architecture patterns: Prisma-backed da
 
 #### Tasks
 
-- [ ] Add Account navigation item in [src/app/(app)/settings/layout.tsx](src/app/(app)/settings/layout.tsx).
-- [ ] Create [src/app/(app)/settings/account/page.tsx](src/app/(app)/settings/account/page.tsx):
-  - [ ] Build form with current password, new password, confirm password.
-  - [ ] Wire submit to `changeMyPassword` mutation.
-  - [ ] Show loading, success, and error states with accessible messaging.
-- [ ] Update admin reset card in [src/components/members/member-admin-panel.tsx](src/components/members/member-admin-panel.tsx):
-  - [ ] Replace placeholder button with temporary password entry flow.
-  - [ ] Add confirmation guardrail before mutation submit.
-  - [ ] Show clear success/error outcomes.
+- [x] Add Account navigation item in [src/app/(app)/settings/layout.tsx](src/app/(app)/settings/layout.tsx).
+- [x] Create [src/app/(app)/settings/account/page.tsx](src/app/(app)/settings/account/page.tsx):
+  - [x] Build form with current password, new password, confirm password.
+  - [x] Wire submit to `changeMyPassword` mutation.
+  - [x] Show loading, success, and error states with accessible messaging.
+- [x] Update admin reset card in [src/components/members/member-admin-panel.tsx](src/components/members/member-admin-panel.tsx):
+  - [x] Replace placeholder button with temporary password entry flow.
+  - [x] Add confirmation guardrail before mutation submit.
+  - [x] Show clear success/error outcomes.
 - [ ] Perform manual UX checks for desktop and mobile form usability.
 
 ### Phase 4: Profile Liked Posts Listing

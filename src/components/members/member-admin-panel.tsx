@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { ArrowRight, ShieldCheck, UserRole, UserCheck } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
 import type { FamilyMemberProfile, MemberRole } from "~/lib/mocks/family-members";
 import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
@@ -34,6 +35,11 @@ export function MemberAdminActionsPanel({ member, callerRole, familyId }: Member
   const pendingClaimInvite = member.pendingClaimInvite ?? null;
   const [isClaimLinkCopied, setIsClaimLinkCopied] = useState(false);
   const [origin, setOrigin] = useState("");
+  const [temporaryPassword, setTemporaryPassword] = useState("");
+  const [confirmTemporaryPassword, setConfirmTemporaryPassword] = useState("");
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [resetPasswordError, setResetPasswordError] = useState<string | null>(null);
+  const [resetPasswordSuccess, setResetPasswordSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     setOrigin(window.location.origin);
@@ -54,6 +60,23 @@ export function MemberAdminActionsPanel({ member, callerRole, familyId }: Member
         trpcUtils.familyMember.getMemberProfileBySlug.invalidate(),
         trpcUtils.familyMember.listFamilyMembers.invalidate(),
       ]);
+    },
+  });
+  const adminResetPassword = api.familyMember.adminResetMemberPassword.useMutation({
+    onSuccess: async () => {
+      setResetPasswordError(null);
+      setResetPasswordSuccess("Temporary password was set successfully.");
+      setTemporaryPassword("");
+      setConfirmTemporaryPassword("");
+      setShowResetConfirm(false);
+      await Promise.all([
+        trpcUtils.familyMember.getMemberProfileBySlug.invalidate(),
+        trpcUtils.familyMember.listFamilyMembers.invalidate(),
+      ]);
+    },
+    onError: (error) => {
+      setResetPasswordSuccess(null);
+      setResetPasswordError(error.message);
     },
   });
 
@@ -82,6 +105,52 @@ export function MemberAdminActionsPanel({ member, callerRole, familyId }: Member
   const handleUpdateRole = (role: "MEMBER" | "ADMIN") => {
     if (!canChangeRole) return;
     updateRole.mutate({ memberId: member.id, role });
+  };
+
+  const canSubmitResetPassword =
+    Boolean(familyId) &&
+    isClaimed &&
+    temporaryPassword.length >= 8 &&
+    confirmTemporaryPassword.length >= 8 &&
+    !adminResetPassword.isPending;
+
+  const handleStartResetConfirmation = () => {
+    setResetPasswordError(null);
+    setResetPasswordSuccess(null);
+
+    if (!familyId) {
+      setResetPasswordError("No active family context found for this profile.");
+      return;
+    }
+
+    if (!isClaimed) {
+      setResetPasswordError("Only claimed members can have their password reset.");
+      return;
+    }
+
+    if (temporaryPassword.length < 8) {
+      setResetPasswordError("Temporary password must be at least 8 characters.");
+      return;
+    }
+
+    if (temporaryPassword !== confirmTemporaryPassword) {
+      setResetPasswordError("Temporary password and confirmation must match.");
+      return;
+    }
+
+    setShowResetConfirm(true);
+  };
+
+  const handleConfirmResetPassword = async () => {
+    if (!canSubmitResetPassword || !familyId) {
+      return;
+    }
+
+    await adminResetPassword.mutateAsync({
+      familyId,
+      memberId: member.id,
+      temporaryPassword,
+    });
   };
 
   return (
@@ -218,13 +287,91 @@ export function MemberAdminActionsPanel({ member, callerRole, familyId }: Member
         >
           <div className="rounded-2xl border bg-muted/20 p-3">
             <p className="text-xs text-muted-foreground">Password reset</p>
-            <p className="mt-1 text-sm font-medium">Reset sign-in credentials</p>
+            <p className="mt-1 text-sm font-medium">Set temporary password</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Trigger a reset email or recovery flow for the claimed member.
+              Admins and owners can set a temporary password for claimed members.
             </p>
-            <Button className="mt-3 w-full" size="sm" type="button" variant="secondary">
-              Reset password
-            </Button>
+
+            <div className="mt-3 space-y-2">
+              <label className="space-y-1 text-xs text-muted-foreground" htmlFor={`temp-password-${member.id}`}>
+                Temporary password
+                <Input
+                  id={`temp-password-${member.id}`}
+                  type="password"
+                  autoComplete="new-password"
+                  value={temporaryPassword}
+                  onChange={(event) => {
+                    setTemporaryPassword(event.target.value);
+                    setShowResetConfirm(false);
+                  }}
+                  disabled={!isClaimed || adminResetPassword.isPending}
+                  placeholder="At least 8 characters"
+                />
+              </label>
+
+              <label className="space-y-1 mb-1 text-xs text-muted-foreground" htmlFor={`temp-password-confirm-${member.id}`}>
+                Confirm temporary password
+                <Input
+                  id={`temp-password-confirm-${member.id}`}
+                  type="password"
+                  autoComplete="new-password"
+                  value={confirmTemporaryPassword}
+                  onChange={(event) => {
+                    setConfirmTemporaryPassword(event.target.value);
+                    setShowResetConfirm(false);
+                  }}
+                  disabled={!isClaimed || adminResetPassword.isPending}
+                  placeholder="Re-enter temporary password"
+                />
+              </label>
+
+              {showResetConfirm ? (
+                <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
+                  Confirm resetting this member&apos;s password now. They will need to sign in with the temporary password.
+                </div>
+              ) : null}
+
+              {resetPasswordError ? (
+                <p className="rounded-lg border border-destructive/30 bg-destructive/5 px-2 py-1.5 text-xs text-destructive">
+                  {resetPasswordError}
+                </p>
+              ) : null}
+
+              {resetPasswordSuccess ? (
+                <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-2 py-1.5 text-xs text-emerald-700 dark:text-emerald-300">
+                  {resetPasswordSuccess}
+                </p>
+              ) : null}
+
+              {!isClaimed ? (
+                <p className="text-xs text-muted-foreground">
+                  Password reset is unavailable for unclaimed members.
+                </p>
+              ) : null}
+
+              <div className="flex flex-wrap gap-2 pt-2">
+                <Button
+                  className="w-full sm:w-auto"
+                  size="sm"
+                  type="button"
+                  variant="outline"
+                  onClick={handleStartResetConfirmation}
+                  disabled={!isClaimed || adminResetPassword.isPending}
+                >
+                  Review reset
+                </Button>
+                <Button
+                  className="w-full sm:w-auto"
+                  size="sm"
+                  type="button"
+                  variant="secondary"
+                  onClick={handleConfirmResetPassword}
+                  disabled={!showResetConfirm || !canSubmitResetPassword}
+                >
+                  {adminResetPassword.isPending ? "Resetting..." : "Confirm reset"}
+                </Button>
+              </div>
+            </div>
           </div>
           {canManageRoleSection ? (
             <div className="rounded-2xl border bg-muted/20 p-3">
