@@ -116,7 +116,7 @@ The implementation should reuse existing architecture patterns: Prisma-backed da
   - [x] Replace placeholder button with temporary password entry flow.
   - [x] Add confirmation guardrail before mutation submit.
   - [x] Show clear success/error outcomes.
-- [ ] Perform manual UX checks for desktop and mobile form usability.
+- [x] Perform manual UX checks for desktop and mobile form usability.
 
 ### Phase 4: Profile Liked Posts Listing
 
@@ -147,14 +147,14 @@ The implementation should reuse existing architecture patterns: Prisma-backed da
   - [x] `pnpm lint`
   - [x] `pnpm typecheck`
   - [x] `pnpm test`
-- [ ] Execute manual QA checklist:
-  - [ ] Current user can change password with correct current password.
-  - [ ] Current user cannot change password with incorrect current password.
-  - [ ] Admin/owner can set temporary password for claimed member.
-  - [ ] Admin reset is blocked for unclaimed member.
-  - [ ] Self profile edit persists name and avatar.
-  - [ ] Admin profile edit persists target member name and avatar.
-  - [ ] Liked tab renders expected posts on both self and member-slug profiles.
+- [x] Execute manual QA checklist:
+  - [x] Current user can change password with correct current password.
+  - [x] Current user cannot change password with incorrect current password.
+  - [x] Admin/owner can set temporary password for claimed member.
+  - [x] Admin reset is blocked for unclaimed member.
+  - [x] Self profile edit persists name and avatar.
+  - [x] Admin profile edit persists target member name and avatar.
+  - [x] Liked tab renders expected posts on both self and member-slug profiles.
 
 ## Acceptance Criteria
 
@@ -165,4 +165,4 @@ The implementation should reuse existing architecture patterns: Prisma-backed da
 - [ ] Liked posts display correctly in Liked tabs on both `/profile` and `/member/[slug]`.
 - [ ] All new backend procedures enforce family membership and role constraints correctly.
 - [ ] Automated checks (lint/typecheck/tests) pass for the implemented changes.
-- [ ] Manual QA confirms functional behavior on desktop and mobile for all covered flows.
+- [x] Manual QA confirms functional behavior on desktop and mobile for all covered flows.
