@@ -48,14 +48,15 @@ async function requireAdminMembership(
 ) {
   const membership = await getMembership(db, familyId, userId)
 
-  if (!membership || (membership.role !== "ADMIN" && membership.role !== "OWNER")) {
+  const role = membership?.role
+  if (role !== "ADMIN" && role !== "OWNER") {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: "You do not have permission to perform this action in this family",
     })
   }
 
-  return membership
+  return membership!
 }
 
 /** Throws FORBIDDEN if the user is not the owner of the family. */
@@ -66,7 +67,7 @@ async function requireOwnerMembership(
 ) {
   const membership = await getMembership(db, familyId, userId)
 
-  if (!membership || membership.role !== "OWNER") {
+  if (membership?.role !== "OWNER") {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: "Only the family owner can perform this action",
@@ -155,7 +156,7 @@ export const familyMemberRouter = createTRPCRouter({
       })
 
       console.log(
-        `[security:password-changed] userId=${user.id} familyId=${input.familyId} memberId=${membership.id} at=${new Date().toISOString()}`,
+        `[security:password-changed] familyId=${input.familyId} memberId=${membership.id} at=${new Date().toISOString()}`,
       )
 
       return { success: true as const }
@@ -167,7 +168,11 @@ export const familyMemberRouter = createTRPCRouter({
   adminResetMemberPassword: protectedProcedure
     .input(adminResetMemberPasswordInputSchema)
     .mutation(async ({ ctx, input }) => {
-      await requireAdminMembership(ctx.db, input.familyId, ctx.session.user.id)
+      const adminMembership = await requireAdminMembership(
+        ctx.db,
+        input.familyId,
+        ctx.session.user.id,
+      )
 
       const member = await ctx.db.familyMember.findUnique({
         where: { id: input.memberId },
@@ -179,7 +184,7 @@ export const familyMemberRouter = createTRPCRouter({
         },
       })
 
-      if (!member || member.familyId !== input.familyId) {
+      if (member?.familyId !== input.familyId) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Family member not found",
@@ -201,7 +206,7 @@ export const familyMemberRouter = createTRPCRouter({
       })
 
       console.log(
-        `[security:admin-password-reset] actorUserId=${ctx.session.user.id} targetUserId=${member.userId} familyId=${input.familyId} memberId=${member.id} at=${new Date().toISOString()}`,
+        `[security:admin-password-reset] actorMemberId=${adminMembership.id} targetMemberId=${member.id} familyId=${input.familyId} at=${new Date().toISOString()}`,
       )
 
       return { success: true as const }
@@ -234,7 +239,7 @@ export const familyMemberRouter = createTRPCRouter({
         },
       })
 
-      if (!targetMember || targetMember.familyId !== input.familyId) {
+      if (targetMember?.familyId !== input.familyId) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Family member not found",

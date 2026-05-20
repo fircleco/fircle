@@ -827,3 +827,111 @@ describe("postRouter comments", () => {
     });
   });
 });
+
+describe("postRouter.getLikedPostsByMember", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  const familyId = "clh0000000000000000000002";
+  const memberId = "clh0000000000000000000007";
+
+  it("returns paginated liked posts for a family member", async () => {
+    const createdAt = new Date("2030-01-02T00:00:00.000Z");
+
+    const db = {
+      familyMember: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: "viewer-member",
+          familyId,
+          name: "Viewer",
+          image: null,
+        }),
+        findFirst: vi.fn().mockResolvedValue({
+          id: memberId,
+        }),
+      },
+      post: {
+        findMany: vi.fn().mockResolvedValue([
+          {
+            id: "post-1",
+            type: "PHOTO",
+            caption: "Liked post",
+            createdAt,
+            authorMember: {
+              id: "author-1",
+              name: "Poster",
+              slug: "poster",
+              image: null,
+            },
+            media: [],
+            likes: [{ id: "like-1" }],
+            _count: {
+              likes: 3,
+              comments: 1,
+            },
+          },
+        ]),
+      },
+    } as never;
+
+    const caller = postRouter.createCaller({
+      db,
+      session: {
+        user: { id: "user-1" },
+      },
+      headers: new Headers(),
+    } as never);
+
+    const result = await caller.getLikedPostsByMember({
+      familyId,
+      memberId,
+      limit: 20,
+    });
+
+    expect(result.nextCursor).toBeNull();
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0]).toMatchObject({
+      id: "post-1",
+      caption: "Liked post",
+      likedByCurrentUser: true,
+      reactionCount: 3,
+      commentCount: 1,
+    });
+  });
+
+  it("rejects when target member is not in family", async () => {
+    const db = {
+      familyMember: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: "viewer-member",
+          familyId,
+          name: "Viewer",
+          image: null,
+        }),
+        findFirst: vi.fn().mockResolvedValue(null),
+      },
+      post: {
+        findMany: vi.fn(),
+      },
+    } as never;
+
+    const caller = postRouter.createCaller({
+      db,
+      session: {
+        user: { id: "user-1" },
+      },
+      headers: new Headers(),
+    } as never);
+
+    await expect(
+      caller.getLikedPostsByMember({
+        familyId,
+        memberId,
+        limit: 20,
+      }),
+    ).rejects.toMatchObject({
+      code: "NOT_FOUND",
+    });
+  });
+});

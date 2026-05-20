@@ -22,9 +22,14 @@ function createCaller(db: unknown, userId = "user-1") {
 }
 
 describe("familyMemberRouter.changeMyPassword", () => {
+  let capturedLogs: string[] = [];
+
   beforeEach(() => {
     vi.restoreAllMocks();
-    vi.spyOn(console, "log").mockImplementation(() => undefined);
+    capturedLogs = [];
+    vi.spyOn(console, "log").mockImplementation((message) => {
+      capturedLogs.push(String(message));
+    });
   });
 
   const familyId = "clh0000000000000000000001";
@@ -33,7 +38,15 @@ describe("familyMemberRouter.changeMyPassword", () => {
 
   it("changes the password when the current password is valid", async () => {
     const currentPasswordHash = await bcrypt.hash("current-password", 12);
-    const userUpdate = vi.fn().mockResolvedValue({ id: userId });
+    let updatedPassword: string | null = null;
+    const userUpdate = vi
+      .fn<
+        (args: { where: { id: string }; data: { password: string } }) => Promise<{ id: string }>
+      >()
+      .mockImplementation(async (args) => {
+        updatedPassword = args.data.password;
+        return { id: userId };
+      });
 
     const db = {
       familyMember: {
@@ -69,11 +82,18 @@ describe("familyMemberRouter.changeMyPassword", () => {
       }),
     );
 
-    const updatedPassword = userUpdate.mock.calls[0]?.[0]?.data?.password as string;
-    expect(await bcrypt.compare("new-password1", updatedPassword)).toBe(true);
+    expect(updatedPassword).not.toBeNull();
+    expect(await bcrypt.compare("new-password1", updatedPassword!)).toBe(true);
+
+    const securityLog = capturedLogs.find((entry) => entry.includes("security:password-changed"));
+    expect(securityLog).toBeDefined();
+    expect(securityLog).not.toContain("current-password");
+    expect(securityLog).not.toContain("new-password1");
   });
 
   it("rejects the wrong current password", async () => {
+    expect.assertions(3);
+
     const currentPasswordHash = await bcrypt.hash("current-password", 12);
 
     const db = {
@@ -96,17 +116,23 @@ describe("familyMemberRouter.changeMyPassword", () => {
 
     const caller = createCaller(db);
 
-    await expect(
-      caller.changeMyPassword({
+    try {
+      await caller.changeMyPassword({
         familyId,
         currentPassword: "wrong-password",
         newPassword: "new-password1",
         confirmPassword: "new-password1",
-      }),
-    ).rejects.toMatchObject({
-      code: "BAD_REQUEST",
-      message: "Current password is incorrect",
-    });
+      });
+      throw new Error("Expected changeMyPassword to reject with wrong current password");
+    } catch (error) {
+      expect(error).toMatchObject({
+        code: "BAD_REQUEST",
+        message: "Current password is incorrect",
+      });
+      const message = error instanceof Error ? error.message : String(error);
+      expect(message).not.toContain("wrong-password");
+      expect(message).not.toContain("new-password1");
+    }
   });
 
   it("rejects users without family membership", async () => {
@@ -136,9 +162,14 @@ describe("familyMemberRouter.changeMyPassword", () => {
 });
 
 describe("familyMemberRouter.adminResetMemberPassword", () => {
+  let capturedLogs: string[] = [];
+
   beforeEach(() => {
     vi.restoreAllMocks();
-    vi.spyOn(console, "log").mockImplementation(() => undefined);
+    capturedLogs = [];
+    vi.spyOn(console, "log").mockImplementation((message) => {
+      capturedLogs.push(String(message));
+    });
   });
 
   const familyId = "clh0000000000000000000001";
@@ -149,7 +180,15 @@ describe("familyMemberRouter.adminResetMemberPassword", () => {
   const targetMemberId = "clh0000000000000000000103";
 
   it("resets the password for a claimed member", async () => {
-    const userUpdate = vi.fn().mockResolvedValue({ id: targetUserId });
+    let updatedPassword: string | null = null;
+    const userUpdate = vi
+      .fn<
+        (args: { where: { id: string }; data: { password: string } }) => Promise<{ id: string }>
+      >()
+      .mockImplementation(async (args) => {
+        updatedPassword = args.data.password;
+        return { id: targetUserId };
+      });
     const familyMemberFindUnique = vi.fn((args: {
       where: { familyId_userId?: { familyId: string; userId: string }; id?: string };
     }) => {
@@ -198,8 +237,13 @@ describe("familyMemberRouter.adminResetMemberPassword", () => {
       }),
     );
 
-    const updatedPassword = userUpdate.mock.calls[0]?.[0]?.data?.password as string;
-    expect(await bcrypt.compare("temporary-password1", updatedPassword)).toBe(true);
+    expect(updatedPassword).not.toBeNull();
+    expect(await bcrypt.compare("temporary-password1", updatedPassword!)).toBe(true);
+
+    const securityLog = capturedLogs.find((entry) => entry.includes("security:admin-password-reset"));
+    expect(securityLog).toBeDefined();
+    expect(securityLog).not.toContain("temporary-password1");
+    expect(securityLog).not.toContain(targetUserId);
   });
 
   it("rejects a non-admin member", async () => {

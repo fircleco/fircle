@@ -141,12 +141,12 @@ The implementation should reuse existing architecture patterns: Prisma-backed da
 
 #### Tasks
 
-- [ ] Add/adjust automated tests for new password/profile/liked-post procedures and UI-critical integration points where feasible.
-- [ ] Confirm password flows do not expose sensitive values in logs, errors, or UI states.
-- [ ] Run project quality checks:
-  - [ ] `pnpm lint`
-  - [ ] `pnpm typecheck`
-  - [ ] `pnpm test`
+- [x] Add/adjust automated tests for new password/profile/liked-post procedures and UI-critical integration points where feasible.
+- [x] Confirm password flows do not expose sensitive values in logs, errors, or UI states.
+- [x] Run project quality checks:
+  - [x] `pnpm lint`
+  - [x] `pnpm typecheck`
+  - [x] `pnpm test`
 - [ ] Execute manual QA checklist:
   - [ ] Current user can change password with correct current password.
   - [ ] Current user cannot change password with incorrect current password.
