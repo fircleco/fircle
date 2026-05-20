@@ -124,15 +124,15 @@ The implementation should reuse existing architecture patterns: Prisma-backed da
 
 #### Tasks
 
-- [ ] Add `getLikedPostsByMember` query in [src/server/api/routers/post.ts](src/server/api/routers/post.ts):
-  - [ ] Input: `familyId`, `memberId`, `limit`, optional `cursor`.
-  - [ ] Enforce family membership access guard.
-  - [ ] Query posts liked by target member using `PostLike` relation.
-  - [ ] Reuse existing cursor strategy (`createdAt` + `id`) for stable pagination.
-  - [ ] Return `PostCard`-compatible response shape via existing mapping patterns.
-- [ ] Update [src/app/(app)/profile/page.tsx](src/app/(app)/profile/page.tsx) to fetch/render liked posts for current member Liked tab.
-- [ ] Update [src/app/(app)/member/[slug]/page.tsx](src/app/(app)/member/[slug]/page.tsx) to fetch/render liked posts for viewed member Liked tab.
-- [ ] Preserve empty state behavior when no likes exist.
+- [x] Add `getLikedPostsByMember` query in [src/server/api/routers/post.ts](src/server/api/routers/post.ts):
+  - [x] Input: `familyId`, `memberId`, `limit`, optional `cursor`.
+  - [x] Enforce family membership access guard.
+  - [x] Query posts liked by target member using `PostLike` relation.
+  - [x] Reuse existing cursor strategy (`createdAt` + `id`) for stable pagination.
+  - [x] Return `PostCard`-compatible response shape via existing mapping patterns.
+- [x] Update [src/app/(app)/profile/page.tsx](src/app/(app)/profile/page.tsx) to fetch/render liked posts for current member Liked tab.
+- [x] Update [src/app/(app)/member/[slug]/page.tsx](src/app/(app)/member/[slug]/page.tsx) to fetch/render liked posts for viewed member Liked tab.
+- [x] Preserve empty state behavior when no likes exist.
 - [ ] Optionally add incremental load-more support if `nextCursor` is returned.
 
 ### Phase 5: Validation, Hardening, and Release Readiness

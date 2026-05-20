@@ -105,6 +105,11 @@ export default function MemberProfilePage() {
     { enabled: Boolean(familyId && member?.id), retry: false, refetchOnWindowFocus: false },
   );
 
+  const likedPostsQuery = api.post.getLikedPostsByMember.useQuery(
+    { familyId: familyId ?? "", memberId: member?.id ?? "", limit: 20 },
+    { enabled: Boolean(familyId && member?.id), retry: false, refetchOnWindowFocus: false },
+  );
+
   const memberPosts: PostCardData[] = (memberPostsQuery.data?.items ?? []).map((item) => ({
     id: item.id,
     type: item.type.toLowerCase() as PostCardData["type"],
@@ -125,9 +130,27 @@ export default function MemberProfilePage() {
     commentCount: item.commentCount,
   }));
 
-  // Tagged / liked posts require dedicated backend support — show empty state for now.
+  // Tagged posts require dedicated backend support — show empty state for now.
   const taggedPosts: PostCardData[] = [];
-  const likedPosts: PostCardData[] = [];
+  const likedPosts: PostCardData[] = (likedPostsQuery.data?.items ?? []).map((item) => ({
+    id: item.id,
+    type: item.type.toLowerCase() as PostCardData["type"],
+    author: { name: item.author.name, slug: item.author.slug, avatarUrl: item.author.avatarUrl },
+    createdAtLabel: formatCreatedAtLabel(item.createdAt),
+    body: item.caption ?? "",
+    mediaItems: item.mediaItems.map((m) => ({
+      id: m.id,
+      type: m.type === "video" ? "video" : "image",
+      url: m.url,
+      alt: m.alt,
+      caption: m.caption ?? undefined,
+      durationLabel: m.durationLabel,
+    })),
+    taggedMembers: [],
+    likedByCurrentUser: item.likedByCurrentUser,
+    reactionCount: item.reactionCount,
+    commentCount: item.commentCount,
+  }));
 
   const isLoading = managementContext.isLoading || memberProfileQuery.isLoading;
   const hasNoFamily = !managementContext.isLoading && !familyId;

@@ -103,6 +103,13 @@ export const getPostsByMemberInputSchema = z.object({
   cursor: z.string().optional(),
 });
 
+export const getLikedPostsByMemberInputSchema = z.object({
+  familyId: z.string().cuid(),
+  memberId: z.string().cuid(),
+  limit: z.number().int().min(1).max(50).default(20),
+  cursor: z.string().optional(),
+});
+
 export const getPostByIdInputSchema = z.object({
   familyId: z.string().cuid(),
   postId: z.string().cuid(),
@@ -681,6 +688,115 @@ export const postRouter = createTRPCRouter({
           authorMemberId: input.memberId,
           authorMember: {
             familyId: input.familyId,
+          },
+          ...(cursor
+            ? {
+                OR: [
+                  { createdAt: { lt: cursor.createdAt } },
+                  { createdAt: cursor.createdAt, id: { lt: cursor.id } },
+                ],
+              }
+            : {}),
+        },
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        select: {
+          id: true,
+          type: true,
+          caption: true,
+          createdAt: true,
+          authorMember: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              image: true,
+            },
+          },
+          media: {
+            orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+            select: {
+              id: true,
+              type: true,
+              provider: true,
+              bucket: true,
+              objectKey: true,
+              url: true,
+              mimeType: true,
+              sizeBytes: true,
+              width: true,
+              height: true,
+              durationMs: true,
+              caption: true,
+              sortOrder: true,
+              createdAt: true,
+            },
+          },
+          likes: {
+            where: {
+              memberIdWhoLiked: membership.id,
+            },
+            select: {
+              id: true,
+            },
+          },
+          _count: {
+            select: {
+              likes: true,
+              comments: true,
+            },
+          },
+        },
+      });
+
+      const hasNextPage = posts.length > input.limit;
+      const items = hasNextPage ? posts.slice(0, input.limit) : posts;
+      const nextCursor = hasNextPage
+        ? encodeCursor({
+            createdAt: items[items.length - 1]!.createdAt,
+            id: items[items.length - 1]!.id,
+          })
+        : null;
+
+      return {
+        items: items.map((post) => mapPostResponse(post)),
+        nextCursor,
+      };
+    }),
+
+  getLikedPostsByMember: protectedProcedure
+    .input(getLikedPostsByMemberInputSchema)
+    .query(async ({ ctx, input }) => {
+      const membership = await requireFamilyMembership(input.familyId, ctx.session.user.id, ctx.db);
+
+      const targetMember = await ctx.db.familyMember.findFirst({
+        where: {
+          id: input.memberId,
+          familyId: input.familyId,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (!targetMember) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Family member not found",
+        });
+      }
+
+      const cursor = parseCursor(input.cursor);
+
+      const posts = await ctx.db.post.findMany({
+        take: input.limit + 1,
+        where: {
+          authorMember: {
+            familyId: input.familyId,
+          },
+          likes: {
+            some: {
+              memberIdWhoLiked: input.memberId,
+            },
           },
           ...(cursor
             ? {
