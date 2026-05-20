@@ -1,25 +1,15 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
 
+import { CommentInput } from "~/components/feed/comment-input";
+import { CommentList } from "~/components/feed/comment-list";
 import { PostCard } from "~/components/feed/post-card";
 import type { PostCardData } from "~/components/feed/post-card";
-import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
-import { ArrowLeft, Heart } from "~/components/ui/icons";
+import { ArrowLeft } from "~/components/ui/icons";
 import { api } from "~/trpc/react";
-
-type PostComment = {
-  id: string;
-  author: {
-    name: string;
-    avatarUrl: string;
-  };
-  createdAtLabel: string;
-  body: string;
-  reactionCount: number;
-};
 
 function formatCreatedAtLabel(dateInput: Date | string) {
   const date = dateInput instanceof Date ? dateInput : new Date(dateInput);
@@ -63,6 +53,7 @@ function mapPostToPostCardData(item: {
   caption: string | null;
   likedByCurrentUser?: boolean;
   reactionCount?: number;
+  commentCount?: number;
   mediaItems: Array<{
     id: string;
     type: string;
@@ -93,133 +84,93 @@ function mapPostToPostCardData(item: {
     taggedMembers: [],
     likedByCurrentUser: item.likedByCurrentUser ?? false,
     reactionCount: item.reactionCount ?? 0,
-    commentCount: 0,
+    commentCount: item.commentCount ?? 0,
   };
 }
 
-function getInitials(name: string) {
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("");
+type LikeOverride = {
+  likedByCurrentUser: boolean;
+  likeCount: number;
+};
+
+type CommentApiItem = {
+  id: string;
+  postId: string;
+  parentCommentId: string | null;
+  content: string;
+  createdAt: Date;
+  updatedAt: Date;
+  author: {
+    id: string;
+    name: string;
+    slug: string;
+    avatarUrl: string;
+  };
+  likedByCurrentUser: boolean;
+  likeCount: number;
+  replyCount: number;
+  replies: CommentApiItem[];
+};
+
+function applyLikeOverrides(comments: CommentApiItem[], overrides: Record<string, LikeOverride>): CommentApiItem[] {
+  return comments.map((comment) => ({
+    ...comment,
+    likedByCurrentUser: overrides[comment.id]?.likedByCurrentUser ?? comment.likedByCurrentUser,
+    likeCount: overrides[comment.id]?.likeCount ?? comment.likeCount,
+    replies: applyLikeOverrides(comment.replies, overrides),
+  }));
 }
 
-function CommentCard({ comment }: { comment: PostComment }) {
-  return (
-    <article className="rounded-2xl border border-border/80 bg-card/90 px-4 py-3">
-      <header className="flex items-center gap-3">
-        <Avatar className="size-9 shrink-0 border border-border">
-          <AvatarImage src={comment.author.avatarUrl} alt={comment.author.name} />
-          <AvatarFallback className="text-xs font-semibold text-foreground">
-            {getInitials(comment.author.name)}
-          </AvatarFallback>
-        </Avatar>
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium leading-none text-foreground">{comment.author.name}</p>
-          <p className="mt-0.5 text-xs text-muted-foreground">{comment.createdAtLabel}</p>
-        </div>
-      </header>
-
-      <p className="mt-3 leading-relaxed text-foreground">{comment.body}</p>
-
-      <div className="mt-3 flex items-center gap-2">
-        <Button type="button" variant="ghost" size="sm" className="rounded-2xl px-3">
-          <Heart className="size-4" />
-          Like
-          {comment.reactionCount > 0 ? (
-            <span className="rounded-full bg-muted px-1.5 py-0.5 text-xs tabular-nums text-muted-foreground">
-              {comment.reactionCount}
-            </span>
-          ) : null}
-        </Button>
-      </div>
-    </article>
-  );
-}
-
-function CommentInput({ user }: { user?: { name: string; avatarUrl?: string } }) {
-  const [value, setValue] = useState("");
-  const [isFocused, setIsFocused] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const hasText = value.trim().length > 0;
-  const isExpanded = isFocused || hasText;
-
-  useEffect(() => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-
-    if (!hasText) {
-      textarea.style.height = "";
-      return;
+function findCommentById(comments: CommentApiItem[], targetId: string): CommentApiItem | null {
+  for (const comment of comments) {
+    if (comment.id === targetId) {
+      return comment;
     }
 
-    textarea.style.height = "auto";
-    textarea.style.height = `${textarea.scrollHeight}px`;
-  }, [hasText, value]);
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setValue("");
+    const nested = findCommentById(comment.replies, targetId);
+    if (nested) {
+      return nested;
+    }
   }
 
-  return (
-    <form
-      onSubmit={handleSubmit}
-      className="flex items-center gap-3 rounded-2xl border border-border/80 bg-card/90 p-4"
-    >
-      <Avatar className="mb-auto mt-0.5 size-10 shrink-0 border border-border">
-        {user?.avatarUrl ? <AvatarImage src={user.avatarUrl} alt={user.name} /> : null}
-        <AvatarFallback className="text-xs font-semibold text-foreground">
-          {user?.name ? getInitials(user.name) : "ME"}
-        </AvatarFallback>
-      </Avatar>
+  return null;
+}
 
-      <div className="flex-1">
-        <textarea
-          ref={textareaRef}
-          rows={1}
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-          placeholder="Post your reply"
-          className="mt-0.5 min-h-6 w-full resize-none bg-transparent py-1 pt-2.5 leading-5 text-foreground placeholder:text-muted-foreground outline-none"
-        />
+function updateCommentInTree(
+  comments: CommentApiItem[],
+  targetId: string,
+  updater: (comment: CommentApiItem) => CommentApiItem,
+): CommentApiItem[] {
+  return comments.map((comment) => {
+    if (comment.id === targetId) {
+      return updater(comment);
+    }
 
-        {isExpanded ? (
-          <div className="mt-2 flex justify-end">
-            <Button
-              type="submit"
-              size="sm"
-              className="h-9 rounded-full px-4 font-semibold disabled:opacity-100"
-              disabled={!hasText}
-            >
-              Reply
-            </Button>
-          </div>
-        ) : null}
-      </div>
+    if (comment.replies.length === 0) {
+      return comment;
+    }
 
-      {!isExpanded ? (
-        <Button
-          type="submit"
-          size="sm"
-          className="h-9 shrink-0 rounded-full px-4 font-semibold disabled:opacity-100"
-          disabled={!hasText}
-        >
-          Reply
-        </Button>
-      ) : null}
-    </form>
-  );
+    return {
+      ...comment,
+      replies: updateCommentInTree(comment.replies, targetId, updater),
+    };
+  });
 }
 
 export default function SinglePostPage() {
   const router = useRouter();
   const params = useParams<{ postId: string }>();
   const postId = params.postId;
+  const trpcUtils = api.useUtils();
+
+  const [topLevelDraft, setTopLevelDraft] = useState("");
+  const [activeReplyCommentId, setActiveReplyCommentId] = useState<string | null>(null);
+  const [replyDraft, setReplyDraft] = useState("");
+  const [activeEditCommentId, setActiveEditCommentId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState("");
+  const [commentActionError, setCommentActionError] = useState<string | null>(null);
+  const [likeOverrides, setLikeOverrides] = useState<Record<string, LikeOverride>>({});
+  const [pendingLikeIds, setPendingLikeIds] = useState<string[]>([]);
 
   const managementContext = api.invite.getManagementContext.useQuery(undefined, {
     retry: false,
@@ -249,14 +200,338 @@ export default function SinglePostPage() {
     },
   );
 
-  const post = postQuery.data ? mapPostToPostCardData(postQuery.data) : undefined;
-  const fullPostTimestamp = postQuery.data
-    ? formatFullPostTimestamp(postQuery.data.createdAt)
-    : undefined;
-  const comments: PostComment[] = [];
+  const commentsInput = familyId && postId ? { familyId, postId, limit: 20 } : undefined;
+  const commentsQuery = api.post.getComments.useQuery(
+    commentsInput ?? { familyId: "", postId: "", limit: 20 },
+    {
+      enabled: Boolean(commentsInput),
+      retry: false,
+      refetchOnWindowFocus: false,
+    },
+  );
 
-  const isLoading = managementContext.isLoading || (Boolean(familyId) && postQuery.isLoading);
+  const createCommentMutation = api.post.createComment.useMutation();
+  const updateCommentMutation = api.post.updateComment.useMutation();
+  const deleteCommentMutation = api.post.deleteComment.useMutation();
+  const toggleCommentLikeMutation = api.post.toggleCommentLike.useMutation();
+
+  const post = postQuery.data ? mapPostToPostCardData(postQuery.data) : undefined;
+  const fullPostTimestamp = postQuery.data ? formatFullPostTimestamp(postQuery.data.createdAt) : undefined;
+
+  const comments = useMemo(() => {
+    const items = (commentsQuery.data?.items ?? []) as CommentApiItem[];
+    return applyLikeOverrides(items, likeOverrides);
+  }, [commentsQuery.data?.items, likeOverrides]);
+
+  const isLoading =
+    managementContext.isLoading ||
+    (Boolean(familyId) && postQuery.isLoading) ||
+    (Boolean(commentsInput) && commentsQuery.isLoading);
   const hasNoFamily = !managementContext.isLoading && !familyId;
+  const isPostingTopLevelComment = createCommentMutation.isPending && !activeReplyCommentId;
+
+  function isLikePending(commentId: string) {
+    return pendingLikeIds.includes(commentId);
+  }
+
+  function clearInlineEditors() {
+    setActiveReplyCommentId(null);
+    setReplyDraft("");
+    setActiveEditCommentId(null);
+    setEditDraft("");
+  }
+
+  function incrementPostCommentCount(delta: number) {
+    if (!familyId || !postId || delta === 0) return;
+
+    trpcUtils.post.getById.setData({ familyId, postId }, (previous) => {
+      if (!previous) return previous;
+
+      return {
+        ...previous,
+        commentCount: Math.max((previous.commentCount ?? 0) + delta, 0),
+      };
+    });
+  }
+
+  function findParentTopLevelComment(commentId: string) {
+    return comments.find((comment) => comment.id === commentId) ?? null;
+  }
+
+  function handleSubmitTopLevelComment() {
+    if (!commentsInput || !memberProfileQuery.data) return;
+
+    const content = topLevelDraft.trim();
+    if (!content) return;
+
+    setCommentActionError(null);
+
+    const tempId = `temp-comment-${Date.now()}`;
+    const now = new Date();
+
+    const optimisticComment: CommentApiItem = {
+      id: tempId,
+      postId,
+      parentCommentId: null,
+      content,
+      createdAt: now,
+      updatedAt: now,
+      author: {
+        id: memberProfileQuery.data.id,
+        name: memberProfileQuery.data.name,
+        slug: memberProfileQuery.data.slug,
+        avatarUrl: memberProfileQuery.data.image ?? "",
+      },
+      likedByCurrentUser: false,
+      likeCount: 0,
+      replyCount: 0,
+      replies: [],
+    };
+
+    setTopLevelDraft("");
+
+    trpcUtils.post.getComments.setData(commentsInput, (previous) => {
+      if (!previous) {
+        return {
+          items: [optimisticComment],
+          nextCursor: null,
+        };
+      }
+
+      return {
+        ...previous,
+        items: [optimisticComment, ...previous.items],
+      };
+    });
+    incrementPostCommentCount(1);
+
+    createCommentMutation.mutate(
+      {
+        familyId: commentsInput.familyId,
+        postId: commentsInput.postId,
+        content,
+      },
+      {
+        onSuccess: (created) => {
+          trpcUtils.post.getComments.setData(commentsInput, (previous) => {
+            if (!previous) return previous;
+
+            return {
+              ...previous,
+              items: previous.items.map((item) => (item.id === tempId ? created : item)),
+            };
+          });
+        },
+        onError: (error) => {
+          trpcUtils.post.getComments.setData(commentsInput, (previous) => {
+            if (!previous) return previous;
+
+            return {
+              ...previous,
+              items: previous.items.filter((item) => item.id !== tempId),
+            };
+          });
+          incrementPostCommentCount(-1);
+          setTopLevelDraft(content);
+          setCommentActionError(error.message);
+        },
+      },
+    );
+  }
+
+  function handleStartReply(commentId: string) {
+    setCommentActionError(null);
+    setActiveEditCommentId(null);
+    setEditDraft("");
+    setActiveReplyCommentId(commentId);
+    setReplyDraft("");
+  }
+
+  function handleStartEdit(commentId: string) {
+    const target = findCommentById(comments, commentId);
+    if (!target) return;
+
+    setCommentActionError(null);
+    setActiveReplyCommentId(null);
+    setReplyDraft("");
+    setActiveEditCommentId(commentId);
+    setEditDraft(target.content);
+  }
+
+  function handleSubmitReply() {
+    if (!commentsInput || !activeReplyCommentId) return;
+
+    const parentComment = findParentTopLevelComment(activeReplyCommentId);
+    if (!parentComment) return;
+
+    const content = replyDraft.trim();
+    if (!content) return;
+
+    setCommentActionError(null);
+
+    createCommentMutation.mutate(
+      {
+        familyId: commentsInput.familyId,
+        postId: commentsInput.postId,
+        parentCommentId: parentComment.id,
+        content,
+      },
+      {
+        onSuccess: (created) => {
+          trpcUtils.post.getComments.setData(commentsInput, (previous) => {
+            if (!previous) return previous;
+
+            return {
+              ...previous,
+              items: previous.items.map((item) => {
+                if (item.id !== parentComment.id) {
+                  return item;
+                }
+
+                return {
+                  ...item,
+                  replyCount: item.replyCount + 1,
+                  replies: [...item.replies, created],
+                };
+              }),
+            };
+          });
+
+          incrementPostCommentCount(1);
+          setReplyDraft("");
+          setActiveReplyCommentId(null);
+        },
+        onError: (error) => {
+          setCommentActionError(error.message);
+        },
+      },
+    );
+  }
+
+  function handleSubmitEdit(commentId: string) {
+    if (!commentsInput) return;
+
+    const content = editDraft.trim();
+    if (!content) return;
+
+    setCommentActionError(null);
+
+    updateCommentMutation.mutate(
+      {
+        familyId: commentsInput.familyId,
+        commentId,
+        content,
+      },
+      {
+        onSuccess: (updated) => {
+          trpcUtils.post.getComments.setData(commentsInput, (previous) => {
+            if (!previous) return previous;
+
+            return {
+              ...previous,
+              items: updateCommentInTree(previous.items, commentId, (comment) => ({
+                ...comment,
+                content: updated.content,
+                updatedAt: updated.updatedAt,
+              })),
+            };
+          });
+
+          setActiveEditCommentId(null);
+          setEditDraft("");
+        },
+        onError: (error) => {
+          setCommentActionError(error.message);
+        },
+      },
+    );
+  }
+
+  function handleDeleteComment(commentId: string) {
+    if (!commentsInput) return;
+
+    const target = findCommentById(comments, commentId);
+    if (!target) return;
+
+    if (!window.confirm("Delete this comment? This cannot be undone.")) {
+      return;
+    }
+
+    setCommentActionError(null);
+
+    deleteCommentMutation.mutate(
+      {
+        familyId: commentsInput.familyId,
+        commentId,
+      },
+      {
+        onSuccess: () => {
+          clearInlineEditors();
+          void commentsQuery.refetch();
+          void postQuery.refetch();
+        },
+        onError: (error) => {
+          setCommentActionError(error.message);
+        },
+      },
+    );
+  }
+
+  function handleToggleLike(commentId: string) {
+    if (!commentsInput || isLikePending(commentId)) return;
+
+    const target = findCommentById(comments, commentId);
+    if (!target) return;
+
+    const previousOverride = likeOverrides[commentId];
+    const previousLikedByCurrentUser =
+      previousOverride?.likedByCurrentUser ?? target.likedByCurrentUser;
+    const previousLikeCount = previousOverride?.likeCount ?? target.likeCount;
+
+    const nextLikedByCurrentUser = !previousLikedByCurrentUser;
+    const nextLikeCount = nextLikedByCurrentUser
+      ? previousLikeCount + 1
+      : Math.max(previousLikeCount - 1, 0);
+
+    setPendingLikeIds((previous) => [...previous, commentId]);
+    setLikeOverrides((previous) => ({
+      ...previous,
+      [commentId]: {
+        likedByCurrentUser: nextLikedByCurrentUser,
+        likeCount: nextLikeCount,
+      },
+    }));
+
+    toggleCommentLikeMutation.mutate(
+      {
+        familyId: commentsInput.familyId,
+        commentId,
+      },
+      {
+        onSuccess: (result) => {
+          setLikeOverrides((previous) => ({
+            ...previous,
+            [commentId]: {
+              likedByCurrentUser: result.likedByCurrentUser,
+              likeCount: result.likeCount,
+            },
+          }));
+        },
+        onError: () => {
+          setLikeOverrides((previous) => ({
+            ...previous,
+            [commentId]: {
+              likedByCurrentUser: previousLikedByCurrentUser,
+              likeCount: previousLikeCount,
+            },
+          }));
+        },
+        onSettled: () => {
+          setPendingLikeIds((previous) => previous.filter((id) => id !== commentId));
+        },
+      },
+    );
+  }
 
   if (isLoading) {
     return (
@@ -367,7 +642,14 @@ export default function SinglePostPage() {
       />
 
       <div className="mt-6">
-        <CommentInput user={currentUser} />
+        <CommentInput
+          user={currentUser}
+          value={topLevelDraft}
+          onChange={setTopLevelDraft}
+          onSubmit={handleSubmitTopLevelComment}
+          submitLabel="Reply"
+          pending={isPostingTopLevelComment}
+        />
       </div>
 
       <section className="mt-5" aria-label="Comments">
@@ -375,21 +657,70 @@ export default function SinglePostPage() {
           {comments.length} {comments.length === 1 ? "Comment" : "Comments"}
         </h2>
 
-        {comments.length > 0 ? (
-          <ul className="space-y-5">
-            {comments.map((comment) => (
-              <li key={comment.id}>
-                <CommentCard comment={comment} />
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <div className="rounded-2xl border border-dashed border-border/80 bg-card/60 px-6 py-8 text-center">
-            <p className="text-sm text-muted-foreground">
-              No comments yet. Be the first to say something!
-            </p>
+        {commentsQuery.error ? (
+          <div className="mb-4 rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            {commentsQuery.error.message}
           </div>
-        )}
+        ) : null}
+
+        {commentActionError ? (
+          <div className="mb-4 rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            {commentActionError}
+          </div>
+        ) : null}
+
+        <CommentList
+          comments={comments}
+          currentMemberId={memberProfileQuery.data?.id}
+          onToggleLike={handleToggleLike}
+          onStartReply={handleStartReply}
+          onStartEdit={handleStartEdit}
+          onDelete={handleDeleteComment}
+          isLikePending={isLikePending}
+          renderInlineComposer={(comment) => {
+            if (activeEditCommentId === comment.id) {
+              return (
+                <CommentInput
+                  user={currentUser}
+                  value={editDraft}
+                  onChange={setEditDraft}
+                  onSubmit={() => handleSubmitEdit(comment.id)}
+                  placeholder="Edit your comment"
+                  submitLabel="Save"
+                  pending={updateCommentMutation.isPending}
+                  compact
+                  autoFocus
+                  onCancel={() => {
+                    setActiveEditCommentId(null);
+                    setEditDraft("");
+                  }}
+                />
+              );
+            }
+
+            if (activeReplyCommentId === comment.id) {
+              return (
+                <CommentInput
+                  user={currentUser}
+                  value={replyDraft}
+                  onChange={setReplyDraft}
+                  onSubmit={handleSubmitReply}
+                  placeholder="Write a reply"
+                  submitLabel="Reply"
+                  pending={createCommentMutation.isPending}
+                  compact
+                  autoFocus
+                  onCancel={() => {
+                    setActiveReplyCommentId(null);
+                    setReplyDraft("");
+                  }}
+                />
+              );
+            }
+
+            return null;
+          }}
+        />
       </section>
     </section>
   );

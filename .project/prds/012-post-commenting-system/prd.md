@@ -115,17 +115,17 @@ The implementation should follow the same architectural patterns already used by
 
 #### Tasks
 
-- [ ] Refactor the existing comment scaffolding in `src/app/(app)/post/[postId]/page.tsx` into reusable components where appropriate, such as:
-  - [ ] `CommentCard` for individual comments and replies.
-  - [ ] `CommentList` for paginated top-level comments and reply sections.
-  - [ ] `CommentInput` for new comments and reply/edit forms.
-- [ ] Wire the post detail page to the new comment queries and mutations using `api` hooks from `src/trpc/react.tsx`.
-- [ ] Support top-level comment creation with optimistic insertion and rollback on failure.
-- [ ] Support reply creation beneath a parent comment with clear visual nesting and mobile-safe spacing.
-- [ ] Support editing an existing comment in place with pending and error states.
-- [ ] Support deleting an existing comment with confirmation UI to reduce accidental removal.
-- [ ] Support comment like toggling with optimistic UI behavior and `aria-pressed` semantics.
-- [ ] Preserve current loading, empty, and error-state patterns already used elsewhere in the feed experience.
+- [x] Refactor the existing comment scaffolding in `src/app/(app)/post/[postId]/page.tsx` into reusable components where appropriate, such as:
+  - [x] `CommentCard` for individual comments and replies.
+  - [x] `CommentList` for paginated top-level comments and reply sections.
+  - [x] `CommentInput` for new comments and reply/edit forms.
+- [x] Wire the post detail page to the new comment queries and mutations using `api` hooks from `src/trpc/react.tsx`.
+- [x] Support top-level comment creation with optimistic insertion and rollback on failure.
+- [x] Support reply creation beneath a parent comment with clear visual nesting and mobile-safe spacing.
+- [x] Support editing an existing comment in place with pending and error states.
+- [x] Support deleting an existing comment with confirmation UI to reduce accidental removal.
+- [x] Support comment like toggling with optimistic UI behavior and `aria-pressed` semantics.
+- [x] Preserve current loading, empty, and error-state patterns already used elsewhere in the feed experience.
 
 ### Phase 4: Feed Entry Point, Counts, and UX Polish
 
