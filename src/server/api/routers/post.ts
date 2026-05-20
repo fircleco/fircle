@@ -2,6 +2,7 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { getStorageProvider } from "~/server/storage";
 import { checkRateLimit } from "~/lib/rate-limit";
+import type { db as appDb } from "~/server/db";
 
 import {
   createTRPCRouter,
@@ -9,6 +10,7 @@ import {
 } from "~/server/api/trpc";
 
 const MAX_MEDIA_PER_POST = 10;
+const MAX_REPLY_PREVIEW_PER_PARENT = 3;
 
 function isAbsoluteUrl(value: string) {
   try {
@@ -109,6 +111,37 @@ export const getPostByIdInputSchema = z.object({
 export const toggleLikeInputSchema = z.object({
   familyId: z.string().cuid(),
   postId: z.string().cuid(),
+});
+
+export const createCommentInputSchema = z.object({
+  familyId: z.string().cuid(),
+  postId: z.string().cuid(),
+  content: z.string().trim().min(1).max(2000),
+  parentCommentId: z.string().cuid().optional(),
+});
+
+export const getCommentsInputSchema = z.object({
+  familyId: z.string().cuid(),
+  postId: z.string().cuid(),
+  limit: z.number().int().min(1).max(50).default(20),
+  cursor: z.string().optional(),
+  parentCommentId: z.string().cuid().optional(),
+});
+
+export const updateCommentInputSchema = z.object({
+  familyId: z.string().cuid(),
+  commentId: z.string().cuid(),
+  content: z.string().trim().min(1).max(2000),
+});
+
+export const deleteCommentInputSchema = z.object({
+  familyId: z.string().cuid(),
+  commentId: z.string().cuid(),
+});
+
+export const toggleCommentLikeInputSchema = z.object({
+  familyId: z.string().cuid(),
+  commentId: z.string().cuid(),
 });
 
 function parseCursor(cursor?: string) {
@@ -294,7 +327,59 @@ function mapPostResponse(post: {
   };
 }
 
-async function requireFamilyMembership(familyId: string, userId: string, db: typeof import("~/server/db").db) {
+type CommentRecordBase = {
+  id: string;
+  postId: string;
+  parentCommentId: string | null;
+  content: string;
+  createdAt: Date;
+  updatedAt: Date;
+  authorMember: { id: string; name: string; slug: string; image: string | null };
+  likes: Array<{ id: string }>;
+  _count: { likes: number; replies: number };
+};
+
+type CommentResponse = {
+  id: string;
+  postId: string;
+  parentCommentId: string | null;
+  content: string;
+  createdAt: Date;
+  updatedAt: Date;
+  author: {
+    id: string;
+    name: string;
+    slug: string;
+    avatarUrl: string;
+  };
+  likedByCurrentUser: boolean;
+  likeCount: number;
+  replyCount: number;
+  replies: CommentResponse[];
+};
+
+function mapCommentResponse(comment: CommentRecordBase, replies: CommentRecordBase[] = []): CommentResponse {
+  return {
+    id: comment.id,
+    postId: comment.postId,
+    parentCommentId: comment.parentCommentId,
+    content: comment.content,
+    createdAt: comment.createdAt,
+    updatedAt: comment.updatedAt,
+    author: {
+      id: comment.authorMember.id,
+      name: comment.authorMember.name,
+      slug: comment.authorMember.slug,
+      avatarUrl: comment.authorMember.image ?? "",
+    },
+    likedByCurrentUser: comment.likes.length > 0,
+    likeCount: comment._count.likes,
+    replyCount: comment._count.replies,
+    replies: replies.map((reply) => mapCommentResponse(reply)),
+  };
+}
+
+async function requireFamilyMembership(familyId: string, userId: string, db: typeof appDb) {
   const membership = await db.familyMember.findUnique({
     where: {
       familyId_userId: {
@@ -669,6 +754,505 @@ export const postRouter = createTRPCRouter({
         items: items.map((post) => mapPostResponse(post)),
         nextCursor,
       };
+    }),
+
+  createComment: protectedProcedure
+    .input(createCommentInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const membership = await requireFamilyMembership(input.familyId, ctx.session.user.id, ctx.db);
+
+      const rateLimit = checkRateLimit(`comment:create:${membership.id}`, 50, 60_000);
+      if (!rateLimit.ok) {
+        throw new TRPCError({
+          code: "TOO_MANY_REQUESTS",
+          message: "Too many requests. Please try again later.",
+        });
+      }
+
+      const post = await ctx.db.post.findFirst({
+        where: {
+          id: input.postId,
+          authorMember: {
+            familyId: input.familyId,
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (!post) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Post not found",
+        });
+      }
+
+      let parentCommentId: string | null = null;
+      if (input.parentCommentId) {
+        const parent = await ctx.db.comment.findFirst({
+          where: {
+            id: input.parentCommentId,
+            postId: post.id,
+            parentCommentId: null,
+          },
+          select: {
+            id: true,
+          },
+        });
+
+        if (!parent) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Parent comment not found",
+          });
+        }
+
+        parentCommentId = parent.id;
+      }
+
+      const createdComment = await ctx.db.comment.create({
+        data: {
+          postId: post.id,
+          authorMemberId: membership.id,
+          parentCommentId,
+          content: input.content,
+        },
+        select: {
+          id: true,
+          postId: true,
+          parentCommentId: true,
+          content: true,
+          createdAt: true,
+          updatedAt: true,
+          authorMember: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              image: true,
+            },
+          },
+          likes: {
+            where: {
+              memberIdWhoLiked: membership.id,
+            },
+            select: {
+              id: true,
+            },
+          },
+          _count: {
+            select: {
+              likes: true,
+              replies: true,
+            },
+          },
+        },
+      });
+
+      return mapCommentResponse(createdComment);
+    }),
+
+  getComments: protectedProcedure
+    .input(getCommentsInputSchema)
+    .query(async ({ ctx, input }) => {
+      const membership = await requireFamilyMembership(input.familyId, ctx.session.user.id, ctx.db);
+      const cursor = parseCursor(input.cursor);
+
+      const post = await ctx.db.post.findFirst({
+        where: {
+          id: input.postId,
+          authorMember: {
+            familyId: input.familyId,
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (!post) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Post not found",
+        });
+      }
+
+      if (input.parentCommentId) {
+        const parent = await ctx.db.comment.findFirst({
+          where: {
+            id: input.parentCommentId,
+            postId: post.id,
+            parentCommentId: null,
+          },
+          select: {
+            id: true,
+          },
+        });
+
+        if (!parent) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Parent comment not found",
+          });
+        }
+      }
+
+      const baseWhere = {
+        postId: post.id,
+        ...(cursor
+          ? {
+              OR: [
+                {
+                  createdAt: {
+                    lt: cursor.createdAt,
+                  },
+                },
+                {
+                  createdAt: cursor.createdAt,
+                  id: {
+                    lt: cursor.id,
+                  },
+                },
+              ],
+            }
+          : {}),
+      };
+
+      const comments = input.parentCommentId
+        ? await ctx.db.comment.findMany({
+            take: input.limit + 1,
+            where: {
+              ...baseWhere,
+              parentCommentId: input.parentCommentId,
+            },
+            orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+            select: {
+              id: true,
+              postId: true,
+              parentCommentId: true,
+              content: true,
+              createdAt: true,
+              updatedAt: true,
+              authorMember: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                  image: true,
+                },
+              },
+              likes: {
+                where: {
+                  memberIdWhoLiked: membership.id,
+                },
+                select: {
+                  id: true,
+                },
+              },
+              _count: {
+                select: {
+                  likes: true,
+                  replies: true,
+                },
+              },
+            },
+          })
+        : await ctx.db.comment.findMany({
+            take: input.limit + 1,
+            where: {
+              ...baseWhere,
+              parentCommentId: null,
+            },
+            orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+            select: {
+              id: true,
+              postId: true,
+              parentCommentId: true,
+              content: true,
+              createdAt: true,
+              updatedAt: true,
+              authorMember: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                  image: true,
+                },
+              },
+              likes: {
+                where: {
+                  memberIdWhoLiked: membership.id,
+                },
+                select: {
+                  id: true,
+                },
+              },
+              _count: {
+                select: {
+                  likes: true,
+                  replies: true,
+                },
+              },
+              replies: {
+                take: MAX_REPLY_PREVIEW_PER_PARENT,
+                orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+                select: {
+                  id: true,
+                  postId: true,
+                  parentCommentId: true,
+                  content: true,
+                  createdAt: true,
+                  updatedAt: true,
+                  authorMember: {
+                    select: {
+                      id: true,
+                      name: true,
+                      slug: true,
+                      image: true,
+                    },
+                  },
+                  likes: {
+                    where: {
+                      memberIdWhoLiked: membership.id,
+                    },
+                    select: {
+                      id: true,
+                    },
+                  },
+                  _count: {
+                    select: {
+                      likes: true,
+                      replies: true,
+                    },
+                  },
+                },
+              },
+            },
+          });
+
+      const hasNextPage = comments.length > input.limit;
+      const items = hasNextPage ? comments.slice(0, input.limit) : comments;
+      const nextCursor = hasNextPage
+        ? encodeCursor({
+            createdAt: items[items.length - 1]!.createdAt,
+            id: items[items.length - 1]!.id,
+          })
+        : null;
+
+      return {
+        items: items.map((comment) =>
+          mapCommentResponse(
+            comment,
+            "replies" in comment ? comment.replies : [],
+          ),
+        ),
+        nextCursor,
+      };
+    }),
+
+  updateComment: protectedProcedure
+    .input(updateCommentInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const membership = await requireFamilyMembership(input.familyId, ctx.session.user.id, ctx.db);
+
+      const comment = await ctx.db.comment.findFirst({
+        where: {
+          id: input.commentId,
+          post: {
+            authorMember: {
+              familyId: input.familyId,
+            },
+          },
+        },
+        select: {
+          id: true,
+          authorMemberId: true,
+        },
+      });
+
+      if (!comment) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Comment not found",
+        });
+      }
+
+      if (comment.authorMemberId !== membership.id) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You can only edit your own comments",
+        });
+      }
+
+      const updatedComment = await ctx.db.comment.update({
+        where: {
+          id: comment.id,
+        },
+        data: {
+          content: input.content,
+        },
+        select: {
+          id: true,
+          postId: true,
+          parentCommentId: true,
+          content: true,
+          createdAt: true,
+          updatedAt: true,
+          authorMember: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              image: true,
+            },
+          },
+          likes: {
+            where: {
+              memberIdWhoLiked: membership.id,
+            },
+            select: {
+              id: true,
+            },
+          },
+          _count: {
+            select: {
+              likes: true,
+              replies: true,
+            },
+          },
+        },
+      });
+
+      return mapCommentResponse(updatedComment);
+    }),
+
+  deleteComment: protectedProcedure
+    .input(deleteCommentInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const membership = await requireFamilyMembership(input.familyId, ctx.session.user.id, ctx.db);
+
+      const comment = await ctx.db.comment.findFirst({
+        where: {
+          id: input.commentId,
+          post: {
+            authorMember: {
+              familyId: input.familyId,
+            },
+          },
+        },
+        select: {
+          id: true,
+          authorMemberId: true,
+          postId: true,
+        },
+      });
+
+      if (!comment) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Comment not found",
+        });
+      }
+
+      if (comment.authorMemberId !== membership.id) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You can only delete your own comments",
+        });
+      }
+
+      await ctx.db.comment.delete({
+        where: {
+          id: comment.id,
+        },
+      });
+
+      return {
+        commentId: comment.id,
+        postId: comment.postId,
+        deleted: true,
+      };
+    }),
+
+  toggleCommentLike: protectedProcedure
+    .input(toggleCommentLikeInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const membership = await requireFamilyMembership(input.familyId, ctx.session.user.id, ctx.db);
+
+      const rateLimit = checkRateLimit(`comment:like:${membership.id}`, 100, 60_000);
+      if (!rateLimit.ok) {
+        throw new TRPCError({
+          code: "TOO_MANY_REQUESTS",
+          message: "Too many requests. Please try again later.",
+        });
+      }
+
+      const comment = await ctx.db.comment.findFirst({
+        where: {
+          id: input.commentId,
+          post: {
+            authorMember: {
+              familyId: input.familyId,
+            },
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (!comment) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Comment not found",
+        });
+      }
+
+      const result = await ctx.db.$transaction(async (tx) => {
+        const existingLike = await tx.commentLike.findUnique({
+          where: {
+            commentId_memberIdWhoLiked: {
+              commentId: comment.id,
+              memberIdWhoLiked: membership.id,
+            },
+          },
+          select: {
+            id: true,
+          },
+        });
+
+        let likedByCurrentUser = false;
+        if (existingLike) {
+          await tx.commentLike.delete({
+            where: {
+              id: existingLike.id,
+            },
+          });
+        } else {
+          await tx.commentLike.create({
+            data: {
+              commentId: comment.id,
+              memberIdWhoLiked: membership.id,
+            },
+          });
+          likedByCurrentUser = true;
+        }
+
+        const likeCount = await tx.commentLike.count({
+          where: {
+            commentId: comment.id,
+          },
+        });
+
+        return {
+          commentId: comment.id,
+          likedByCurrentUser,
+          likeCount,
+        };
+      });
+
+      return result;
     }),
 
   toggleLike: protectedProcedure

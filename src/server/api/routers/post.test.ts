@@ -448,3 +448,382 @@ describe("postRouter.toggleLike", () => {
     });
   });
 });
+
+describe("postRouter comments", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  const familyId = "clh0000000000000000000002";
+  const postId = "clh0000000000000000000003";
+  const commentId = "clh0000000000000000000010";
+
+  it("creates a top-level comment", async () => {
+    vi.spyOn(rateLimit, "checkRateLimit").mockReturnValue({ ok: true });
+
+    const db = {
+      familyMember: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: "member-1",
+          familyId,
+          name: "Parent One",
+          image: null,
+        }),
+      },
+      post: {
+        findFirst: vi.fn().mockResolvedValue({ id: postId }),
+      },
+      comment: {
+        findFirst: vi.fn(),
+        create: vi.fn().mockResolvedValue({
+          id: commentId,
+          postId,
+          parentCommentId: null,
+          content: "Great update",
+          createdAt: new Date("2030-01-01T00:00:00.000Z"),
+          updatedAt: new Date("2030-01-01T00:00:00.000Z"),
+          authorMember: {
+            id: "member-1",
+            name: "Parent One",
+            slug: "parent-one",
+            image: null,
+          },
+          likes: [],
+          _count: {
+            likes: 0,
+            replies: 0,
+          },
+        }),
+      },
+    } as never;
+
+    const caller = postRouter.createCaller({
+      db,
+      session: {
+        user: { id: "user-1" },
+      },
+      headers: new Headers(),
+    } as never);
+
+    const result = await caller.createComment({
+      familyId,
+      postId,
+      content: "Great update",
+    });
+
+    expect(result).toMatchObject({
+      id: commentId,
+      postId,
+      content: "Great update",
+      likedByCurrentUser: false,
+      likeCount: 0,
+      replyCount: 0,
+    });
+  });
+
+  it("rejects replies when parent comment is missing or not top-level", async () => {
+    vi.spyOn(rateLimit, "checkRateLimit").mockReturnValue({ ok: true });
+
+    const db = {
+      familyMember: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: "member-1",
+          familyId,
+          name: "Parent One",
+          image: null,
+        }),
+      },
+      post: {
+        findFirst: vi.fn().mockResolvedValue({ id: postId }),
+      },
+      comment: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        create: vi.fn(),
+      },
+    } as never;
+
+    const caller = postRouter.createCaller({
+      db,
+      session: {
+        user: { id: "user-1" },
+      },
+      headers: new Headers(),
+    } as never);
+
+    await expect(
+      caller.createComment({
+        familyId,
+        postId,
+        content: "Reply text",
+        parentCommentId: "clh0000000000000000000099",
+      }),
+    ).rejects.toMatchObject({
+      code: "NOT_FOUND",
+    });
+  });
+
+  it("enforces comment creation rate limits", async () => {
+    vi.spyOn(rateLimit, "checkRateLimit").mockReturnValue({ ok: false, retryAfterMs: 1000 });
+
+    const db = {
+      familyMember: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: "member-1",
+          familyId,
+          name: "Parent One",
+          image: null,
+        }),
+      },
+      post: {
+        findFirst: vi.fn(),
+      },
+      comment: {
+        findFirst: vi.fn(),
+        create: vi.fn(),
+      },
+    } as never;
+
+    const caller = postRouter.createCaller({
+      db,
+      session: {
+        user: { id: "user-1" },
+      },
+      headers: new Headers(),
+    } as never);
+
+    await expect(
+      caller.createComment({
+        familyId,
+        postId,
+        content: "Great update",
+      }),
+    ).rejects.toMatchObject({
+      code: "TOO_MANY_REQUESTS",
+    });
+  });
+
+  it("rejects updating a comment owned by another member", async () => {
+    const db = {
+      familyMember: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: "member-1",
+          familyId,
+          name: "Parent One",
+          image: null,
+        }),
+      },
+      comment: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: commentId,
+          authorMemberId: "member-2",
+        }),
+        update: vi.fn(),
+      },
+    } as never;
+
+    const caller = postRouter.createCaller({
+      db,
+      session: {
+        user: { id: "user-1" },
+      },
+      headers: new Headers(),
+    } as never);
+
+    await expect(
+      caller.updateComment({
+        familyId,
+        commentId,
+        content: "Updated text",
+      }),
+    ).rejects.toMatchObject({
+      code: "FORBIDDEN",
+    });
+  });
+
+  it("rejects deleting a comment owned by another member", async () => {
+    const db = {
+      familyMember: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: "member-1",
+          familyId,
+          name: "Parent One",
+          image: null,
+        }),
+      },
+      comment: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: commentId,
+          authorMemberId: "member-2",
+          postId,
+        }),
+        delete: vi.fn(),
+      },
+    } as never;
+
+    const caller = postRouter.createCaller({
+      db,
+      session: {
+        user: { id: "user-1" },
+      },
+      headers: new Headers(),
+    } as never);
+
+    await expect(
+      caller.deleteComment({
+        familyId,
+        commentId,
+      }),
+    ).rejects.toMatchObject({
+      code: "FORBIDDEN",
+    });
+  });
+
+  it("toggles a comment like and returns current count", async () => {
+    vi.spyOn(rateLimit, "checkRateLimit").mockReturnValue({ ok: true });
+
+    const tx = {
+      commentLike: {
+        findUnique: vi.fn().mockResolvedValue(null),
+        create: vi.fn().mockResolvedValue({ id: "comment-like-1" }),
+        delete: vi.fn(),
+        count: vi.fn().mockResolvedValue(3),
+      },
+    };
+
+    const db = {
+      familyMember: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: "member-1",
+          familyId,
+          name: "Parent One",
+          image: null,
+        }),
+      },
+      comment: {
+        findFirst: vi.fn().mockResolvedValue({ id: commentId }),
+      },
+      $transaction: vi.fn(async (callback: (txArg: typeof tx) => Promise<unknown>) => callback(tx)),
+    } as never;
+
+    const caller = postRouter.createCaller({
+      db,
+      session: {
+        user: { id: "user-1" },
+      },
+      headers: new Headers(),
+    } as never);
+
+    const result = await caller.toggleCommentLike({
+      familyId,
+      commentId,
+    });
+
+    expect(result).toEqual({
+      commentId,
+      likedByCurrentUser: true,
+      likeCount: 3,
+    });
+  });
+
+  it("enforces rate limits for comment likes", async () => {
+    vi.spyOn(rateLimit, "checkRateLimit").mockReturnValue({ ok: false, retryAfterMs: 1000 });
+
+    const db = {
+      familyMember: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: "member-1",
+          familyId,
+          name: "Parent One",
+          image: null,
+        }),
+      },
+      comment: {
+        findFirst: vi.fn(),
+      },
+      $transaction: vi.fn(),
+    } as never;
+
+    const caller = postRouter.createCaller({
+      db,
+      session: {
+        user: { id: "user-1" },
+      },
+      headers: new Headers(),
+    } as never);
+
+    await expect(
+      caller.toggleCommentLike({
+        familyId,
+        commentId,
+      }),
+    ).rejects.toMatchObject({
+      code: "TOO_MANY_REQUESTS",
+    });
+  });
+
+  it("returns paginated comments", async () => {
+    const createdAt = new Date("2030-01-01T00:00:00.000Z");
+
+    const db = {
+      familyMember: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: "member-1",
+          familyId,
+          name: "Parent One",
+          image: null,
+        }),
+      },
+      post: {
+        findFirst: vi.fn().mockResolvedValue({ id: postId }),
+      },
+      comment: {
+        findFirst: vi.fn(),
+        findMany: vi.fn().mockResolvedValue([
+          {
+            id: commentId,
+            postId,
+            parentCommentId: null,
+            content: "Top-level comment",
+            createdAt,
+            updatedAt: createdAt,
+            authorMember: {
+              id: "member-2",
+              name: "Parent Two",
+              slug: "parent-two",
+              image: null,
+            },
+            likes: [{ id: "like-1" }],
+            _count: {
+              likes: 1,
+              replies: 0,
+            },
+            replies: [],
+          },
+        ]),
+      },
+    } as never;
+
+    const caller = postRouter.createCaller({
+      db,
+      session: {
+        user: { id: "user-1" },
+      },
+      headers: new Headers(),
+    } as never);
+
+    const result = await caller.getComments({
+      familyId,
+      postId,
+      limit: 20,
+    });
+
+    expect(result.nextCursor).toBeNull();
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0]).toMatchObject({
+      id: commentId,
+      likedByCurrentUser: true,
+      likeCount: 1,
+      replyCount: 0,
+    });
+  });
+});

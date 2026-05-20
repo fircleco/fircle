@@ -88,26 +88,26 @@ The implementation should follow the same architectural patterns already used by
 
 #### Tasks
 
-- [ ] Add comment input schemas following existing zod conventions, either in `src/server/api/routers/post.ts` or a dedicated shared schema file:
-  - [ ] `createCommentInputSchema` with `familyId`, `postId`, `content`, and optional `parentCommentId`.
-  - [ ] `getCommentsInputSchema` with `familyId`, `postId`, `limit`, `cursor`, and optional `parentCommentId`.
-  - [ ] `updateCommentInputSchema` with `familyId`, `commentId`, and `content`.
-  - [ ] `deleteCommentInputSchema` with `familyId` and `commentId`.
-  - [ ] `toggleCommentLikeInputSchema` with `familyId` and `commentId`.
-- [ ] Reuse the existing family membership guard pattern so every comment query and mutation verifies the caller belongs to the family attached to the post.
-- [ ] Implement `createComment` mutation:
-  - [ ] Enforce per-member rate limiting.
-  - [ ] Confirm the target post exists in the caller's family.
-  - [ ] If `parentCommentId` is provided, confirm it belongs to the same post.
-  - [ ] Persist the comment and return a mapped response with author, timestamps, like state, and reply metadata.
-- [ ] Implement paginated comment reads:
-  - [ ] Query top-level comments for a post using cursor pagination aligned with existing `createdAt + id` conventions.
-  - [ ] Load replies for each parent comment using a bounded initial strategy or a dedicated replies query, while preserving a path for future scaling.
-  - [ ] Return `likedByCurrentUser`, `likeCount`, and `replyCount` in the response shape.
-- [ ] Implement `updateComment` mutation with author-only permission checks and content validation.
-- [ ] Implement `deleteComment` mutation with author-only permission checks and hard-delete behavior.
-- [ ] Implement `toggleCommentLike` mutation following the same idempotent pattern used by post likes, including rate limiting.
-- [ ] Add backend tests covering authorization, invalid parent references, like toggling, edit/delete ownership checks, and rate limiting behavior.
+- [x] Add comment input schemas following existing zod conventions, either in `src/server/api/routers/post.ts` or a dedicated shared schema file:
+  - [x] `createCommentInputSchema` with `familyId`, `postId`, `content`, and optional `parentCommentId`.
+  - [x] `getCommentsInputSchema` with `familyId`, `postId`, `limit`, `cursor`, and optional `parentCommentId`.
+  - [x] `updateCommentInputSchema` with `familyId`, `commentId`, and `content`.
+  - [x] `deleteCommentInputSchema` with `familyId` and `commentId`.
+  - [x] `toggleCommentLikeInputSchema` with `familyId` and `commentId`.
+- [x] Reuse the existing family membership guard pattern so every comment query and mutation verifies the caller belongs to the family attached to the post.
+- [x] Implement `createComment` mutation:
+  - [x] Enforce per-member rate limiting.
+  - [x] Confirm the target post exists in the caller's family.
+  - [x] If `parentCommentId` is provided, confirm it belongs to the same post.
+  - [x] Persist the comment and return a mapped response with author, timestamps, like state, and reply metadata.
+- [x] Implement paginated comment reads:
+  - [x] Query top-level comments for a post using cursor pagination aligned with existing `createdAt + id` conventions.
+  - [x] Load replies for each parent comment using a bounded initial strategy or a dedicated replies query, while preserving a path for future scaling.
+  - [x] Return `likedByCurrentUser`, `likeCount`, and `replyCount` in the response shape.
+- [x] Implement `updateComment` mutation with author-only permission checks and content validation.
+- [x] Implement `deleteComment` mutation with author-only permission checks and hard-delete behavior.
+- [x] Implement `toggleCommentLike` mutation following the same idempotent pattern used by post likes, including rate limiting.
+- [x] Add backend tests covering authorization, invalid parent references, like toggling, edit/delete ownership checks, and rate limiting behavior.
 
 ### Phase 3: Post Detail Thread UI
 
