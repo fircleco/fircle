@@ -1,20 +1,24 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
 
 import { cn } from "~/lib/utils";
+import { api } from "~/trpc/react";
 
 const settingsNav = [
-  { href: "/settings", label: "Family Settings" },
-  { href: "/settings/account", label: "Account" },
-  { href: "/settings/invites", label: "Invites" },
-  { href: "/settings/roles", label: "Roles" },
+  { href: "/settings", label: "Account", adminOnly: false },
+  { href: "/settings/family", label: "Family Settings", adminOnly: true },
+  { href: "/settings/invites", label: "Invites", adminOnly: true },
+  { href: "/settings/roles", label: "Roles", adminOnly: true },
 ];
+
+const adminOnlySettingsPaths = ["/settings/family", "/settings/invites", "/settings/roles"];
 
 function isActivePath(pathname: string, href: string) {
   if (href === "/settings") {
-    return pathname === "/settings";
+    return pathname === "/settings" || pathname === "/settings/account" || pathname.startsWith("/settings/account/");
   }
   return pathname === href || pathname.startsWith(`${href}/`);
 }
@@ -24,7 +28,40 @@ export default function SettingsLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const router = useRouter();
   const pathname = usePathname();
+  const managementContext = api.invite.getManagementContext.useQuery(undefined, {
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+
+  const selectedFamilyId = managementContext.data?.family?.id ?? null;
+  const canManageSettings =
+    managementContext.data?.role === "OWNER" || managementContext.data?.role === "ADMIN";
+  const currentPathIsAdminOnly = adminOnlySettingsPaths.some((restrictedPath) =>
+    restrictedPath === "/settings"
+      ? pathname === "/settings"
+      : pathname === restrictedPath || pathname.startsWith(`${restrictedPath}/`),
+  );
+
+  useEffect(() => {
+    if (
+      !managementContext.isLoading &&
+      selectedFamilyId &&
+      !canManageSettings &&
+      currentPathIsAdminOnly
+    ) {
+      router.replace("/settings");
+    }
+  }, [
+    canManageSettings,
+    currentPathIsAdminOnly,
+    managementContext.isLoading,
+    router,
+    selectedFamilyId,
+  ]);
+
+  const visibleSettingsNav = settingsNav.filter((item) => !item.adminOnly || canManageSettings);
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
@@ -38,7 +75,7 @@ export default function SettingsLayout({
         >
           {/* Mobile: horizontal tab strip */}
           <ul className="flex gap-1 overflow-x-auto rounded-xl border bg-card/60 p-1 md:flex-col md:overflow-x-visible">
-            {settingsNav.map((item) => {
+            {visibleSettingsNav.map((item) => {
               const active = isActivePath(pathname, item.href);
               return (
                 <li key={item.href} className="flex-1 md:flex-none">
