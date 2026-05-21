@@ -1,6 +1,6 @@
 ---
 title: "Member Profile and User Account Management"
-status: in-progress
+status: completed
 references:
   - type: doc
     url: .project/brief.md
@@ -31,6 +31,7 @@ This PRD introduces a complete member/profile and account management pass that c
 - Current-user password change in Settings > Account.
 - Admin temporary password reset from the member profile admin panel.
 - Real profile editing (name + profile image) for both current user and admins.
+- Optional profile image upload during unclaimed member creation on `/members/new`.
 - Profile liked-post listing on both self profile and member-by-slug profile pages.
 
 The implementation should reuse existing architecture patterns: Prisma-backed data model, tRPC protected procedures, role and family membership guards, existing media upload infrastructure, and optimistic UI conventions where appropriate.
@@ -98,6 +99,10 @@ The implementation should reuse existing architecture patterns: Prisma-backed da
   - [x] Add local file picker, preview, upload progress, and upload error states.
   - [x] Call signed upload intent + upload to storage + submit `updateMemberProfile` mutation.
   - [x] Keep fields limited to `name` and `profile image`.
+- [x] Update [src/app/(app)/members/new/page.tsx](src/app/(app)/members/new/page.tsx):
+  - [x] Replace manual photo URL input with optional image picker + local preview.
+  - [x] Create member first, then upload avatar with signed upload intent using the created member id.
+  - [x] Persist uploaded avatar read URL via `updateMemberProfile` after successful upload.
 - [x] Ensure [src/components/members/member-admin-panel.tsx](src/components/members/member-admin-panel.tsx) uses the same live dialog flow for admin edits.
 - [x] Invalidate/refetch member profile queries after successful update so avatars and names refresh immediately.
 
@@ -154,6 +159,7 @@ The implementation should reuse existing architecture patterns: Prisma-backed da
   - [x] Admin reset is blocked for unclaimed member.
   - [x] Self profile edit persists name and avatar.
   - [x] Admin profile edit persists target member name and avatar.
+  - [x] New member creation supports optional avatar upload with preview and persisted image.
   - [x] Liked tab renders expected posts on both self and member-slug profiles.
 
 ## Acceptance Criteria
@@ -162,6 +168,7 @@ The implementation should reuse existing architecture patterns: Prisma-backed da
 - [x] Admin panel on member profile supports temporary password reset for claimed members only.
 - [x] Profile edit dialog saves real data (name and image) for both self and admin edit contexts.
 - [x] Avatar uploads use signed upload flow and persist usable profile image URLs.
+- [x] New member creation supports optional avatar upload and persists the uploaded profile image.
 - [x] Liked posts display correctly in Liked tabs on both `/profile` and `/member/[slug]`.
 - [x] All new backend procedures enforce family membership and role constraints correctly.
 - [x] Automated checks (lint/typecheck/tests) pass for the implemented changes.
