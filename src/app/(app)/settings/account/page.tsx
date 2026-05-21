@@ -76,7 +76,7 @@ export default function AccountSettingsPage() {
       <header className="space-y-1.5">
         <h2 className="font-semibold text-xl tracking-tight">Account</h2>
         <p className="text-muted-foreground text-sm">
-          Change your password to keep your account secure.
+          Manage your account preferences and security settings.
         </p>
       </header>
 
