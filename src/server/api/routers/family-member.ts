@@ -25,7 +25,7 @@ import {
 } from "~/lib/invite-schemas"
 import { getInviteExpiryDate } from "~/lib/invite"
 import { checkRateLimit, getClientIp } from "~/lib/rate-limit"
-import { getMemberSlugBase, resolveUniqueMemberSlug } from "~/lib/member-slug"
+import { getMemberSlugBase, resolveUniqueMemberSlug, slugifyMemberText } from "~/lib/member-slug"
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -109,6 +109,8 @@ const updateMemberProfileInputSchema = z.object({
   familyId: z.string().cuid(),
   memberId: z.string().cuid(),
   name: z.string().trim().min(1).max(120),
+  nickname: z.string().trim().max(60).nullable().optional(),
+  slug: z.string().trim().min(1).max(120).optional(),
   image: profileImageInputSchema.nullable(),
 })
 
@@ -223,7 +225,7 @@ export const familyMemberRouter = createTRPCRouter({
     }),
 
   /**
-   * Protected mutation: Update a family member's display name and profile image.
+   * Protected mutation: Update a family member's profile fields.
    */
   updateMemberProfile: protectedProcedure
     .input(updateMemberProfileInputSchema)
@@ -246,6 +248,7 @@ export const familyMemberRouter = createTRPCRouter({
         select: {
           id: true,
           familyId: true,
+          slug: true,
         },
       })
 
@@ -267,16 +270,31 @@ export const familyMemberRouter = createTRPCRouter({
         })
       }
 
+      const normalizedNickname = input.nickname?.trim() ?? null
+      const shouldUpdateSlug = Boolean(input.slug?.trim())
+
+      let nextSlug = targetMember.slug
+      if (shouldUpdateSlug) {
+        const slugBase = slugifyMemberText(input.slug!)
+        nextSlug =
+          slugBase === targetMember.slug
+            ? targetMember.slug
+            : await resolveUniqueMemberSlug(ctx.db, input.familyId, slugBase)
+      }
+
       const updatedMember = await ctx.db.familyMember.update({
         where: { id: targetMember.id },
         data: {
           name: input.name,
+          nickname: normalizedNickname,
+          slug: nextSlug,
           image: input.image,
         },
         select: {
           id: true,
           familyId: true,
           name: true,
+          nickname: true,
           image: true,
           slug: true,
           userId: true,
@@ -288,6 +306,7 @@ export const familyMemberRouter = createTRPCRouter({
         id: updatedMember.id,
         familyId: updatedMember.familyId,
         name: updatedMember.name,
+        nickname: updatedMember.nickname,
         image: updatedMember.image,
         slug: updatedMember.slug,
         status: updatedMember.userId ? ("claimed" as const) : ("unclaimed" as const),

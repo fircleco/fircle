@@ -399,6 +399,7 @@ describe("familyMemberRouter.updateMemberProfile", () => {
         return Promise.resolve({
           id: targetMemberId,
           familyId,
+          slug: "target-member",
         });
       }
 
@@ -442,10 +443,10 @@ describe("familyMemberRouter.updateMemberProfile", () => {
     expect(familyMemberUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { id: targetMemberId },
-        data: {
+        data: expect.objectContaining({
           name: "Updated Name",
           image: "https://example.com/avatar.jpg",
-        },
+        }),
       }),
     );
   });
