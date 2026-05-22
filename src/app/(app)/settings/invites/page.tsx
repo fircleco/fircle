@@ -124,7 +124,6 @@ export default function InvitesPage() {
   const [copyFeedbackKey, setCopyFeedbackKey] = useState<string | null>(null);
   const [revokingInviteId, setRevokingInviteId] = useState<string | null>(null);
   const [revokeError, setRevokeError] = useState<string | null>(null);
-  const [showEmptyPreview, setShowEmptyPreview] = useState(false);
 
   const managementContext = api.invite.getManagementContext.useQuery(undefined, {
     retry: false,
@@ -194,8 +193,8 @@ export default function InvitesPage() {
     [invites],
   );
 
-  const visiblePendingInvites = showEmptyPreview ? [] : pendingInvites;
-  const visibleHistoryInvites = showEmptyPreview ? [] : historyInvites;
+  const visiblePendingInvites = pendingInvites;
+  const visibleHistoryInvites = historyInvites;
   const showAllEmptyState =
     visiblePendingInvites.length === 0 && visibleHistoryInvites.length === 0;
 
@@ -246,14 +245,6 @@ export default function InvitesPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setShowEmptyPreview((prev) => !prev)}
-            disabled={!canManageInvites || invitesQuery.isLoading}
-          >
-            {showEmptyPreview ? "Show invite data" : "Preview empty state"}
-          </Button>
           <Button
             type="button"
             onClick={() => setShowCreatePanel(true)}
