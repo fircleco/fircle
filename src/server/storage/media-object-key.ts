@@ -110,6 +110,21 @@ export function buildAvatarObjectKey(input: {
   ].join("/");
 }
 
+export function buildFamilyImageObjectKey(input: {
+  familyId: string;
+  mimeType: string;
+  fileName: string;
+}) {
+  const ext = sanitizePathSegment(getSafeExtension(input.fileName, input.mimeType));
+
+  return [
+    "families",
+    sanitizePathSegment(input.familyId),
+    "identity",
+    `${randomUUID()}.${ext}`,
+  ].join("/");
+}
+
 export function validateMediaFileConstraints(
   file: MediaFileConstraintInput,
 ): MediaFileConstraintResult {

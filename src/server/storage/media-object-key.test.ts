@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildAvatarObjectKey,
+  buildFamilyImageObjectKey,
   buildMediaObjectKey,
   validateMediaFileConstraints,
 } from "~/server/storage/media-object-key";
@@ -82,6 +83,20 @@ describe("buildAvatarObjectKey", () => {
 
     expect(key).toMatch(
       /^families\/clh0000000000000000000000\/members\/clh0000000000000000000001\/avatars\/[0-9a-f-]{36}\.webp$/,
+    );
+  });
+});
+
+describe("buildFamilyImageObjectKey", () => {
+  it("scopes family identity image keys by family", () => {
+    const key = buildFamilyImageObjectKey({
+      familyId: "clh0000000000000000000000",
+      mimeType: "image/png",
+      fileName: "family-logo.png",
+    });
+
+    expect(key).toMatch(
+      /^families\/clh0000000000000000000000\/identity\/[0-9a-f-]{36}\.png$/,
     );
   });
 });

@@ -25,6 +25,19 @@ import { normalizeEmail } from "~/lib/email"
 import { checkRateLimit, getClientIp } from "~/lib/rate-limit"
 import { getMemberSlugBase, resolveUniqueMemberSlug } from "~/lib/member-slug"
 
+const internalMediaUrlSchema = z
+  .string()
+  .max(2048)
+  .refine((value) => value.startsWith("/api/media/r2/"), "Invalid url")
+
+const familyImageInputSchema = z.union([z.string().url().max(2048), internalMediaUrlSchema])
+
+const updateFamilyIdentityInputSchema = z.object({
+  familyId: z.string().cuid(),
+  name: z.string().trim().min(1).max(120),
+  image: familyImageInputSchema.nullable(),
+})
+
 export const inviteRouter = createTRPCRouter({
   /**
    * Public query: Get invite details by code for pre-acceptance viewing.
@@ -317,6 +330,7 @@ export const inviteRouter = createTRPCRouter({
           select: {
             id: true,
             name: true,
+            image: true,
           },
         },
       },
@@ -334,6 +348,7 @@ export const inviteRouter = createTRPCRouter({
         ? {
             id: selectedMembership.family.id,
             name: selectedMembership.family.name,
+            image: selectedMembership.family.image,
           }
         : null,
       role: selectedMembership?.role ?? null,
@@ -341,6 +356,45 @@ export const inviteRouter = createTRPCRouter({
         selectedMembership?.role === "ADMIN" || selectedMembership?.role === "OWNER",
     }
   }),
+
+  updateFamilyIdentity: protectedProcedure
+    .input(updateFamilyIdentityInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const membership = await ctx.db.familyMember.findUnique({
+        where: {
+          familyId_userId: {
+            familyId: input.familyId,
+            userId: ctx.session.user.id,
+          },
+        },
+        select: {
+          id: true,
+          role: true,
+        },
+      })
+
+      if (!membership || (membership.role !== "ADMIN" && membership.role !== "OWNER")) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You do not have permission to manage family identity",
+        })
+      }
+
+      const updatedFamily = await ctx.db.family.update({
+        where: { id: input.familyId },
+        data: {
+          name: input.name,
+          image: input.image,
+        },
+        select: {
+          id: true,
+          name: true,
+          image: true,
+        },
+      })
+
+      return updatedFamily
+    }),
 
   /**
    * Protected mutation: Create a new invite (admin-only).
