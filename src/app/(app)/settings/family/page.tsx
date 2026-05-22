@@ -1,49 +1,350 @@
 "use client";
 
-import { useState } from "react";
-import { Camera, TriangleAlert } from "~/components/ui/icons";
+import { useEffect, useRef, useState } from "react";
+
+import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
+import { AlertCircle, Camera, Loader } from "~/components/ui/icons";
 
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { familySettings } from "~/lib/mocks/family-settings";
-import { cn } from "~/lib/utils";
+import { api } from "~/trpc/react";
+
+type UploadIntentItem = {
+  uploadUrl: string;
+  requiredHeaders: Record<string, string>;
+  readUrl: string;
+};
+
+const ACCEPTED_FAMILY_IMAGE_MIME_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/heic",
+  "image/heif",
+]);
+
+const MAX_FAMILY_IMAGE_BYTES = 15 * 1024 * 1024;
+
+function getInitials(name: string) {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+}
+
+function uploadFileWithProgress(
+  url: string,
+  file: File,
+  headers: Record<string, string>,
+  onProgress: (percent: number) => void,
+) {
+  return new Promise<void>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("PUT", url);
+
+    Object.entries(headers).forEach(([key, value]) => {
+      xhr.setRequestHeader(key, value);
+    });
+
+    xhr.upload.onprogress = (event) => {
+      if (!event.lengthComputable) {
+        return;
+      }
+
+      const percent = Math.min(100, Math.round((event.loaded / event.total) * 100));
+      onProgress(percent);
+    };
+
+    xhr.onerror = () => {
+      reject(new Error("Network error while uploading family image. Please try again."));
+    };
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve();
+        return;
+      }
+
+      reject(new Error(`Upload failed with status ${xhr.status}`));
+    };
+
+    xhr.send(file);
+  });
+}
 
 export default function FamilySettingsPage() {
-  const [familyName, setFamilyName] = useState(familySettings.name);
-  const [invitePolicy, setInvitePolicy] = useState(familySettings.invitePolicy);
+  const [familyName, setFamilyName] = useState("");
+  const [familyImageUrl, setFamilyImageUrl] = useState("");
+  const [selectedFamilyImageFile, setSelectedFamilyImageFile] = useState<File | null>(null);
+  const [selectedImagePreviewUrl, setSelectedImagePreviewUrl] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
 
-  function handleSave(e: React.FormEvent) {
-    e.preventDefault();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const managementContext = api.invite.getManagementContext.useQuery(undefined, {
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+  const updateFamilyIdentity = api.invite.updateFamilyIdentity.useMutation();
+  const trpcUtils = api.useUtils();
+
+  const familyId = managementContext.data?.family?.id;
+  const canManageFamilyIdentity =
+    managementContext.data?.role === "ADMIN" || managementContext.data?.role === "OWNER";
+  const previewImage = selectedImagePreviewUrl ?? familyImageUrl;
+  const previewName = familyName.trim().length > 0 ? familyName : "Family";
+
+  useEffect(() => {
+    const family = managementContext.data?.family;
+    if (!family) {
+      return;
+    }
+
+    setFamilyName(family.name);
+    setFamilyImageUrl(family.image ?? "");
+    setSaveError(null);
+  }, [managementContext.data?.family]);
+
+  useEffect(() => {
+    return () => {
+      if (selectedImagePreviewUrl) {
+        URL.revokeObjectURL(selectedImagePreviewUrl);
+      }
+    };
+  }, [selectedImagePreviewUrl]);
+
+  function handleImageSelected(file: File | null) {
+    if (!file) {
+      return;
+    }
+
+    setSaveError(null);
+    setSaveSuccess(null);
+
+    if (!ACCEPTED_FAMILY_IMAGE_MIME_TYPES.has(file.type)) {
+      setSaveError("Please select a supported image format (jpg, png, webp, heic, heif).");
+      return;
+    }
+
+    if (file.size > MAX_FAMILY_IMAGE_BYTES) {
+      setSaveError("Family image exceeds the 15MB size limit.");
+      return;
+    }
+
+    if (selectedImagePreviewUrl) {
+      URL.revokeObjectURL(selectedImagePreviewUrl);
+    }
+
+    setSelectedFamilyImageFile(file);
+    setSelectedImagePreviewUrl(URL.createObjectURL(file));
+    setUploadProgress(0);
+  }
+
+  function handleRemoveImage() {
+    if (selectedImagePreviewUrl) {
+      URL.revokeObjectURL(selectedImagePreviewUrl);
+    }
+
+    setSelectedFamilyImageFile(null);
+    setSelectedImagePreviewUrl(null);
+    setUploadProgress(0);
+    setFamilyImageUrl("");
+    setSaveError(null);
+    setSaveSuccess(null);
+  }
+
+  async function handleSave(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (isSaving) {
+      return;
+    }
+
+    if (!familyId) {
+      setSaveError("No active family context found.");
+      return;
+    }
+
+    if (!canManageFamilyIdentity) {
+      setSaveError("You do not have permission to update family identity.");
+      return;
+    }
+
+    const normalizedFamilyName = familyName.trim();
+    if (normalizedFamilyName.length === 0) {
+      setSaveError("Family name is required.");
+      return;
+    }
+
     setIsSaving(true);
-    setTimeout(() => setIsSaving(false), 1200);
+    setSaveError(null);
+    setSaveSuccess(null);
+
+    try {
+      let nextFamilyImageUrl = familyImageUrl.trim();
+
+      if (selectedFamilyImageFile) {
+        const intentsResponse = await fetch("/api/uploads/intent", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            familyId,
+            uploadFor: "family-image",
+            files: [
+              {
+                fileName: selectedFamilyImageFile.name,
+                mimeType: selectedFamilyImageFile.type,
+                sizeBytes: selectedFamilyImageFile.size,
+              },
+            ],
+          }),
+        });
+
+        const intentBody = (await intentsResponse.json()) as {
+          intents?: UploadIntentItem[];
+          error?: { message?: string };
+        };
+
+        if (!intentsResponse.ok || !intentBody.intents?.[0]) {
+          throw new Error(intentBody.error?.message ?? "Failed to create family image upload intent.");
+        }
+
+        const imageIntent = intentBody.intents[0];
+        await uploadFileWithProgress(
+          imageIntent.uploadUrl,
+          selectedFamilyImageFile,
+          imageIntent.requiredHeaders,
+          setUploadProgress,
+        );
+
+        nextFamilyImageUrl = imageIntent.readUrl;
+      }
+
+      await updateFamilyIdentity.mutateAsync({
+        familyId,
+        name: normalizedFamilyName,
+        image: nextFamilyImageUrl.length > 0 ? nextFamilyImageUrl : null,
+      });
+
+      await trpcUtils.invite.getManagementContext.invalidate();
+
+      if (selectedImagePreviewUrl) {
+        URL.revokeObjectURL(selectedImagePreviewUrl);
+      }
+
+      setSelectedFamilyImageFile(null);
+      setSelectedImagePreviewUrl(null);
+      setUploadProgress(0);
+      setFamilyImageUrl(nextFamilyImageUrl);
+      setSaveSuccess("Family identity updated.");
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : "Failed to update family identity.");
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   return (
-    <div className="space-y-8">
-      <h2 className="font-semibold text-xl tracking-tight">Family Settings</h2>
+    <div className="space-y-6">
+      <header className="space-y-1.5">
+        <h2 className="font-semibold text-xl tracking-tight">Family Settings</h2>
+        <p className="text-muted-foreground text-sm">Manage family name and family image.</p>
+      </header>
 
-      {/* Family Identity */}
+      {managementContext.isLoading ? (
+        <Alert>
+          <Loader className="size-5 animate-spin" aria-hidden="true" />
+          <AlertTitle>Loading family context</AlertTitle>
+          <AlertDescription>We&apos;re checking your active family membership.</AlertDescription>
+        </Alert>
+      ) : null}
+
+      {!managementContext.isLoading && !familyId ? (
+        <Alert>
+          <AlertCircle className="size-5" aria-hidden="true" />
+          <AlertTitle>No active family found</AlertTitle>
+          <AlertDescription>Join a family before editing family identity.</AlertDescription>
+        </Alert>
+      ) : null}
+
+      {!managementContext.isLoading && familyId && !canManageFamilyIdentity ? (
+        <Alert>
+          <AlertCircle className="size-5" aria-hidden="true" />
+          <AlertTitle>Permission required</AlertTitle>
+          <AlertDescription>Only owners and admins can manage family identity.</AlertDescription>
+        </Alert>
+      ) : null}
+
       <section className="space-y-5 rounded-2xl border bg-card/60 p-5">
         <h3 className="font-medium text-base">Family Identity</h3>
 
-        <div className="flex flex-col items-center gap-2 sm:items-start">
-          <Avatar className="size-20 border-2 border-dashed border-border">
-            <AvatarImage src={familySettings.avatarUrl} alt="Family avatar" />
-            <AvatarFallback className="text-muted-foreground">
-              <Camera className="size-7" />
-            </AvatarFallback>
-          </Avatar>
-          <button
-            type="button"
-            className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
-          >
-            Change photo
-          </button>
-        </div>
+        <form onSubmit={handleSave} className="space-y-4" noValidate>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+            className="hidden"
+            onChange={(event) => {
+              handleImageSelected(event.currentTarget.files?.[0] ?? null);
+              event.currentTarget.value = "";
+            }}
+          />
 
-        <form onSubmit={handleSave} className="space-y-4">
+          <div className="flex items-center gap-3 rounded-2xl border bg-muted/20 p-3">
+            <Avatar className="size-14 shrink-0 border">
+              <AvatarImage src={previewImage || undefined} alt={previewName} />
+              <AvatarFallback className="text-sm font-semibold text-foreground">
+                {getInitials(previewName) || "FM"}
+              </AvatarFallback>
+            </Avatar>
+
+            <div className="min-w-0">
+              <p className="font-medium text-sm">Live preview</p>
+              <p className="truncate text-muted-foreground text-xs">{previewName}</p>
+            </div>
+
+            <div className="ml-auto flex items-center gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isSaving || !canManageFamilyIdentity || !familyId}
+              >
+                <Camera className="size-4" aria-hidden="true" />
+                Choose image
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                onClick={handleRemoveImage}
+                disabled={isSaving || !canManageFamilyIdentity || !familyId || (!previewImage && !selectedFamilyImageFile)}
+              >
+                Remove
+              </Button>
+            </div>
+          </div>
+
+          {selectedFamilyImageFile ? (
+            <p className="text-muted-foreground text-xs">Selected image: {selectedFamilyImageFile.name}</p>
+          ) : null}
+
+          {isSaving && uploadProgress > 0 ? (
+            <div className="space-y-1">
+              <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+                <div className="h-full bg-primary transition-all" style={{ width: `${uploadProgress}%` }} />
+              </div>
+              <p className="text-muted-foreground text-xs">Uploading image: {uploadProgress}%</p>
+            </div>
+          ) : null}
+
           <div className="space-y-1.5">
             <label htmlFor="family-name" className="text-sm font-medium">
               Family name
@@ -51,19 +352,53 @@ export default function FamilySettingsPage() {
             <Input
               id="family-name"
               value={familyName}
-              onChange={(e) => setFamilyName(e.target.value)}
+              onChange={(event) => {
+                setFamilyName(event.target.value);
+                setSaveError(null);
+                setSaveSuccess(null);
+              }}
               placeholder="e.g. The Walker Family"
               className="max-w-sm"
+              disabled={isSaving || !canManageFamilyIdentity || !familyId}
+              required
             />
           </div>
-          <Button type="submit" disabled={isSaving}>
-            {isSaving ? "Saving..." : "Save Changes"}
+
+          {saveError ? (
+            <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive">
+              {saveError}
+            </p>
+          ) : null}
+
+          {saveSuccess ? (
+            <p role="status" aria-live="polite" className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-700 dark:text-emerald-300">
+              {saveSuccess}
+            </p>
+          ) : null}
+
+          <Button
+            type="submit"
+            disabled={
+              isSaving ||
+              !canManageFamilyIdentity ||
+              !familyId ||
+              familyName.trim().length === 0
+            }
+          >
+            {isSaving ? (
+              <>
+                <Loader className="size-4 animate-spin" aria-hidden="true" />
+                Saving...
+              </>
+            ) : (
+              "Save family identity"
+            )}
           </Button>
         </form>
       </section>
 
-      {/* Invite Policy */}
-      <section className="space-y-4 rounded-2xl border bg-card/60 p-5">
+      {/* Invite Policy - MOCK - DON NOT REMOVE */}
+      {/* <section className="space-y-4 rounded-2xl border bg-card/60 p-5">
         <div className="space-y-0.5">
           <h3 className="font-medium text-base">Invite Policy</h3>
           <p className="text-muted-foreground text-xs">
@@ -112,10 +447,10 @@ export default function FamilySettingsPage() {
         >
           {isSaving ? "Saving..." : "Save Changes"}
         </Button>
-      </section>
+      </section> */}
 
-      {/* Danger Zone */}
-      <section className="space-y-4 rounded-2xl border border-destructive/30 bg-destructive/5 p-5">
+      {/* Danger Zone - MOCK - DO NOT REMOVE */}
+      {/* <section className="space-y-4 rounded-2xl border border-destructive/30 bg-destructive/5 p-5">
         <div className="flex items-start gap-3">
           <TriangleAlert className="mt-0.5 size-4 shrink-0 text-destructive" />
           <div className="space-y-0.5">
@@ -133,7 +468,7 @@ export default function FamilySettingsPage() {
         >
           Reset family data
         </Button>
-      </section>
+      </section> */}
     </div>
   );
 }
