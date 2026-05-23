@@ -79,13 +79,13 @@ This implementation must preserve a clean upgrade path so advanced video tagging
 
 #### Tasks
 
-- [ ] Create tagging router at [src/server/api/routers/tag.ts](src/server/api/routers/tag.ts).
-- [ ] Register router in [src/server/api/root.ts](src/server/api/root.ts).
-- [ ] Reuse membership and role guards from [src/server/api/routers/post.ts](src/server/api/routers/post.ts) and [src/server/api/routers/family-member.ts](src/server/api/routers/family-member.ts).
-- [ ] Implement photo tag create, update, delete, and list procedures with coordinate validation.
-- [ ] Implement video tag create, update, delete, and list procedures as simple member assignment per video media item.
-- [ ] Validate that tagged member IDs belong to the same family as the post.
-- [ ] Ensure response shapes are forward-compatible by reserving optional metadata fields for future video timeline extensions.
+- [x] Create tagging router at [src/server/api/routers/tag.ts](src/server/api/routers/tag.ts).
+- [x] Register router in [src/server/api/root.ts](src/server/api/root.ts).
+- [x] Reuse membership and role guards from [src/server/api/routers/post.ts](src/server/api/routers/post.ts) and [src/server/api/routers/family-member.ts](src/server/api/routers/family-member.ts).
+- [x] Implement photo tag create, update, delete, and list procedures with coordinate validation.
+- [x] Implement video tag create, update, delete, and list procedures as simple member assignment per video media item.
+- [x] Validate that tagged member IDs belong to the same family as the post.
+- [x] Ensure response shapes are forward-compatible by reserving optional metadata fields for future video timeline extensions.
 
 ### Phase 3: Post and Feed Read Integration
 
