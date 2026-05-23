@@ -109,28 +109,30 @@ function MediaSlide({
 
   return (
     <div className="relative flex h-full w-full items-center justify-center">
-      <img
-        src={item.url}
-        alt={item.alt}
-        className={`max-h-full max-w-full rounded-lg object-contain ${editorEnabled ? "cursor-crosshair" : ""}`}
-        onClick={onImageClick}
-      />
+      <div className="relative inline-flex max-h-full max-w-full">
+        <img
+          src={item.url}
+          alt={item.alt}
+          className={`max-h-full max-w-full rounded-lg object-contain ${editorEnabled ? "cursor-crosshair" : ""}`}
+          onClick={onImageClick}
+        />
 
-      {tags.map((tag) => {
-        const style = getTagAnchorStyle(tag);
-        if (!style) return null;
+        {tags.map((tag) => {
+          const style = getTagAnchorStyle(tag);
+          if (!style) return null;
 
-        return (
-          <span
-            key={tag.id}
-            className="pointer-events-none absolute inline-flex h-5 w-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/90 bg-black/65 text-[10px] font-semibold text-white shadow"
-            style={style}
-            title={`${tag.taggedMember.name}`}
-          >
-            •
-          </span>
-        );
-      })}
+          return (
+            <span
+              key={tag.id}
+              className="pointer-events-none absolute inline-flex h-5 w-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/90 bg-black/65 text-[10px] font-semibold text-white shadow"
+              style={style}
+              title={`${tag.taggedMember.name}`}
+            >
+              •
+            </span>
+          );
+        })}
+      </div>
 
       {taggedMembers.length ? <TaggedMembersOverlay members={taggedMembers} /> : null}
 
