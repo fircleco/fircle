@@ -22,6 +22,18 @@ type PostMediaItem = {
   alt: string;
   caption?: string;
   durationLabel?: string;
+  tags?: Array<{
+    id: string;
+    postMediaId: string;
+    taggedMemberId: string;
+    xPercent: number | null;
+    yPercent: number | null;
+    taggedMember: {
+      id: string;
+      name: string;
+      avatarUrl: string;
+    };
+  }>;
   taggedMembers?: { name: string; avatarUrl: string }[];
 };
 
@@ -379,6 +391,7 @@ export function PostCard({
         startIndex={viewerStart}
         open={viewerOpen}
         onOpenChange={setViewerOpen}
+        familyId={familyId}
       />
     </article>
   );

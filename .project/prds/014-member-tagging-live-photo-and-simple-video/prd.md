@@ -108,15 +108,15 @@ This implementation must preserve a clean upgrade path so advanced video tagging
 
 #### Tasks
 
-- [ ] Add media tagging entry and management actions in [src/components/feed/media-viewer-dialog.tsx](src/components/feed/media-viewer-dialog.tsx) only, scoped to the currently viewed media item.
-- [ ] Build photo tagging editor UI in [src/components/feed](src/components/feed) for anchor placement, member selection, editing, and deletion.
-- [ ] Build simple video tagging UI in [src/components/feed](src/components/feed) for member assignment list editing only.
-- [ ] Render per-media tagged members in the viewer using TaggedMembersOverlay so the displayed tags always match the active media.
-- [ ] For post cards that contain multiple media, render a unique combined tagged-member set across the post's media using TaggedMemberAvatarStack.
-- [ ] Replace tagged-tab placeholders in [src/app/(app)/profile/page.tsx](src/app/(app)/profile/page.tsx) and [src/app/(app)/member/[slug]/page.tsx](src/app/(app)/member/[slug]/page.tsx) with live data from the tagged-post query.
-- [ ] Ensure tagged-tab cards keep existing post-card behavior while showing only posts where the profiled member is tagged in media.
-- [ ] Keep composer unchanged in [src/components/feed/post-composer-dialog.tsx](src/components/feed/post-composer-dialog.tsx).
-- [ ] Render real tagged-member data via [src/components/feed/tagged-member-avatar-stack.tsx](src/components/feed/tagged-member-avatar-stack.tsx) and viewer surfaces.
+- [x] Add media tagging entry and management actions in [src/components/feed/media-viewer-dialog.tsx](src/components/feed/media-viewer-dialog.tsx) only, scoped to the currently viewed media item.
+- [x] Build photo tagging editor UI in [src/components/feed](src/components/feed) for anchor placement, member selection, editing, and deletion.
+- [x] Build simple video tagging UI in [src/components/feed](src/components/feed) for member assignment list editing only.
+- [x] Render per-media tagged members in the viewer using TaggedMembersOverlay so the displayed tags always match the active media.
+- [x] For post cards that contain multiple media, render a unique combined tagged-member set across the post's media using TaggedMemberAvatarStack.
+- [x] Replace tagged-tab placeholders in [src/app/(app)/profile/page.tsx](src/app/(app)/profile/page.tsx) and [src/app/(app)/member/[slug]/page.tsx](src/app/(app)/member/[slug]/page.tsx) with live data from the tagged-post query.
+- [x] Ensure tagged-tab cards keep existing post-card behavior while showing only posts where the profiled member is tagged in media.
+- [x] Keep composer unchanged in [src/components/feed/post-composer-dialog.tsx](src/components/feed/post-composer-dialog.tsx).
+- [x] Render real tagged-member data via [src/components/feed/tagged-member-avatar-stack.tsx](src/components/feed/tagged-member-avatar-stack.tsx) and viewer surfaces.
 
 ### Phase 5: Testing, QA, and Future-Proofing Checks
 

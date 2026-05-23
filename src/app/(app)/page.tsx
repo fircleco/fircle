@@ -36,6 +36,7 @@ function mapFeedItemToPostCardData(item: {
   likedByCurrentUser?: boolean;
   reactionCount?: number;
   commentCount?: number;
+  taggedMembers?: Array<{ name: string; avatarUrl: string }>;
   mediaItems: Array<{
     id: string;
     type: string;
@@ -43,6 +44,19 @@ function mapFeedItemToPostCardData(item: {
     alt: string;
     durationLabel?: string;
     caption?: string | null;
+    taggedMembers?: Array<{ name: string; avatarUrl: string }>;
+    tags?: Array<{
+      id: string;
+      postMediaId: string;
+      taggedMemberId: string;
+      xPercent: number | null;
+      yPercent: number | null;
+      taggedMember: {
+        id: string;
+        name: string;
+        avatarUrl: string;
+      };
+    }>;
   }>;
 }): PostCardData {
   return {
@@ -62,8 +76,10 @@ function mapFeedItemToPostCardData(item: {
       alt: media.alt,
       caption: media.caption ?? undefined,
       durationLabel: media.durationLabel,
+      taggedMembers: media.taggedMembers,
+      tags: media.tags,
     })),
-    taggedMembers: [],
+    taggedMembers: item.taggedMembers ?? [],
     likedByCurrentUser: item.likedByCurrentUser ?? false,
     reactionCount: item.reactionCount ?? 0,
     commentCount: item.commentCount ?? 0,

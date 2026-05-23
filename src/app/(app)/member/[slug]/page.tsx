@@ -32,6 +32,61 @@ function formatCreatedAtLabel(dateInput: Date | string) {
   if (diffDays < 7) return `${diffDays}d ago`;
   return date.toLocaleDateString();
 }
+
+function mapApiPostToPostCardData(item: {
+  id: string;
+  type: "TEXT" | "PHOTO" | "VIDEO" | "MIXED";
+  author: { name: string; slug: string; avatarUrl: string };
+  createdAt: Date | string;
+  caption: string | null;
+  likedByCurrentUser?: boolean;
+  reactionCount?: number;
+  commentCount?: number;
+  taggedMembers?: Array<{ name: string; avatarUrl: string }>;
+  mediaItems: Array<{
+    id: string;
+    type: string;
+    url: string;
+    alt: string;
+    durationLabel?: string;
+    caption?: string | null;
+    taggedMembers?: Array<{ name: string; avatarUrl: string }>;
+    tags?: Array<{
+      id: string;
+      postMediaId: string;
+      taggedMemberId: string;
+      xPercent: number | null;
+      yPercent: number | null;
+      taggedMember: {
+        id: string;
+        name: string;
+        avatarUrl: string;
+      };
+    }>;
+  }>;
+}): PostCardData {
+  return {
+    id: item.id,
+    type: item.type.toLowerCase() as PostCardData["type"],
+    author: { name: item.author.name, slug: item.author.slug, avatarUrl: item.author.avatarUrl },
+    createdAtLabel: formatCreatedAtLabel(item.createdAt),
+    body: item.caption ?? "",
+    mediaItems: item.mediaItems.map((m) => ({
+      id: m.id,
+      type: m.type === "video" ? "video" : "image",
+      url: m.url,
+      alt: m.alt,
+      caption: m.caption ?? undefined,
+      durationLabel: m.durationLabel,
+      taggedMembers: m.taggedMembers,
+      tags: m.tags,
+    })),
+    taggedMembers: item.taggedMembers ?? [],
+    likedByCurrentUser: item.likedByCurrentUser,
+    reactionCount: item.reactionCount ?? 0,
+    commentCount: item.commentCount ?? 0,
+  };
+}
 import { cn } from "~/lib/utils";
 
 type ProfileTab = "posts" | "tagged" | "liked";
@@ -110,47 +165,14 @@ export default function MemberProfilePage() {
     { enabled: Boolean(familyId && member?.id), retry: false, refetchOnWindowFocus: false },
   );
 
-  const memberPosts: PostCardData[] = (memberPostsQuery.data?.items ?? []).map((item) => ({
-    id: item.id,
-    type: item.type.toLowerCase() as PostCardData["type"],
-    author: { name: item.author.name, slug: item.author.slug, avatarUrl: item.author.avatarUrl },
-    createdAtLabel: formatCreatedAtLabel(item.createdAt),
-    body: item.caption ?? "",
-    mediaItems: item.mediaItems.map((m) => ({
-      id: m.id,
-      type: m.type === "video" ? "video" : "image",
-      url: m.url,
-      alt: m.alt,
-      caption: m.caption ?? undefined,
-      durationLabel: m.durationLabel,
-    })),
-    taggedMembers: [],
-    likedByCurrentUser: item.likedByCurrentUser,
-    reactionCount: item.reactionCount,
-    commentCount: item.commentCount,
-  }));
+  const taggedPostsQuery = api.post.getTaggedPostsByMember.useQuery(
+    { familyId: familyId ?? "", memberId: member?.id ?? "", limit: 20 },
+    { enabled: Boolean(familyId && member?.id), retry: false, refetchOnWindowFocus: false },
+  );
 
-  // Tagged posts require dedicated backend support — show empty state for now.
-  const taggedPosts: PostCardData[] = [];
-  const likedPosts: PostCardData[] = (likedPostsQuery.data?.items ?? []).map((item) => ({
-    id: item.id,
-    type: item.type.toLowerCase() as PostCardData["type"],
-    author: { name: item.author.name, slug: item.author.slug, avatarUrl: item.author.avatarUrl },
-    createdAtLabel: formatCreatedAtLabel(item.createdAt),
-    body: item.caption ?? "",
-    mediaItems: item.mediaItems.map((m) => ({
-      id: m.id,
-      type: m.type === "video" ? "video" : "image",
-      url: m.url,
-      alt: m.alt,
-      caption: m.caption ?? undefined,
-      durationLabel: m.durationLabel,
-    })),
-    taggedMembers: [],
-    likedByCurrentUser: item.likedByCurrentUser,
-    reactionCount: item.reactionCount,
-    commentCount: item.commentCount,
-  }));
+  const memberPosts: PostCardData[] = (memberPostsQuery.data?.items ?? []).map(mapApiPostToPostCardData);
+  const taggedPosts: PostCardData[] = (taggedPostsQuery.data?.items ?? []).map(mapApiPostToPostCardData);
+  const likedPosts: PostCardData[] = (likedPostsQuery.data?.items ?? []).map(mapApiPostToPostCardData);
 
   const isLoading = managementContext.isLoading || memberProfileQuery.isLoading;
   const hasNoFamily = !managementContext.isLoading && !familyId;
