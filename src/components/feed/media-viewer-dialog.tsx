@@ -326,10 +326,8 @@ function MediaSlide({
               <button
                 type="button"
                 className="pointer-events-auto flex size-10 items-center justify-center rounded-full border border-white/10 bg-black/10 text-[10px] font-semibold text-white shadow transition-transform hover:scale-110 active:scale-95"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setActiveTagId(isActive ? null : tag.id);
-                }}
+                onMouseEnter={() => setActiveTagId(tag.id)}
+                onMouseLeave={() => setActiveTagId(null)}
                 title={tag.taggedMember.name}
               >
                 •
@@ -394,7 +392,7 @@ function MediaSlide({
       ) : null}
 
       {editorEnabled ? (
-        <div className="absolute bottom-0 left-1/2 space-y-3 -translate-x-1/2 bg-gradient-to-b from-background/0 via-background/60 to-background/90 w-full text-center py-10 px-2">
+        <div className="absolute bottom-0 left-1/2 space-y-3 -translate-x-1/2 bg-linear-to-b from-background/0 via-background/60 to-background w-full text-center pt-10 pb-6 px-2">
           <p className="text-sm">Click on the photo to start tagging. Click on a tag to remove it.</p>
           <Button
             variant="default"
