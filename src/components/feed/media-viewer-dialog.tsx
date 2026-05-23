@@ -628,10 +628,7 @@ export function MediaViewerDialog({
               ) : null}
               {familyId && currentItem ? (
                 <Button
-                  type="button"
-                  size="icon"
-                  variant="secondary"
-                  className="rounded-full size-10"
+                  className="flex size-10 items-center justify-center rounded-full dark:bg-white/10 dark:text-white dark:hover:bg-white/20 bg-black/10 text-foreground hover:bg-black/20 transition-colors active:translate-y-0 active:scale-100"
                   aria-label={editorOpen ? "Done tagging" : "Tag people"}
                   title={editorOpen ? "Done tagging" : "Tag people"}
                   onClick={() => setEditorOpen((value) => !value)}
