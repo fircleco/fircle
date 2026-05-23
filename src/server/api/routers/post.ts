@@ -110,6 +110,13 @@ export const getLikedPostsByMemberInputSchema = z.object({
   cursor: z.string().optional(),
 });
 
+export const getTaggedPostsByMemberInputSchema = z.object({
+  familyId: z.string().cuid(),
+  memberId: z.string().cuid(),
+  limit: z.number().int().min(1).max(50).default(20),
+  cursor: z.string().optional(),
+});
+
 export const getPostByIdInputSchema = z.object({
   familyId: z.string().cuid(),
   postId: z.string().cuid(),
@@ -287,6 +294,116 @@ function mapFeedMediaItem<T extends {
   };
 }
 
+type MediaTagRecord = {
+  id: string;
+  postMediaId: string;
+  taggedMemberId: string;
+  xPercent: unknown;
+  yPercent: unknown;
+  createdAt: Date;
+  updatedAt: Date;
+  taggedMember: {
+    id: string;
+    name: string;
+    slug: string;
+    image: string | null;
+    userId: string | null;
+  };
+};
+
+function mapMediaTagResponse(tag: MediaTagRecord) {
+  const toNumber = (value: unknown) => (value === null ? null : Number(value));
+
+  return {
+    id: tag.id,
+    postMediaId: tag.postMediaId,
+    taggedMemberId: tag.taggedMemberId,
+    xPercent: toNumber(tag.xPercent),
+    yPercent: toNumber(tag.yPercent),
+    createdAt: tag.createdAt,
+    updatedAt: tag.updatedAt,
+    taggedMember: {
+      id: tag.taggedMember.id,
+      name: tag.taggedMember.name,
+      slug: tag.taggedMember.slug,
+      avatarUrl: tag.taggedMember.image ?? "",
+      status: tag.taggedMember.userId ? ("claimed" as const) : ("unclaimed" as const),
+    },
+    timeline: null,
+  };
+}
+
+function postResponseSelect(currentViewerMemberId: string) {
+  return {
+    id: true,
+    type: true,
+    caption: true,
+    createdAt: true,
+    authorMember: {
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        image: true,
+      },
+    },
+    media: {
+      orderBy: [{ sortOrder: "asc" as const }, { createdAt: "asc" as const }],
+      select: {
+        id: true,
+        type: true,
+        provider: true,
+        bucket: true,
+        objectKey: true,
+        url: true,
+        mimeType: true,
+        sizeBytes: true,
+        width: true,
+        height: true,
+        durationMs: true,
+        caption: true,
+        sortOrder: true,
+        createdAt: true,
+        mediaTags: {
+          orderBy: [{ createdAt: "asc" as const }, { id: "asc" as const }],
+          select: {
+            id: true,
+            postMediaId: true,
+            taggedMemberId: true,
+            xPercent: true,
+            yPercent: true,
+            createdAt: true,
+            updatedAt: true,
+            taggedMember: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                image: true,
+                userId: true,
+              },
+            },
+          },
+        },
+      },
+    },
+    likes: {
+      where: {
+        memberIdWhoLiked: currentViewerMemberId,
+      },
+      select: {
+        id: true,
+      },
+    },
+    _count: {
+      select: {
+        likes: true,
+        comments: true,
+      },
+    },
+  };
+}
+
 function mapPostResponse(post: {
   id: string;
   type: "TEXT" | "PHOTO" | "VIDEO" | "MIXED";
@@ -310,8 +427,29 @@ function mapPostResponse(post: {
     caption: string | null;
     sortOrder: number;
     createdAt: Date;
+    mediaTags?: MediaTagRecord[];
   }>;
 }) {
+  const postTaggedMembersById = new Map<string, { name: string; avatarUrl: string }>();
+
+  const mappedMedia = post.media.map((media) => {
+    const tags = (media.mediaTags ?? []).map((tag) => mapMediaTagResponse(tag));
+
+    for (const tag of tags) {
+      postTaggedMembersById.set(tag.taggedMemberId, {
+        name: tag.taggedMember.name,
+        avatarUrl: tag.taggedMember.avatarUrl,
+      });
+    }
+
+    return {
+      media,
+      mediaRecord: mapMediaRecord(media),
+      feedMediaItem: mapFeedMediaItem(media),
+      tags,
+    };
+  });
+
   return {
     id: post.id,
     type: post.type,
@@ -325,9 +463,19 @@ function mapPostResponse(post: {
       slug: post.authorMember.slug,
       avatarUrl: post.authorMember.image ?? "",
     },
-    media: post.media.map((media) => mapMediaRecord(media)),
-    mediaItems: post.media.map((media) => mapFeedMediaItem(media)),
-    taggedMembers: [],
+    media: mappedMedia.map(({ mediaRecord, tags }) => ({
+      ...mediaRecord,
+      tags,
+    })),
+    mediaItems: mappedMedia.map(({ feedMediaItem, tags }) => ({
+      ...feedMediaItem,
+      taggedMembers: tags.map((tag) => ({
+        name: tag.taggedMember.name,
+        avatarUrl: tag.taggedMember.avatarUrl,
+      })),
+      tags,
+    })),
+    taggedMembers: Array.from(postTaggedMembersById.values()),
     likedByCurrentUser: post.likes.length > 0,
     reactionCount: post._count.likes,
     commentCount: post._count.comments,
@@ -453,53 +601,7 @@ export const postRouter = createTRPCRouter({
 
         const createdPost = await tx.post.findUnique({
           where: { id: post.id },
-          select: {
-            id: true,
-            type: true,
-            caption: true,
-            createdAt: true,
-            authorMember: {
-              select: {
-                id: true,
-                name: true,
-                slug: true,
-                image: true,
-              },
-            },
-            media: {
-              orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
-              select: {
-                id: true,
-                type: true,
-                provider: true,
-                bucket: true,
-                objectKey: true,
-                url: true,
-                mimeType: true,
-                sizeBytes: true,
-                width: true,
-                height: true,
-                durationMs: true,
-                caption: true,
-                sortOrder: true,
-                createdAt: true,
-              },
-            },
-            likes: {
-              where: {
-                memberIdWhoLiked: membership.id,
-              },
-              select: {
-                id: true,
-              },
-            },
-            _count: {
-              select: {
-                likes: true,
-                comments: true,
-              },
-            },
-          },
+          select: postResponseSelect(membership.id),
         });
 
         if (!createdPost) {
@@ -525,53 +627,7 @@ export const postRouter = createTRPCRouter({
             familyId: input.familyId,
           },
         },
-        select: {
-          id: true,
-          type: true,
-          caption: true,
-          createdAt: true,
-          authorMember: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-              image: true,
-            },
-          },
-          media: {
-            orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
-            select: {
-              id: true,
-              type: true,
-              provider: true,
-              bucket: true,
-              objectKey: true,
-              url: true,
-              mimeType: true,
-              sizeBytes: true,
-              width: true,
-              height: true,
-              durationMs: true,
-              caption: true,
-              sortOrder: true,
-              createdAt: true,
-            },
-          },
-          likes: {
-            where: {
-              memberIdWhoLiked: membership.id,
-            },
-            select: {
-              id: true,
-            },
-          },
-          _count: {
-            select: {
-              likes: true,
-              comments: true,
-            },
-          },
-        },
+        select: postResponseSelect(membership.id),
       });
 
       if (!post) {
@@ -611,53 +667,7 @@ export const postRouter = createTRPCRouter({
           : {}),
       },
       orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-      select: {
-        id: true,
-        type: true,
-        caption: true,
-        createdAt: true,
-        authorMember: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-            image: true,
-          },
-        },
-        media: {
-          orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
-          select: {
-            id: true,
-            type: true,
-            provider: true,
-            bucket: true,
-            objectKey: true,
-            url: true,
-            mimeType: true,
-            sizeBytes: true,
-            width: true,
-            height: true,
-            durationMs: true,
-            caption: true,
-            sortOrder: true,
-            createdAt: true,
-          },
-        },
-        likes: {
-          where: {
-            memberIdWhoLiked: membership.id,
-          },
-          select: {
-            id: true,
-          },
-        },
-        _count: {
-          select: {
-            likes: true,
-            comments: true,
-          },
-        },
-      },
+      select: postResponseSelect(membership.id),
     });
 
     const hasNextPage = posts.length > input.limit;
@@ -699,53 +709,7 @@ export const postRouter = createTRPCRouter({
             : {}),
         },
         orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-        select: {
-          id: true,
-          type: true,
-          caption: true,
-          createdAt: true,
-          authorMember: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-              image: true,
-            },
-          },
-          media: {
-            orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
-            select: {
-              id: true,
-              type: true,
-              provider: true,
-              bucket: true,
-              objectKey: true,
-              url: true,
-              mimeType: true,
-              sizeBytes: true,
-              width: true,
-              height: true,
-              durationMs: true,
-              caption: true,
-              sortOrder: true,
-              createdAt: true,
-            },
-          },
-          likes: {
-            where: {
-              memberIdWhoLiked: membership.id,
-            },
-            select: {
-              id: true,
-            },
-          },
-          _count: {
-            select: {
-              likes: true,
-              comments: true,
-            },
-          },
-        },
+        select: postResponseSelect(membership.id),
       });
 
       const hasNextPage = posts.length > input.limit;
@@ -808,53 +772,74 @@ export const postRouter = createTRPCRouter({
             : {}),
         },
         orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        select: postResponseSelect(membership.id),
+      });
+
+      const hasNextPage = posts.length > input.limit;
+      const items = hasNextPage ? posts.slice(0, input.limit) : posts;
+      const nextCursor = hasNextPage
+        ? encodeCursor({
+            createdAt: items[items.length - 1]!.createdAt,
+            id: items[items.length - 1]!.id,
+          })
+        : null;
+
+      return {
+        items: items.map((post) => mapPostResponse(post)),
+        nextCursor,
+      };
+    }),
+
+  getTaggedPostsByMember: protectedProcedure
+    .input(getTaggedPostsByMemberInputSchema)
+    .query(async ({ ctx, input }) => {
+      const membership = await requireFamilyMembership(input.familyId, ctx.session.user.id, ctx.db);
+
+      const targetMember = await ctx.db.familyMember.findFirst({
+        where: {
+          id: input.memberId,
+          familyId: input.familyId,
+        },
         select: {
           id: true,
-          type: true,
-          caption: true,
-          createdAt: true,
+        },
+      });
+
+      if (!targetMember) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Family member not found",
+        });
+      }
+
+      const cursor = parseCursor(input.cursor);
+
+      const posts = await ctx.db.post.findMany({
+        take: input.limit + 1,
+        where: {
           authorMember: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-              image: true,
-            },
+            familyId: input.familyId,
           },
           media: {
-            orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
-            select: {
-              id: true,
-              type: true,
-              provider: true,
-              bucket: true,
-              objectKey: true,
-              url: true,
-              mimeType: true,
-              sizeBytes: true,
-              width: true,
-              height: true,
-              durationMs: true,
-              caption: true,
-              sortOrder: true,
-              createdAt: true,
+            some: {
+              mediaTags: {
+                some: {
+                  taggedMemberId: input.memberId,
+                },
+              },
             },
           },
-          likes: {
-            where: {
-              memberIdWhoLiked: membership.id,
-            },
-            select: {
-              id: true,
-            },
-          },
-          _count: {
-            select: {
-              likes: true,
-              comments: true,
-            },
-          },
+          ...(cursor
+            ? {
+                OR: [
+                  { createdAt: { lt: cursor.createdAt } },
+                  { createdAt: cursor.createdAt, id: { lt: cursor.id } },
+                ],
+              }
+            : {}),
         },
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        select: postResponseSelect(membership.id),
       });
 
       const hasNextPage = posts.length > input.limit;

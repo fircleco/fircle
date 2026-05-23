@@ -93,14 +93,14 @@ This implementation must preserve a clean upgrade path so advanced video tagging
 
 #### Tasks
 
-- [ ] Extend selects and mapping in [src/server/api/routers/post.ts](src/server/api/routers/post.ts) to include media tags.
-- [ ] Ensure getById and feed responses include stable tag payloads for each media item.
-- [ ] Ensure response contracts preserve the hierarchy: tags are nested under each media item, media remains nested under the post.
-- [ ] Add derived de-duplicated tagged-member projection per post for multi-media cards so UI can render a unique member stack without duplicate avatars.
-- [ ] Add a member-centric tagged posts query in [src/server/api/routers/post.ts](src/server/api/routers/post.ts) for the profile Tagged In tab (for example, getTaggedPostsByMember), returning posts where the target member is tagged in at least one media item.
-- [ ] Ensure tagged-post query de-duplicates by post when a member is tagged in multiple media under the same post.
-- [ ] Ensure tagged-post query still returns per-media tag payloads so media-viewer overlays remain accurate inside tagged-tab cards.
-- [ ] Preserve backward compatibility for existing consumers that currently assume empty or missing tagged member arrays.
+- [x] Extend selects and mapping in [src/server/api/routers/post.ts](src/server/api/routers/post.ts) to include media tags.
+- [x] Ensure getById and feed responses include stable tag payloads for each media item.
+- [x] Ensure response contracts preserve the hierarchy: tags are nested under each media item, media remains nested under the post.
+- [x] Add derived de-duplicated tagged-member projection per post for multi-media cards so UI can render a unique member stack without duplicate avatars.
+- [x] Add a member-centric tagged posts query in [src/server/api/routers/post.ts](src/server/api/routers/post.ts) for the profile Tagged In tab (for example, getTaggedPostsByMember), returning posts where the target member is tagged in at least one media item.
+- [x] Ensure tagged-post query de-duplicates by post when a member is tagged in multiple media under the same post.
+- [x] Ensure tagged-post query still returns per-media tag payloads so media-viewer overlays remain accurate inside tagged-tab cards.
+- [x] Preserve backward compatibility for existing consumers that currently assume empty or missing tagged member arrays.
 
 ### Phase 4: Frontend Tagging UX (Post-Publish)
 
