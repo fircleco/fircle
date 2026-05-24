@@ -353,7 +353,7 @@ function MediaSlide({
       className="relative flex h-full w-full items-center justify-center"
       onClick={clearActiveTag}
     >
-      <div className={`relative inline-flex max-h-full max-w-full${editorEnabled ? " rounded-lg ring-2 ring-white/30" : ""}`}>
+      <div className="relative inline-flex max-h-full max-w-full">
         <img
           src={item.url}
           alt={item.alt}
