@@ -66,7 +66,7 @@ export function MentionText({ text, mentions, currentMemberSlug, className }: Me
       <Link
         href={href}
         key={mention.id}
-        className="mx-0.5 inline-flex items-center gap-1 align-middle whitespace-nowrap rounded-full px-0.5 hover:bg-muted/60"
+        className="mx-0.5 relative -top-0.5 inline-flex items-center gap-1 align-middle whitespace-nowrap rounded-full px-0.5 hover:underline"
       >
         <Avatar className="size-4">
           <AvatarImage src={mention.member.avatarUrl} alt={mention.member.name} />
