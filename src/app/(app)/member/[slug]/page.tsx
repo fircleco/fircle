@@ -194,9 +194,9 @@ export default function MemberProfilePage() {
   const hasLookupError = memberProfileQuery.error != null;
 
   return (
-    <section className="max-w-3xl mx-auto px-4 py-8 sm:px-6">
+    <section className="px-4 py-8 sm:px-6">
       {isLoading ? (
-        <Alert>
+        <Alert className="max-w-3xl mx-auto">
           <AlertCircle className="size-5" aria-hidden="true" />
           <AlertTitle>Loading member profile</AlertTitle>
           <AlertDescription>
@@ -204,7 +204,7 @@ export default function MemberProfilePage() {
           </AlertDescription>
         </Alert>
       ) : hasNoFamily ? (
-        <Alert>
+        <Alert className="max-w-3xl mx-auto">
           <AlertCircle className="size-5" aria-hidden="true" />
           <AlertTitle>No active family found</AlertTitle>
           <AlertDescription>

@@ -159,9 +159,9 @@ export default function ProfilePage() {
   const isLoading = managementContext.isLoading || memberQuery.isLoading
 
   return (
-    <section className="max-w-3xl mx-auto px-4 py-8 sm:px-6">
+    <section className="px-4 py-8 sm:px-6">
       {isLoading ? (
-        <div className="flex items-center justify-center py-12">
+        <div className="max-w-3xl mx-auto flex items-center justify-center py-12">
           <div className="text-center text-muted-foreground">Loading profile...</div>
         </div>
       ) : member ? (
@@ -273,7 +273,7 @@ export default function ProfilePage() {
           </section>
         </div>
       ) : (
-        <div className="rounded-3xl border border-dashed p-8 text-center mx-auto max-w-3xl">
+        <div className="max-w-3xl mx-auto rounded-3xl border border-dashed p-8 text-center">
           <div className="mx-auto grid size-12 place-items-center rounded-full bg-muted text-muted-foreground">
             <UserRoundX className="size-5" aria-hidden="true" />
           </div>
