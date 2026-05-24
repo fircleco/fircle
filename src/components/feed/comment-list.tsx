@@ -7,6 +7,7 @@ import { Button } from "~/components/ui/button";
 type CommentListProps = {
   comments: FeedComment[];
   currentMemberId?: string;
+  currentMemberSlug?: string;
   onToggleLike: (commentId: string) => void;
   onStartReply: (commentId: string) => void;
   onStartEdit: (commentId: string) => void;
@@ -22,6 +23,7 @@ type CommentListProps = {
 export function CommentList({
   comments,
   currentMemberId,
+  currentMemberSlug,
   onToggleLike,
   onStartReply,
   onStartEdit,
@@ -55,6 +57,7 @@ export function CommentList({
           <CommentCard
             comment={comment}
             isOwnComment={comment.author.id === currentMemberId}
+            currentMemberSlug={currentMemberSlug}
             onToggleLike={onToggleLike}
             onStartReply={onStartReply}
             onStartEdit={onStartEdit}
@@ -71,6 +74,7 @@ export function CommentList({
                     <CommentCard
                       comment={reply}
                       isOwnComment={reply.author.id === currentMemberId}
+                      currentMemberSlug={currentMemberSlug}
                       onToggleLike={onToggleLike}
                       onStartReply={onStartReply}
                       onStartEdit={onStartEdit}

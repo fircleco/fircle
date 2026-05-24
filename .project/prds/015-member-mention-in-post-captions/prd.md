@@ -123,12 +123,12 @@ Out-of-scope for this PRD:
 
 #### Tasks
 
-- [ ] Update `PostCardData` mention shape in [src/components/feed/post-card.tsx](src/components/feed/post-card.tsx).
-- [ ] Replace regex-only `@Name` rendering in [src/components/feed/post-card.tsx](src/components/feed/post-card.tsx) with mention-record-based rendering.
-- [ ] Preserve current avatar + name chip style while using persisted mention metadata.
-- [ ] Route mention chip clicks to member profile paths using slug conventions (`/profile` for current member, `/member/[slug]` for others).
-- [ ] Add mention rendering in [src/components/feed/comment-card.tsx](src/components/feed/comment-card.tsx) using persisted comment mention records.
-- [ ] Keep media-tag rendering behavior intact and independent from text mention rendering.
+- [x] Update `PostCardData` mention shape in [src/components/feed/post-card.tsx](src/components/feed/post-card.tsx).
+- [x] Replace regex-only `@Name` rendering in [src/components/feed/post-card.tsx](src/components/feed/post-card.tsx) with mention-record-based rendering.
+- [x] Preserve current avatar + name chip style while using persisted mention metadata.
+- [x] Route mention chip clicks to member profile paths using slug conventions (`/profile` for current member, `/member/[slug]` for others).
+- [x] Add mention rendering in [src/components/feed/comment-card.tsx](src/components/feed/comment-card.tsx) using persisted comment mention records.
+- [x] Keep media-tag rendering behavior intact and independent from text mention rendering.
 
 ### Phase 5: Surface Mapping, Tests, and QA
 
@@ -137,10 +137,10 @@ Out-of-scope for this PRD:
 #### Tasks
 
 - [ ] Update post-to-card mappings to pass mention data in:
-  - [ ] [src/app/(app)/page.tsx](src/app/(app)/page.tsx)
-  - [ ] [src/app/(app)/post/[postId]/page.tsx](src/app/(app)/post/[postId]/page.tsx)
-  - [ ] [src/app/(app)/profile/page.tsx](src/app/(app)/profile/page.tsx)
-  - [ ] [src/app/(app)/member/[slug]/page.tsx](src/app/(app)/member/[slug]/page.tsx)
+  - [x] [src/app/(app)/page.tsx](src/app/(app)/page.tsx)
+  - [x] [src/app/(app)/post/[postId]/page.tsx](src/app/(app)/post/[postId]/page.tsx)
+  - [x] [src/app/(app)/profile/page.tsx](src/app/(app)/profile/page.tsx)
+  - [x] [src/app/(app)/member/[slug]/page.tsx](src/app/(app)/member/[slug]/page.tsx)
 - [ ] Add or extend backend tests in [src/server/api/routers/post.test.ts](src/server/api/routers/post.test.ts) for mention validation, persistence, and response mapping.
 - [ ] Add backend tests for comment mention create/update mapping and family-bound validation in [src/server/api/routers/post.test.ts](src/server/api/routers/post.test.ts).
 - [ ] Add mention helper tests (token detection/range adjustment) for shared post/comment mention logic where practical.

@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
+import { MentionText } from "~/components/feed/mention-text";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,6 +26,17 @@ export type FeedComment = {
     slug: string;
     avatarUrl: string;
   };
+  mentions: Array<{
+    id: string;
+    start: number;
+    end: number;
+    member: {
+      id: string;
+      name: string;
+      slug: string;
+      avatarUrl: string;
+    };
+  }>;
   likedByCurrentUser: boolean;
   likeCount: number;
   replyCount: number;
@@ -40,6 +52,7 @@ type CommentCardProps = {
   onDelete: (commentId: string) => void;
   likePending?: boolean;
   showReply?: boolean;
+  currentMemberSlug?: string;
   children?: React.ReactNode;
 };
 
@@ -78,6 +91,7 @@ export function CommentCard({
   onDelete,
   likePending = false,
   showReply = true,
+  currentMemberSlug,
   children,
 }: CommentCardProps) {
   const authorHref = isOwnComment ? "/profile" : `/member/${comment.author.slug}`;
@@ -129,7 +143,13 @@ export function CommentCard({
         ) : null}
       </header>
 
-      <p className="mt-3 whitespace-pre-wrap leading-relaxed text-foreground">{comment.content}</p>
+      <p className="mt-3 whitespace-pre-wrap leading-relaxed text-foreground">
+        <MentionText
+          text={comment.content}
+          mentions={comment.mentions}
+          currentMemberSlug={currentMemberSlug}
+        />
+      </p>
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <Button

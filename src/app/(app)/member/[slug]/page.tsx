@@ -39,6 +39,17 @@ function mapApiPostToPostCardData(item: {
   author: { name: string; slug: string; avatarUrl: string };
   createdAt: Date | string;
   caption: string | null;
+  mentions?: Array<{
+    id: string;
+    start: number;
+    end: number;
+    member: {
+      id: string;
+      name: string;
+      slug: string;
+      avatarUrl: string;
+    };
+  }>;
   likedByCurrentUser?: boolean;
   reactionCount?: number;
   commentCount?: number;
@@ -71,6 +82,7 @@ function mapApiPostToPostCardData(item: {
     author: { name: item.author.name, slug: item.author.slug, avatarUrl: item.author.avatarUrl },
     createdAtLabel: formatCreatedAtLabel(item.createdAt),
     body: item.caption ?? "",
+    mentions: item.mentions ?? [],
     mediaItems: item.mediaItems.map((m) => ({
       id: m.id,
       type: m.type === "video" ? "video" : "image",

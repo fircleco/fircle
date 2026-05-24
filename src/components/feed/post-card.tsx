@@ -14,6 +14,7 @@ import { PostMediaGrid } from "./post-media-grid";
 import { TaggedMemberAvatarStack } from "./tagged-member-avatar-stack";
 import { PostVideoCard } from "./post-video-card";
 import { MediaViewerDialog } from "./media-viewer-dialog";
+import { MentionText } from "./mention-text";
 
 type PostMediaItem = {
   id: string;
@@ -47,6 +48,17 @@ export type PostCardData = {
   };
   createdAtLabel: string;
   body: string;
+  mentions: Array<{
+    id: string;
+    start: number;
+    end: number;
+    member: {
+      id: string;
+      name: string;
+      slug: string;
+      avatarUrl: string;
+    };
+  }>;
   mediaItems: PostMediaItem[];
   taggedMembers: { name: string; avatarUrl: string }[];
   likedByCurrentUser?: boolean;
@@ -63,45 +75,6 @@ type PostCardProps = {
   familyId?: string;
   isAdmin?: boolean;
 };
-
-function renderBody(
-  body: string,
-  taggedMembers: { name: string; avatarUrl: string }[],
-): React.ReactNode {
-  if (taggedMembers.length === 0) return body;
-
-  // Build a regex that matches any @MemberName token
-  const names = taggedMembers.map((m) => m.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
-  const pattern = new RegExp(`@(${names.join("|")})`, "g");
-
-  const parts: React.ReactNode[] = [];
-  let last = 0;
-  let match: RegExpExecArray | null;
-
-  while ((match = pattern.exec(body)) !== null) {
-    if (match.index > last) parts.push(body.slice(last, match.index));
-    const memberName = match[1]!;
-    const member = taggedMembers.find((m) => m.name === memberName);
-    parts.push(
-      <a
-        href="#"
-        key={`${memberName}-${match.index}`}
-        className="mx-0.5 inline-flex items-center gap-1 align-middle whitespace-nowrap"
-      >
-        <Avatar className="size-4">
-          <AvatarImage src={member?.avatarUrl} alt={memberName} />
-          <AvatarFallback className="bg-border text-[8px] font-semibold text-foreground">
-            {memberName[0]?.toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
-        <span className="font-medium leading-none text-foreground">{memberName}</span>
-      </a>,
-    );
-    last = match.index + match[0].length;
-  }
-  if (last < body.length) parts.push(body.slice(last));
-  return parts;
-}
 
 function getInitials(name: string) {
   return name
@@ -296,7 +269,11 @@ export function PostCard({
 
       {post.body ? (
         <p className="mt-3 text-foreground text-sm leading-6 sm:text-base">
-          {renderBody(post.body, post.type === "text" ? post.taggedMembers : [])}
+          <MentionText
+            text={post.body}
+            mentions={post.mentions}
+            currentMemberSlug={currentMemberSlug}
+          />
         </p>
       ) : null}
 

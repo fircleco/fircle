@@ -33,6 +33,17 @@ function mapFeedItemToPostCardData(item: {
   author: { name: string; slug: string; avatarUrl: string };
   createdAt: Date | string;
   caption: string | null;
+  mentions?: Array<{
+    id: string;
+    start: number;
+    end: number;
+    member: {
+      id: string;
+      name: string;
+      slug: string;
+      avatarUrl: string;
+    };
+  }>;
   likedByCurrentUser?: boolean;
   reactionCount?: number;
   commentCount?: number;
@@ -69,6 +80,7 @@ function mapFeedItemToPostCardData(item: {
     },
     createdAtLabel: formatCreatedAtLabel(item.createdAt),
     body: item.caption ?? "",
+    mentions: item.mentions ?? [],
     mediaItems: item.mediaItems.map((media) => ({
       id: media.id,
       type: media.type === "video" ? "video" : "image",
