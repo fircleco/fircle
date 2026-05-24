@@ -1,6 +1,6 @@
 ---
 title: "Media Gallery - Family Index and Member Gallery with Bento Layout"
-status: in-progress
+status: completed
 references:
   - type: doc
     url: .project/brief.md
