@@ -194,7 +194,7 @@ export default function MemberProfilePage() {
   const hasLookupError = memberProfileQuery.error != null;
 
   return (
-    <section className="mx-auto w-full max-w-2xl px-4 py-8 sm:px-6">
+    <section className="px-4 py-8 sm:px-6">
       {isLoading ? (
         <Alert>
           <AlertCircle className="size-5" aria-hidden="true" />
@@ -216,11 +216,13 @@ export default function MemberProfilePage() {
           <MemberProfileHeader member={member} />
 
           {isAdmin && (
-            <MemberAdminActionsPanel member={member} callerRole={callerRole} familyId={familyId} />
+            <div className="max-w-3xl mx-auto">
+              <MemberAdminActionsPanel member={member} callerRole={callerRole} familyId={familyId} />
+            </div>
           )}
 
           <section>
-            <div className="flex border-b">
+            <div className="flex w-full max-w-3xl mx-auto border-b">
               {tabs.map(({ id, label, icon: Icon }) => (
                 <button
                   key={id}
@@ -243,7 +245,7 @@ export default function MemberProfilePage() {
               {activeTab === "posts" && (
                 <>
                   {memberPosts.length > 0 ? (
-                    <div className="space-y-4">
+                    <div className="space-y-4 mx-auto max-w-3xl">
                       {memberPosts.map((post) => (
                         <PostCard
                           key={post.id}
@@ -267,7 +269,7 @@ export default function MemberProfilePage() {
               {activeTab === "tagged" && (
                 <>
                   {taggedPosts.length > 0 ? (
-                    <div className="space-y-4">
+                    <div className="space-y-4 mx-auto max-w-3xl">
                       {taggedPosts.map((post) => (
                         <PostCard
                           key={post.id}
@@ -289,13 +291,15 @@ export default function MemberProfilePage() {
               )}
 
               {activeTab === "gallery" && member ? (
-                <MemberGalleryTab familyId={familyId} memberId={member.id} memberName={member.name} />
+                <div className="space-y-4 mx-auto max-w-6xl">
+                  <MemberGalleryTab familyId={familyId} memberId={member.id} memberName={member.name} />
+                </div>
               ) : null}
 
               {activeTab === "liked" && (
                 <>
                   {likedPosts.length > 0 ? (
-                    <div className="space-y-4">
+                    <div className="space-y-4 mx-auto max-w-3xl">
                       {likedPosts.map((post) => (
                         <PostCard
                           key={post.id}
@@ -319,7 +323,7 @@ export default function MemberProfilePage() {
           </section>
         </div>
       ) : (
-        <div className="rounded-3xl border border-dashed p-8 text-center">
+        <div className="rounded-3xl border border-dashed p-8 text-center mx-auto max-w-3xl">
           <div className="mx-auto grid size-12 place-items-center rounded-full bg-muted text-muted-foreground">
             <UserRoundX className="size-5" aria-hidden="true" />
           </div>
@@ -348,7 +352,7 @@ function EmptyState({
   description: string;
 }) {
   return (
-    <div className="px-2 py-8 text-center">
+    <div className="px-2 py-8 text-center mx-auto max-w-3xl">
       <div className="mx-auto grid size-10 place-items-center rounded-full text-muted-foreground">
         <Icon className="size-5" aria-hidden="true" />
       </div>
