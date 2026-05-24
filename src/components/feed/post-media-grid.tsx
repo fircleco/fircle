@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 import { PlayCircle } from "~/components/ui/icons";
 
 type PostMediaGridItem = {
@@ -81,7 +83,14 @@ export function PostMediaGrid({ items, onItemClick }: PostMediaGridProps) {
                   aria-label={mediaAriaLabel}
                 />
               ) : (
-                <img src={item.url} alt={mediaAriaLabel} className="h-full w-full object-cover" />
+                <Image
+                  src={item.url}
+                  alt={mediaAriaLabel}
+                  fill
+                  unoptimized
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  className="h-full w-full object-cover"
+                />
               )}
 
               {hasOverlayText && !isOverflowTile ? (

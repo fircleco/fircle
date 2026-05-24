@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { ImagePlus, Loader, Video, X } from "~/components/ui/icons";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -449,7 +450,7 @@ export function PostComposerDialog({
                 {selectedMedia.map((item) => (
                   <li key={item.id} className="rounded-2xl border border-border/80 bg-muted/30 p-3">
                     <div className="flex items-start gap-3">
-                      <div className="h-16 w-16 overflow-hidden rounded-xl border border-border bg-background sm:h-20 sm:w-20">
+                      <div className="relative h-16 w-16 overflow-hidden rounded-xl border border-border bg-background sm:h-20 sm:w-20">
                         {item.kind === "video" ? (
                           <video
                             src={item.previewUrl}
@@ -458,9 +459,12 @@ export function PostComposerDialog({
                             className="h-full w-full object-cover"
                           />
                         ) : (
-                          <img
+                          <Image
                             src={item.previewUrl}
                             alt={item.file.name}
+                            fill
+                            unoptimized
+                            sizes="80px"
                             className="h-full w-full object-cover"
                           />
                         )}

@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Dialog as DialogPrimitive } from "radix-ui";
 
 import { Tag, X } from "~/components/ui/icons";
@@ -354,9 +355,12 @@ function MediaSlide({
       onClick={clearActiveTag}
     >
       <div className="relative inline-flex max-h-full max-w-full">
-        <img
+        <Image
           src={item.url}
           alt={item.alt}
+          width={1600}
+          height={1600}
+          unoptimized
           className={`max-h-full max-w-full rounded-lg object-contain ${editorEnabled ? "cursor-crosshair" : ""}`}
           onClick={(e) => {
             clearActiveTag();
