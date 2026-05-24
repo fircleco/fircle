@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, House, PlusCircle, User, Users } from "~/components/ui/icons";
+import { Bell, House, Image, PlusCircle, User, Users } from "~/components/ui/icons";
 
 import { useGlobalComposer } from "~/components/feed/global-composer-provider";
 import { cn } from "~/lib/utils";
@@ -10,6 +10,7 @@ import { cn } from "~/lib/utils";
 const items = [
   { href: "/", label: "Feed", icon: House },
   { href: "/members", label: "Members", icon: Users },
+  { href: "/gallery", label: "Gallery", icon: Image },
   { href: "#", label: "Create", icon: PlusCircle, prominent: true, action: "composer" },
   { href: "/notifications", label: "Notifications", icon: Bell },
   { href: "/profile", label: "Profile", icon: User },

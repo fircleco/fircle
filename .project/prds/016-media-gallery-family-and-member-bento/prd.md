@@ -1,6 +1,6 @@
 ---
 title: "Media Gallery - Family Index and Member Gallery with Bento Layout"
-status: draft
+status: in-progress
 references:
   - type: doc
     url: .project/brief.md
@@ -61,11 +61,11 @@ The feature also adds a new `Gallery` navigation entry in the sidebar/navigation
 
 #### Tasks
 
-- [ ] Create route page at `src/app/(app)/gallery/page.tsx` under the existing authenticated layout.
-- [ ] Add `Gallery` item to desktop sidebar navigation in `src/components/nav/desktop-sidebar.tsx`.
-- [ ] Add `Gallery` item to mobile bottom navigation in `src/components/nav/mobile-bottom-nav.tsx`.
-- [ ] Ensure active-state logic highlights `/gallery` correctly without breaking `/` route behavior.
-- [ ] Add page-level empty/loading scaffolds matching existing app shell conventions.
+- [x] Create route page at `src/app/(app)/gallery/page.tsx` under the existing authenticated layout.
+- [x] Add `Gallery` item to desktop sidebar navigation in `src/components/nav/desktop-sidebar.tsx`.
+- [x] Add `Gallery` item to mobile bottom navigation in `src/components/nav/mobile-bottom-nav.tsx`.
+- [x] Ensure active-state logic highlights `/gallery` correctly without breaking `/` route behavior.
+- [x] Add page-level empty/loading scaffolds matching existing app shell conventions.
 
 ### Phase 2: Server Query and Data Shaping
 
