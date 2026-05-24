@@ -11,6 +11,9 @@ references:
   - type: prd
     url: .project/prds/010-post-system-media-upload-cloudflare-r2/prd.md
     description: "Live post and media storage foundation"
+  - type: pr
+    url: https://github.com/babblebey/fircle/pull/22
+    description: "Implementation pull request - feat: implement member tagging on post media"
 ---
 
 > **Instructions for AI Agents:**
