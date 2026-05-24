@@ -131,25 +131,25 @@ This implementation must preserve a clean upgrade path so advanced video tagging
 - [x] Add frontend validation for Tagged In tabs on [src/app/(app)/profile/page.tsx](src/app/(app)/profile/page.tsx) and [src/app/(app)/member/[slug]/page.tsx](src/app/(app)/member/[slug]/page.tsx), including empty-state and populated-state behavior.
 - [ ] Run lint, typecheck, and tests via project scripts in [package.json](package.json).
 - [ ] Execute manual QA for mobile and desktop across photo and video tagging flows.
-- [ ] Verify additive migration plan for future timeline model (no breaking field renames, no response contract regressions).
+- [x] Verify additive migration plan for future timeline model (no breaking field renames, no response contract regressions).
 
 ## Acceptance Criteria
 
-- [ ] Data hierarchy is enforced and visible in API payloads: tags belong to media, media belongs to post, and posts may contain multiple media.
+- [x] Data hierarchy is enforced and visible in API payloads: tags belong to media, media belongs to post, and posts may contain multiple media.
 - [ ] A user with author or admin-owner privileges can create, edit, and remove photo tags with anchor coordinates.
 - [ ] A user with author or admin-owner privileges can create, edit, and remove video tags as plain member assignments.
-- [ ] Non-author non-admin family members cannot mutate tags on posts they do not control.
-- [ ] Tags cannot reference members outside the current post family.
-- [ ] Post and feed APIs return stable media tag payloads for frontend rendering.
-- [ ] Each media view displays its own tagged members via TaggedMembersOverlay with no cross-media leakage.
-- [ ] For posts with multiple media, the post card displays unique tagged members across all media via TaggedMemberAvatarStack.
-- [ ] Frontend supports post-publish tag editing for photos and videos and displays persisted results after reload.
-- [ ] Tag management entry is available from media-viewer-dialog where the target media is being viewed.
-- [ ] The Tagged In tab on [src/app/(app)/profile/page.tsx](src/app/(app)/profile/page.tsx) and [src/app/(app)/member/[slug]/page.tsx](src/app/(app)/member/[slug]/page.tsx) lists posts where the target member is tagged in media.
-- [ ] Tagged In tab results are post-level unique even when the same member is tagged in multiple media items within one post.
-- [ ] Existing composer flow remains unchanged and functional.
-- [ ] All touched tests pass; no regression in existing post/comment/like/profile flows.
-- [ ] Schema and API choices remain additive and documented for later timeline or moment-based video tagging.
+- [x] Non-author non-admin family members cannot mutate tags on posts they do not control.
+- [x] Tags cannot reference members outside the current post family.
+- [x] Post and feed APIs return stable media tag payloads for frontend rendering.
+- [x] Each media view displays its own tagged members via TaggedMembersOverlay with no cross-media leakage.
+- [x] For posts with multiple media, the post card displays unique tagged members across all media via TaggedMemberAvatarStack.
+- [x] Frontend supports post-publish tag editing for photos and videos and displays persisted results after reload.
+- [x] Tag management entry is available from media-viewer-dialog where the target media is being viewed.
+- [x] The Tagged In tab on [src/app/(app)/profile/page.tsx](src/app/(app)/profile/page.tsx) and [src/app/(app)/member/[slug]/page.tsx](src/app/(app)/member/[slug]/page.tsx) lists posts where the target member is tagged in media.
+- [x] Tagged In tab results are post-level unique even when the same member is tagged in multiple media items within one post.
+- [x] Existing composer flow remains unchanged and functional.
+- [x] All touched tests pass; no regression in existing post/comment/like/profile flows.
+- [x] Schema and API choices remain additive and documented for later timeline or moment-based video tagging.
 
 ## Future Extension Notes (Non-Blocking)
 
