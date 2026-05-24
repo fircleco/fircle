@@ -1,6 +1,6 @@
 ---
 title: "Member Tagging - Live Photo Anchors and Simple Video Assignment"
-status: in-progress
+status: completed
 references:
   - type: doc
     url: .project/brief.md
