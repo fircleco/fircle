@@ -690,7 +690,7 @@ export function MediaViewerDialog({
           </DialogPrimitive.Title>
 
           {/* Top bar */}
-          <div className="flex shrink-0 items-center justify-between px-4 py-3">
+          <div className="absolute w-full flex shrink-0 items-center justify-between px-4 py-3">
             <div className="flex items-center gap-3">
               {!isSingle ? (
                 <span className="text-sm font-medium dark:text-white/60 text-muted-foreground">
