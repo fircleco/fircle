@@ -671,6 +671,14 @@ export function MediaViewerDialog({
     });
   }
 
+  function handleDialogOpenChange(nextOpen: boolean) {
+    if (!nextOpen) {
+      setEditorOpen(false);
+      setPendingPoint(null);
+    }
+    onOpenChange(nextOpen);
+  }
+
   // Sync current slide index when the dialog opens or startIndex changes
   React.useEffect(() => {
     if (open) {
@@ -697,7 +705,7 @@ export function MediaViewerDialog({
   const isSingle = items.length === 1;
 
   return (
-    <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
+    <DialogPrimitive.Root open={open} onOpenChange={handleDialogOpenChange}>
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay className="fixed inset-0 z-50 dark:bg-black/92 bg-white/95 backdrop-blur-sm" />
 
