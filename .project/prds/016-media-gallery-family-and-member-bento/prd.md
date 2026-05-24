@@ -11,6 +11,9 @@ references:
   - type: prd
     url: .project/prds/014-member-tagging-live-photo-and-simple-video/prd.md
     description: "Media tagging model and media-tag query behavior"
+  - type: pr
+    url: https://github.com/babblebey/fircle/pull/24
+    description: "Implementation pull request - feat: implement media gallery"
 ---
 
 > **Instructions for AI Agents:**
