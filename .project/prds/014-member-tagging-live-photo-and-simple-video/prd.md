@@ -124,11 +124,11 @@ This implementation must preserve a clean upgrade path so advanced video tagging
 
 #### Tasks
 
-- [ ] Add router tests at [src/server/api/routers/tag.test.ts](src/server/api/routers/tag.test.ts) covering authz matrix, family isolation, and CRUD behavior.
-- [ ] Update [src/server/api/routers/post.test.ts](src/server/api/routers/post.test.ts) for tag payload integration coverage.
-- [ ] Add tests for tagged-post query behavior in [src/server/api/routers/post.test.ts](src/server/api/routers/post.test.ts), including post de-duplication and family-scope enforcement.
+- [x] Add router tests at [src/server/api/routers/tag.test.ts](src/server/api/routers/tag.test.ts) covering authz matrix, family isolation, and CRUD behavior.
+- [x] Update [src/server/api/routers/post.test.ts](src/server/api/routers/post.test.ts) for tag payload integration coverage.
+- [x] Add tests for tagged-post query behavior in [src/server/api/routers/post.test.ts](src/server/api/routers/post.test.ts), including post de-duplication and family-scope enforcement.
 - [ ] Add component-level tests for critical tag-edit interactions where practical.
-- [ ] Add frontend validation for Tagged In tabs on [src/app/(app)/profile/page.tsx](src/app/(app)/profile/page.tsx) and [src/app/(app)/member/[slug]/page.tsx](src/app/(app)/member/[slug]/page.tsx), including empty-state and populated-state behavior.
+- [x] Add frontend validation for Tagged In tabs on [src/app/(app)/profile/page.tsx](src/app/(app)/profile/page.tsx) and [src/app/(app)/member/[slug]/page.tsx](src/app/(app)/member/[slug]/page.tsx), including empty-state and populated-state behavior.
 - [ ] Run lint, typecheck, and tests via project scripts in [package.json](package.json).
 - [ ] Execute manual QA for mobile and desktop across photo and video tagging flows.
 - [ ] Verify additive migration plan for future timeline model (no breaking field renames, no response contract regressions).

@@ -935,3 +935,389 @@ describe("postRouter.getLikedPostsByMember", () => {
     });
   });
 });
+
+describe("postRouter tag integrations", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  const familyId = "clh0000000000000000000002";
+  const memberId = "clh0000000000000000000007";
+  const viewerMemberId = "clh0000000000000000000008";
+
+  it("includes per-media tags and de-duplicated tagged members in getById", async () => {
+    const createdAt = new Date("2030-01-04T00:00:00.000Z");
+
+    const db = {
+      familyMember: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: viewerMemberId,
+          familyId,
+          name: "Viewer",
+          image: null,
+        }),
+      },
+      post: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: "post-1",
+          type: "MIXED",
+          caption: "Tagged memories",
+          createdAt,
+          authorMember: {
+            id: "author-1",
+            name: "Poster",
+            slug: "poster",
+            image: null,
+          },
+          media: [
+            {
+              id: "media-1",
+              type: "IMAGE",
+              provider: "r2",
+              bucket: "fircle",
+              objectKey: "families/fam-1/posts/image-1.jpg",
+              url: "/api/media/r2/fircle/families/fam-1/posts/image-1.jpg",
+              mimeType: "image/jpeg",
+              sizeBytes: 100,
+              width: 1200,
+              height: 900,
+              durationMs: null,
+              caption: "Photo one",
+              sortOrder: 0,
+              createdAt,
+              mediaTags: [
+                {
+                  id: "tag-1",
+                  postMediaId: "media-1",
+                  taggedMemberId: memberId,
+                  xPercent: 25,
+                  yPercent: 50,
+                  createdAt,
+                  updatedAt: createdAt,
+                  taggedMember: {
+                    id: memberId,
+                    name: "Child One",
+                    slug: "child-one",
+                    image: null,
+                    userId: "user-7",
+                  },
+                },
+              ],
+            },
+            {
+              id: "media-2",
+              type: "VIDEO",
+              provider: "r2",
+              bucket: "fircle",
+              objectKey: "families/fam-1/posts/video-1.mp4",
+              url: "/api/media/r2/fircle/families/fam-1/posts/video-1.mp4",
+              mimeType: "video/mp4",
+              sizeBytes: 200,
+              width: null,
+              height: null,
+              durationMs: 32000,
+              caption: "Video one",
+              sortOrder: 1,
+              createdAt,
+              mediaTags: [
+                {
+                  id: "tag-2",
+                  postMediaId: "media-2",
+                  taggedMemberId: memberId,
+                  xPercent: null,
+                  yPercent: null,
+                  createdAt,
+                  updatedAt: createdAt,
+                  taggedMember: {
+                    id: memberId,
+                    name: "Child One",
+                    slug: "child-one",
+                    image: null,
+                    userId: "user-7",
+                  },
+                },
+                {
+                  id: "tag-3",
+                  postMediaId: "media-2",
+                  taggedMemberId: "clh0000000000000000000009",
+                  xPercent: null,
+                  yPercent: null,
+                  createdAt,
+                  updatedAt: createdAt,
+                  taggedMember: {
+                    id: "clh0000000000000000000009",
+                    name: "Parent Two",
+                    slug: "parent-two",
+                    image: "https://example.com/parent-two.jpg",
+                    userId: null,
+                  },
+                },
+              ],
+            },
+          ],
+          likes: [{ id: "like-1" }],
+          _count: {
+            likes: 1,
+            comments: 2,
+          },
+        }),
+      },
+    } as never;
+
+    const caller = postRouter.createCaller({
+      db,
+      session: {
+        user: { id: "user-1" },
+      },
+      headers: new Headers(),
+    } as never);
+
+    const result = await caller.getById({
+      familyId,
+      postId: "clh0000000000000000000011",
+    });
+
+    expect(result).not.toBeNull();
+    expect(result).toMatchObject({
+      id: "post-1",
+      taggedMembers: [
+        {
+          name: "Child One",
+          avatarUrl: "",
+        },
+        {
+          name: "Parent Two",
+          avatarUrl: "https://example.com/parent-two.jpg",
+        },
+      ],
+    });
+    expect(result?.media[0]?.tags).toMatchObject([
+      {
+        id: "tag-1",
+        xPercent: 25,
+        yPercent: 50,
+        taggedMember: {
+          id: memberId,
+          avatarUrl: "",
+          status: "claimed",
+        },
+        timeline: null,
+      },
+    ]);
+    expect(result?.mediaItems[1]?.tags).toMatchObject([
+      {
+        id: "tag-2",
+        xPercent: null,
+        yPercent: null,
+      },
+      {
+        id: "tag-3",
+        taggedMember: {
+          id: "clh0000000000000000000009",
+          status: "unclaimed",
+        },
+      },
+    ]);
+  });
+
+  it("returns post-unique tagged posts while preserving per-media tags", async () => {
+    const createdAt = new Date("2030-01-05T00:00:00.000Z");
+    const postFindMany = vi.fn().mockResolvedValue([
+      {
+        id: "post-1",
+        type: "MIXED",
+        caption: "Tagged post",
+        createdAt,
+        authorMember: {
+          id: "author-1",
+          name: "Poster",
+          slug: "poster",
+          image: null,
+        },
+        media: [
+          {
+            id: "media-1",
+            type: "IMAGE",
+            provider: "r2",
+            bucket: "fircle",
+            objectKey: "families/fam-1/posts/image-1.jpg",
+            url: "/api/media/r2/fircle/families/fam-1/posts/image-1.jpg",
+            mimeType: "image/jpeg",
+            sizeBytes: 100,
+            width: 1200,
+            height: 900,
+            durationMs: null,
+            caption: null,
+            sortOrder: 0,
+            createdAt,
+            mediaTags: [
+              {
+                id: "tag-1",
+                postMediaId: "media-1",
+                taggedMemberId: memberId,
+                xPercent: 12,
+                yPercent: 34,
+                createdAt,
+                updatedAt: createdAt,
+                taggedMember: {
+                  id: memberId,
+                  name: "Child One",
+                  slug: "child-one",
+                  image: null,
+                  userId: "user-7",
+                },
+              },
+            ],
+          },
+          {
+            id: "media-2",
+            type: "VIDEO",
+            provider: "r2",
+            bucket: "fircle",
+            objectKey: "families/fam-1/posts/video-1.mp4",
+            url: "/api/media/r2/fircle/families/fam-1/posts/video-1.mp4",
+            mimeType: "video/mp4",
+            sizeBytes: 200,
+            width: null,
+            height: null,
+            durationMs: 45000,
+            caption: null,
+            sortOrder: 1,
+            createdAt,
+            mediaTags: [
+              {
+                id: "tag-2",
+                postMediaId: "media-2",
+                taggedMemberId: memberId,
+                xPercent: null,
+                yPercent: null,
+                createdAt,
+                updatedAt: createdAt,
+                taggedMember: {
+                  id: memberId,
+                  name: "Child One",
+                  slug: "child-one",
+                  image: null,
+                  userId: "user-7",
+                },
+              },
+            ],
+          },
+        ],
+        likes: [],
+        _count: {
+          likes: 0,
+          comments: 0,
+        },
+      },
+    ]);
+
+    const db = {
+      familyMember: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: viewerMemberId,
+          familyId,
+          name: "Viewer",
+          image: null,
+        }),
+        findFirst: vi.fn().mockResolvedValue({
+          id: memberId,
+        }),
+      },
+      post: {
+        findMany: postFindMany,
+      },
+    } as never;
+
+    const caller = postRouter.createCaller({
+      db,
+      session: {
+        user: { id: "user-1" },
+      },
+      headers: new Headers(),
+    } as never);
+
+    const result = await caller.getTaggedPostsByMember({
+      familyId,
+      memberId,
+      limit: 20,
+    });
+
+    const findManyArgs = postFindMany.mock.calls[0]?.[0] as {
+      where: {
+        media: {
+          some: {
+            mediaTags: {
+              some: {
+                taggedMemberId: string;
+              };
+            };
+          };
+        };
+      };
+    };
+
+    expect(findManyArgs.where.media.some.mediaTags.some.taggedMemberId).toBe(memberId);
+    expect(result.nextCursor).toBeNull();
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0]).toMatchObject({
+      id: "post-1",
+      taggedMembers: [
+        {
+          name: "Child One",
+          avatarUrl: "",
+        },
+      ],
+    });
+    expect(result.items[0]?.media).toHaveLength(2);
+    expect(result.items[0]?.media[0]?.tags).toMatchObject([
+      {
+        id: "tag-1",
+        xPercent: 12,
+        yPercent: 34,
+      },
+    ]);
+    expect(result.items[0]?.media[1]?.tags).toMatchObject([
+      {
+        id: "tag-2",
+        xPercent: null,
+        yPercent: null,
+      },
+    ]);
+  });
+
+  it("rejects tagged-post lookup when the target member is outside the family", async () => {
+    const db = {
+      familyMember: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: viewerMemberId,
+          familyId,
+          name: "Viewer",
+          image: null,
+        }),
+        findFirst: vi.fn().mockResolvedValue(null),
+      },
+      post: {
+        findMany: vi.fn(),
+      },
+    } as never;
+
+    const caller = postRouter.createCaller({
+      db,
+      session: {
+        user: { id: "user-1" },
+      },
+      headers: new Headers(),
+    } as never);
+
+    await expect(
+      caller.getTaggedPostsByMember({
+        familyId,
+        memberId,
+        limit: 20,
+      }),
+    ).rejects.toMatchObject({
+      code: "NOT_FOUND",
+    });
+  });
+});
