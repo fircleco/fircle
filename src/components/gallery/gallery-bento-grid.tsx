@@ -8,46 +8,23 @@ type GalleryBentoGridProps = {
   onTileClick?: (index: number) => void;
 };
 
-function getBentoTileClass(index: number) {
-  const patternIndex = index % 10;
+function hashString(value: string) {
+  let hash = 0;
 
-  if (patternIndex === 0) {
-    return "col-span-2 row-span-2 lg:col-span-3 lg:row-span-3";
+  for (let i = 0; i < value.length; i += 1) {
+    hash = (hash << 5) - hash + value.charCodeAt(i);
+    hash |= 0;
   }
 
-  if (patternIndex === 1) {
-    return "col-span-1 row-span-1 lg:col-span-2 lg:row-span-1";
+  return Math.abs(hash);
+}
+
+function getBentoTileClass(positionInGroup: number, bigTilePosition: number) {
+  if (positionInGroup === bigTilePosition) {
+    return "col-span-2 aspect-[8/5] lg:col-span-2";
   }
 
-  if (patternIndex === 2) {
-    return "col-span-1 row-span-1 lg:col-span-1 lg:row-span-1";
-  }
-
-  if (patternIndex === 3) {
-    return "col-span-2 row-span-1 lg:col-span-2 lg:row-span-1";
-  }
-
-  if (patternIndex === 4) {
-    return "col-span-1 row-span-1 lg:col-span-1 lg:row-span-2";
-  }
-
-  if (patternIndex === 5) {
-    return "col-span-1 row-span-1 lg:col-span-2 lg:row-span-1";
-  }
-
-  if (patternIndex === 6) {
-    return "col-span-2 row-span-1 lg:col-span-2 lg:row-span-2";
-  }
-
-  if (patternIndex === 7) {
-    return "col-span-1 row-span-1 lg:col-span-1 lg:row-span-1";
-  }
-
-  if (patternIndex === 8) {
-    return "col-span-1 row-span-1 lg:col-span-1 lg:row-span-1";
-  }
-
-  return "col-span-2 row-span-1 lg:col-span-3 lg:row-span-1";
+  return "col-span-1 aspect-4/5 lg:col-span-1";
 }
 
 export function GalleryBentoGrid({ items, onTileClick }: GalleryBentoGridProps) {
@@ -55,36 +32,41 @@ export function GalleryBentoGrid({ items, onTileClick }: GalleryBentoGridProps) 
     return null;
   }
 
-  const useSimpleGrid = items.length < 5;
+  const bigTilePositionByGroup = items.reduce<number[]>((positions, item, index) => {
+    const isGroupStart = index % 3 === 0;
 
-  if (useSimpleGrid) {
-    return (
-      <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4">
-        {items.map((item, index) => (
-          <li key={item.id}>
-            <GalleryMediaTile
-              item={item}
-              onClick={() => onTileClick?.(index)}
-              className="aspect-4/5"
-              priority={index < 3}
-              sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw"
-            />
-          </li>
-        ))}
-      </ul>
-    );
-  }
+    if (!isGroupStart) {
+      return positions;
+    }
+
+    const groupItems = items.slice(index, index + 3);
+    const groupSize = groupItems.length;
+    const hashed = hashString(groupItems.map((groupItem) => groupItem.id).join("|"));
+    positions.push(hashed % Math.max(groupSize, 1));
+
+    return positions;
+  }, []);
 
   return (
-    <ul className="grid grid-cols-2 auto-rows-[8rem] gap-2 sm:auto-rows-[9.5rem] sm:gap-3 lg:grid-flow-dense lg:grid-cols-6 lg:auto-rows-[7.75rem]">
+    <ul className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
       {items.map((item, index) => (
-        <li key={item.id} className={getBentoTileClass(index)}>
+        <li
+          key={item.id}
+          className={getBentoTileClass(
+            index % 3,
+            bigTilePositionByGroup[Math.floor(index / 3)] ?? 0,
+          )}
+        >
           <GalleryMediaTile
             item={item}
             onClick={() => onTileClick?.(index)}
-            className="h-full min-h-32"
+            className="h-full"
             priority={index < 4}
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 40vw, 20vw"
+            sizes={
+              index % 3 === (bigTilePositionByGroup[Math.floor(index / 3)] ?? 0)
+                ? "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 50vw"
+                : "(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
+            }
           />
         </li>
       ))}
