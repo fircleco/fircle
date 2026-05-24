@@ -73,16 +73,16 @@ The feature also adds a new `Gallery` navigation entry in the sidebar/navigation
 
 #### Tasks
 
-- [ ] Create `src/server/api/routers/media.ts` with a dedicated `mediaRouter` and register it in `src/server/api/root.ts`.
-- [ ] Add dedicated gallery procedures in `mediaRouter` that query `PostMedia` directly with family scope guards.
-- [ ] Implement family gallery query returning media rows (not post envelopes), ordered by `(createdAt desc, id desc)` at media level with cursor pagination.
-- [ ] Implement member gallery queries/sections from media rows:
+- [x] Create `src/server/api/routers/media.ts` with a dedicated `mediaRouter` and register it in `src/server/api/root.ts`.
+- [x] Add dedicated gallery procedures in `mediaRouter` that query `PostMedia` directly with family scope guards.
+- [x] Implement family gallery query returning media rows (not post envelopes), ordered by `(createdAt desc, id desc)` at media level with cursor pagination.
+- [x] Implement member gallery queries/sections from media rows:
   - `publishedMedia` (media whose parent post author is member)
   - `taggedMedia` (media where member appears in `MediaTag`)
-- [ ] Enforce family membership/authorization checks consistent with existing post procedures.
-- [ ] Deduplicate overlapping results for member gallery where applicable and define deterministic ordering.
-- [ ] Add a gallery media DTO that includes: media fields, parent post id/createdAt, author summary, and media tags; adapt to existing viewer input shape.
-- [ ] Add input schemas and response typing for new procedures in the tRPC router.
+- [x] Enforce family membership/authorization checks consistent with existing post procedures.
+- [x] Deduplicate overlapping results for member gallery where applicable and define deterministic ordering.
+- [x] Add a gallery media DTO that includes: media fields, parent post id/createdAt, author summary, and media tags; adapt to existing viewer input shape.
+- [x] Add input schemas and response typing for new procedures in the tRPC router.
 
 ### Phase 3: Family Gallery Bento UI
 

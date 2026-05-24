@@ -1,5 +1,6 @@
 import { familyMemberRouter } from "~/server/api/routers/family-member";
 import { inviteRouter } from "~/server/api/routers/invite";
+import { mediaRouter } from "~/server/api/routers/media";
 import { postRouter } from "~/server/api/routers/post";
 import { tagRouter } from "~/server/api/routers/tag";
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
@@ -12,6 +13,7 @@ import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
 export const appRouter = createTRPCRouter({
   familyMember: familyMemberRouter,
   invite: inviteRouter,
+  media: mediaRouter,
   post: postRouter,
   tag: tagRouter,
 });
