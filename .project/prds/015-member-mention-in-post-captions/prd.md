@@ -1,6 +1,6 @@
 ---
 title: "Member Mention in Post Captions and Comments"
-status: draft
+status: in-progress
 references:
   - type: doc
     url: .project/brief.md
@@ -74,10 +74,10 @@ Out-of-scope for this PRD:
 
 #### Tasks
 
-- [ ] Add mention persistence models in [prisma/schema.prisma](prisma/schema.prisma) for post mentions and comment mentions, each linked to `FamilyMember`.
-- [ ] Add mention range fields (for deterministic inline mapping) and necessary timestamps.
-- [ ] Add uniqueness and index constraints to prevent duplicate mention rows where applicable and optimize post/comment hydration.
-- [ ] Create migration in [prisma/migrations](prisma/migrations) and regenerate Prisma client in [generated/prisma](generated/prisma).
+- [x] Add mention persistence models in [prisma/schema.prisma](prisma/schema.prisma) for post mentions and comment mentions, each linked to `FamilyMember`.
+- [x] Add mention range fields (for deterministic inline mapping) and necessary timestamps.
+- [x] Add uniqueness and index constraints to prevent duplicate mention rows where applicable and optimize post/comment hydration.
+- [x] Create migration in [prisma/migrations](prisma/migrations) and regenerate Prisma client in [generated/prisma](generated/prisma).
 
 ### Phase 2: API Contract and Mention Validation
 

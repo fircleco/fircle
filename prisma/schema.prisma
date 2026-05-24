@@ -73,6 +73,8 @@ model FamilyMember {
   postLikes PostLike[]
   commentLikes CommentLike[]
   mediaTags MediaTag[]
+  postMentions PostMention[] @relation("PostMentionedMember")
+  commentMentions CommentMention[] @relation("CommentMentionedMember")
 
   family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
   user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
@@ -121,6 +123,7 @@ model Post {
   media          PostMedia[]
   likes          PostLike[]
   comments       Comment[]
+  mentions       PostMention[]
 
   @@index([authorMemberId])
   @@index([createdAt])
@@ -184,6 +187,24 @@ model PostLike {
   @@index([memberIdWhoLiked])
 }
 
+model PostMention {
+  id                String       @id @default(cuid())
+  postId            String
+  mentionedMemberId String
+  start             Int
+  end               Int
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  post              Post         @relation(fields: [postId], references: [id], onDelete: Cascade)
+  mentionedMember   FamilyMember @relation("PostMentionedMember", fields: [mentionedMemberId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, start, end])
+  @@unique([postId, mentionedMemberId, start, end])
+  @@index([postId, start, id])
+  @@index([mentionedMemberId, createdAt])
+}
+
 model Comment {
   id              String        @id @default(cuid())
   postId          String
@@ -198,6 +219,7 @@ model Comment {
   parentComment   Comment?      @relation("CommentReplies", fields: [parentCommentId], references: [id], onDelete: Cascade)
   replies         Comment[]     @relation("CommentReplies")
   likes           CommentLike[]
+  mentions        CommentMention[]
 
   @@index([postId])
   @@index([authorMemberId])
@@ -219,6 +241,24 @@ model CommentLike {
   @@unique([commentId, memberIdWhoLiked])
   @@index([commentId])
   @@index([memberIdWhoLiked])
+}
+
+model CommentMention {
+  id                String       @id @default(cuid())
+  commentId         String
+  mentionedMemberId String
+  start             Int
+  end               Int
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  comment           Comment      @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  mentionedMember   FamilyMember @relation("CommentMentionedMember", fields: [mentionedMemberId], references: [id], onDelete: Cascade)
+
+  @@unique([commentId, start, end])
+  @@unique([commentId, mentionedMemberId, start, end])
+  @@index([commentId, start, id])
+  @@index([mentionedMemberId, createdAt])
 }
 
 // Necessary for Next auth
