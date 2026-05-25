@@ -45,6 +45,42 @@ enum PostMediaType {
   VIDEO
 }
 
+enum NotificationCategory {
+  TAG
+  MENTION
+  ENGAGEMENT
+  INVITE
+  SYSTEM
+}
+
+enum NotificationEventType {
+  MEDIA_TAG_CREATED
+  MEDIA_TAG_UPDATED
+  POST_MENTION_CREATED
+  COMMENT_MENTION_CREATED
+  POST_COMMENT_CREATED
+  COMMENT_REPLIED
+  POST_LIKED
+  COMMENT_LIKED
+  INVITE_CREATED
+  INVITE_STATUS_CHANGED
+  SYSTEM_EVENT
+}
+
+enum NotificationDeliveryChannel {
+  IN_APP
+  EMAIL
+  PUSH
+}
+
+enum NotificationDeliveryStatus {
+  PENDING
+  QUEUED
+  SENT
+  FAILED
+  SKIPPED
+}
+
 model Family {
   id          String         @id @default(cuid())
   name        String
@@ -54,6 +90,8 @@ model Family {
   updatedAt   DateTime       @updatedAt
   members     FamilyMember[]
   invites     Invite[]
+  notifications Notification[]
+  notificationPreferences NotificationPreference[]
 }
 
 model FamilyMember {
@@ -75,6 +113,9 @@ model FamilyMember {
   mediaTags MediaTag[]
   postMentions PostMention[] @relation("PostMentionedMember")
   commentMentions CommentMention[] @relation("CommentMentionedMember")
+  notificationsReceived Notification[] @relation("NotificationRecipient")
+  notificationsAuthored Notification[] @relation("NotificationActor")
+  notificationPreferences NotificationPreference[]
 
   family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
   user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
@@ -259,6 +300,76 @@ model CommentMention {
   @@unique([commentId, mentionedMemberId, start, end])
   @@index([commentId, start, id])
   @@index([mentionedMemberId, createdAt])
+}
+
+model Notification {
+  id                String                  @id @default(cuid())
+  familyId          String
+  recipientMemberId String
+  actorMemberId     String?
+  category          NotificationCategory
+  eventType         NotificationEventType
+  sourceType        String
+  sourceId          String
+  title             String
+  body              String
+  isRead            Boolean                 @default(false)
+  readAt            DateTime?
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+
+  family            Family                  @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  recipientMember   FamilyMember            @relation("NotificationRecipient", fields: [recipientMemberId], references: [id], onDelete: Cascade)
+  actorMember       FamilyMember?           @relation("NotificationActor", fields: [actorMemberId], references: [id], onDelete: SetNull)
+  deliveryLogs      NotificationDeliveryLog[]
+
+  @@unique([familyId, recipientMemberId, eventType, sourceType, sourceId])
+  @@index([familyId, recipientMemberId, isRead, createdAt, id])
+  @@index([familyId, recipientMemberId, createdAt, id])
+  @@index([familyId, createdAt, id])
+  @@index([sourceType, sourceId])
+  @@index([actorMemberId])
+}
+
+model NotificationPreference {
+  id         String                      @id @default(cuid())
+  familyId   String
+  memberId   String
+  category   NotificationCategory?
+  channel    NotificationDeliveryChannel @default(IN_APP)
+  isEnabled  Boolean                     @default(true)
+  createdAt  DateTime                    @default(now())
+  updatedAt  DateTime                    @updatedAt
+
+  family     Family                      @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  member     FamilyMember                @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@unique([familyId, memberId, channel, category])
+  @@index([familyId, memberId, channel, isEnabled])
+  @@index([memberId])
+}
+
+model NotificationDeliveryLog {
+  id                String                      @id @default(cuid())
+  notificationId    String
+  channel           NotificationDeliveryChannel
+  status            NotificationDeliveryStatus  @default(PENDING)
+  attemptCount      Int                         @default(0)
+  queuedAt          DateTime                    @default(now())
+  lastAttemptAt     DateTime?
+  deliveredAt       DateTime?
+  failedAt          DateTime?
+  providerMessageId String?
+  errorMessage      String?
+  createdAt         DateTime                    @default(now())
+  updatedAt         DateTime                    @updatedAt
+
+  notification      Notification                @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+
+  @@index([notificationId])
+  @@index([notificationId, channel])
+  @@index([status, queuedAt])
+  @@index([createdAt])
 }
 
 // Necessary for Next auth
