@@ -122,12 +122,12 @@ Out of scope in this PRD:
 
 #### Tasks
 
-- [ ] Refactor [src/app/(app)/notifications/page.tsx](src/app/(app)/notifications/page.tsx) to query notification router data.
-- [ ] Replace mock filtering with API-backed filtering and sections for unread/read groups.
-- [ ] Wire Mark all as read button to markAllAsRead mutation.
-- [ ] Trigger auto-mark-read when page opens after initial successful load.
-- [ ] Keep existing visual style and card structure while swapping data source.
-- [ ] Update [src/components/notifications/notification-card.tsx](src/components/notifications/notification-card.tsx) typing/mapping as needed for live DTOs.
+- [x] Refactor [src/app/(app)/notifications/page.tsx](src/app/(app)/notifications/page.tsx) to query notification router data.
+- [x] Replace mock filtering with API-backed filtering and sections for unread/read groups.
+- [x] Wire Mark all as read button to markAllAsRead mutation.
+- [x] Trigger auto-mark-read when page opens after initial successful load.
+- [x] Keep existing visual style and card structure while swapping data source.
+- [x] Update [src/components/notifications/notification-card.tsx](src/components/notifications/notification-card.tsx) typing/mapping as needed for live DTOs.
 
 ### Phase 5: Navigation Badge Integration
 
@@ -167,8 +167,8 @@ Out of scope in this PRD:
 - [x] Tagging and mention flows create notification records for claimed recipients only.
 - [x] Comment, reply, and like activity is recognized in the notification model as engagement-class activity.
 - [x] Initial admin invite/system events create notification records in foundation scope.
-- [ ] /notifications renders database-backed notifications instead of static mocks.
-- [ ] Opening /notifications auto-marks unread items as read.
+- [x] /notifications renders database-backed notifications instead of static mocks.
+- [x] Opening /notifications auto-marks unread items as read.
 - [ ] Desktop sidebar and mobile header show unread badges with 99+ cap behavior.
 - [ ] Badge count is scoped to signed-in claimed member in active family context.
 - [ ] Mobile bottom nav remains unchanged in this PRD.

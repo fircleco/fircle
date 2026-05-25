@@ -1,27 +1,41 @@
 import Image from "next/image";
-import { Bell, Image as ImageIcon, UserCheck, UserX, Video } from "~/components/ui/icons";
+import { formatDistanceToNow } from "date-fns";
+import { Bell, Comment, Heart, Image as ImageIcon, UserCheck, UserX, Video } from "~/components/ui/icons";
 
-import type { TagNotificationItem } from "~/lib/mocks/tagging";
+import type { RouterOutputs } from "~/trpc/react";
 
-const eventIcons: Record<TagNotificationItem["event"], React.ReactNode> = {
-  "tag-photo": <ImageIcon className="size-4" aria-hidden="true" />,
-  "tag-video": <Video className="size-4" aria-hidden="true" />,
-  "family-member-tagged": <UserCheck className="size-4" aria-hidden="true" />,
-  "unclaimed-member-tagged": <UserX className="size-4" aria-hidden="true" />,
+type NotificationListItem = RouterOutputs["notification"]["listByFamily"]["items"][number];
+
+const eventIcons: Record<NotificationListItem["eventType"], React.ReactNode> = {
+  MEDIA_TAG_CREATED: <ImageIcon className="size-4" aria-hidden="true" />,
+  MEDIA_TAG_UPDATED: <Video className="size-4" aria-hidden="true" />,
+  POST_MENTION_CREATED: <UserCheck className="size-4" aria-hidden="true" />,
+  COMMENT_MENTION_CREATED: <UserX className="size-4" aria-hidden="true" />,
+  POST_COMMENT_CREATED: <Comment className="size-4" aria-hidden="true" />,
+  COMMENT_REPLIED: <Comment className="size-4" aria-hidden="true" />,
+  POST_LIKED: <Heart className="size-4" aria-hidden="true" />,
+  COMMENT_LIKED: <Heart className="size-4" aria-hidden="true" />,
+  INVITE_CREATED: <UserCheck className="size-4" aria-hidden="true" />,
+  INVITE_STATUS_CHANGED: <UserX className="size-4" aria-hidden="true" />,
+  SYSTEM_EVENT: <Bell className="size-4" aria-hidden="true" />,
 };
 
-const categoryColors: Record<TagNotificationItem["category"], string> = {
-  tags: "bg-violet-500/15 text-violet-600 dark:text-violet-400",
-  invites: "bg-amber-500/15 text-amber-600 dark:text-amber-400",
-  system: "bg-sky-500/15 text-sky-600 dark:text-sky-400",
+const categoryColors: Record<NotificationListItem["category"], string> = {
+  TAG: "bg-violet-500/15 text-violet-600 dark:text-violet-400",
+  MENTION: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400",
+  ENGAGEMENT: "bg-rose-500/15 text-rose-600 dark:text-rose-400",
+  INVITE: "bg-amber-500/15 text-amber-600 dark:text-amber-400",
+  SYSTEM: "bg-sky-500/15 text-sky-600 dark:text-sky-400",
 };
 
 type NotificationCardProps = {
-  notification: TagNotificationItem;
+  notification: NotificationListItem;
 };
 
 export function NotificationCard({ notification }: NotificationCardProps) {
-  const { title, body, createdAtLabel, isRead, thumbnailUrl, event, category } = notification;
+  const { title, body, isRead, eventType, category, createdAt } = notification;
+  const createdAtLabel = formatDistanceToNow(new Date(createdAt), { addSuffix: true });
+  const thumbnailUrl = null;
 
   return (
     <article
@@ -34,7 +48,7 @@ export function NotificationCard({ notification }: NotificationCardProps) {
         className={`mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full ${categoryColors[category]}`}
         aria-label={`${category} notification`}
       >
-        {eventIcons[event] ?? <Bell className="size-4" aria-hidden="true" />}
+        {eventIcons[eventType] ?? <Bell className="size-4" aria-hidden="true" />}
       </div>
 
       {/* Content */}
