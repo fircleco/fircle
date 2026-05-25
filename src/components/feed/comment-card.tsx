@@ -46,6 +46,7 @@ export type FeedComment = {
 type CommentCardProps = {
   comment: FeedComment;
   isOwnComment: boolean;
+  isHighlighted?: boolean;
   onToggleLike: (commentId: string) => void;
   onStartReply: (commentId: string) => void;
   onStartEdit: (commentId: string) => void;
@@ -85,6 +86,7 @@ function formatCreatedAtLabel(dateInput: Date | string) {
 export function CommentCard({
   comment,
   isOwnComment,
+  isHighlighted = false,
   onToggleLike,
   onStartReply,
   onStartEdit,
@@ -97,7 +99,11 @@ export function CommentCard({
   const authorHref = isOwnComment ? "/profile" : `/member/${comment.author.slug}`;
 
   return (
-    <article className="rounded-2xl border border-border/80 bg-card/90 px-4 py-3">
+    <article
+      className={`rounded-2xl border border-border/80 bg-card/90 px-4 py-3 transition-all duration-500 ${
+        isHighlighted ? "ring-2 ring-primary/50 bg-primary/5" : ""
+      }`}
+    >
       <header className="flex items-center gap-3">
         <Link
           href={authorHref}

@@ -52,6 +52,7 @@ export type MediaViewerItem = {
 type MediaViewerDialogProps = {
   items: MediaViewerItem[];
   startIndex?: number;
+  highlightedTagId?: string | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   familyId?: string;
@@ -284,6 +285,7 @@ function MediaSlide({
   onEditorClose,
   activeMutationPending,
   editorError,
+  highlightedTagId,
 }: {
   item: MediaViewerItem;
   tags: MediaTagRecord[];
@@ -298,6 +300,7 @@ function MediaSlide({
   onEditorClose?: () => void;
   activeMutationPending?: boolean;
   editorError?: string | null;
+  highlightedTagId?: string | null;
 }) {
   const [hoveredTagId, setHoveredTagId] = React.useState<string | null>(null);
   const [pinnedTagId, setPinnedTagId] = React.useState<string | null>(null);
@@ -315,6 +318,18 @@ function MediaSlide({
       setPinnedTagId(null);
     }
   }, [tags, pinnedTagId]);
+
+  React.useEffect(() => {
+    if (!highlightedTagId) {
+      return;
+    }
+
+    if (!tags.some((tag) => tag.id === highlightedTagId)) {
+      return;
+    }
+
+    setPinnedTagId(highlightedTagId);
+  }, [highlightedTagId, tags]);
 
   if (item.type === "video") {
     return (
@@ -384,7 +399,7 @@ function MediaSlide({
             >
               <button
                 type="button"
-                className={`pointer-events-auto flex size-10 items-center justify-center rounded-full border ${editorEnabled ? "border-white/20 bg-black/20" : "border-white/10 bg-black/10"} text-[10px] font-semibold text-white shadow transition-transform hover:scale-110 active:scale-95`}
+                className={`pointer-events-auto flex size-10 items-center justify-center rounded-full border ${editorEnabled ? "border-white/20 bg-black/20" : "border-white/10 bg-black/10"} text-[10px] font-semibold text-white shadow transition-transform hover:scale-110 active:scale-95 ${highlightedTagId === tag.id ? "ring-2 ring-primary ring-offset-2 ring-offset-black/60" : ""}`}
                 onMouseEnter={() => setHoveredTagId(tag.id)}
                 onMouseLeave={() => setHoveredTagId(null)}
                 onClick={(event) => {
@@ -534,6 +549,7 @@ function TaggedMembersOverlay({ members }: { members: TaggedMember[] }) {
 export function MediaViewerDialog({
   items,
   startIndex = 0,
+  highlightedTagId,
   open,
   onOpenChange,
   familyId,
@@ -774,6 +790,7 @@ export function MediaViewerDialog({
                     onEditorClose={() => { setEditorOpen(false); setPendingPoint(null); }}
                     activeMutationPending={activeMutationPending}
                     editorError={editorError}
+                    highlightedTagId={highlightedTagId}
                     onImageClick={(event) => {
                       if (currentItem?.id === items[0]!.id) {
                         handleImageClick(event);
@@ -805,6 +822,7 @@ export function MediaViewerDialog({
                           onEditorClose={() => { setEditorOpen(false); setPendingPoint(null); }}
                           activeMutationPending={activeMutationPending}
                           editorError={editorError}
+                          highlightedTagId={current === index ? highlightedTagId : null}
                           onImageClick={(event) => {
                             if (current === index) {
                               handleImageClick(event);

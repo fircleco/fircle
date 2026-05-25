@@ -129,6 +129,13 @@ Out of scope in this PRD:
 - [x] Keep existing visual style and card structure while swapping data source.
 - [x] Update [src/components/notifications/notification-card.tsx](src/components/notifications/notification-card.tsx) typing/mapping as needed for live DTOs.
 - [x] Freeze notification section placement and card visual state (highlight, bold, unread dot) for the duration of the page visit so auto-read mutations do not reshuffle items in real time. Snapshot initial `isRead` values on first successful query load; pass snapshot value as `initialIsRead` prop to `NotificationCard` for styling; use snapshot for unread/read section grouping.
+- [x] Personalize notification card copy using actor member names where available instead of generic "Someone" messaging.
+- [x] Add deep-link targets from notifications to relevant product context:
+  - [x] post mentions/likes -> post detail page.
+  - [x] comment mentions/replies/likes -> post detail page with comment target.
+  - [x] media tags -> post detail page with media tag target.
+  - [x] invite events -> invites settings view.
+- [x] On post detail route, support notification target landing behaviors by URL params (`commentId`, `mediaTagId`) including auto-scroll/open and temporary target highlighting.
 
 ### Phase 5: Navigation Badge Integration
 
@@ -173,6 +180,9 @@ Out of scope in this PRD:
 - [x] /notifications renders database-backed notifications instead of static mocks.
 - [x] Opening /notifications auto-marks unread items as read.
 - [x] Notification section placement and card styling remain stable for the duration of a page visit — items do not visually reshuffle when auto-read fires.
+- [x] Notification cards use personalized actor-aware copy for mention/tag/engagement/invite event types.
+- [x] Notification cards deep-link to contextual destinations (post/comment/media tag/invite settings) when target metadata is available.
+- [x] Notification deep links to post details provide visible target focus (scroll + temporary highlight for comments; media viewer opens and highlights targeted tag).
 - [x] Desktop sidebar and mobile header show unread badges with 99+ cap behavior.
 - [x] Unread badge in shell surfaces refreshes in-session outside /notifications without requiring navigation.
 - [x] Badge count is scoped to signed-in claimed member in active family context.

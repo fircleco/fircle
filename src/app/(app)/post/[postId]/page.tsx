@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 
 import { CommentInput } from "~/components/feed/comment-input";
 import { CommentList } from "~/components/feed/comment-list";
@@ -237,9 +237,14 @@ function mergeReplies(existing: CommentApiItem[], incoming: CommentApiItem[]) {
 
 export default function SinglePostPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const params = useParams<{ postId: string }>();
   const postId = params.postId;
   const trpcUtils = api.useUtils();
+  const targetCommentId = searchParams.get("commentId");
+  const targetMediaTagId = searchParams.get("mediaTagId");
+  const consumedCommentTargetRef = useRef<string | null>(null);
+  const [highlightedCommentId, setHighlightedCommentId] = useState<string | null>(null);
 
   const [topLevelDraft, setTopLevelDraft] = useState("");
   const [topLevelMentions, setTopLevelMentions] = useState<MentionDraft[]>([]);
@@ -327,6 +332,34 @@ export default function SinglePostPage() {
     const items = (commentsQuery.data?.items ?? []) as CommentApiItem[];
     return applyLikeOverrides(items, likeOverrides);
   }, [commentsQuery.data?.items, likeOverrides]);
+
+  useEffect(() => {
+    if (!targetCommentId) {
+      return;
+    }
+
+    if (consumedCommentTargetRef.current === targetCommentId) {
+      return;
+    }
+
+    const targetElement = document.getElementById(`comment-${targetCommentId}`);
+    if (!targetElement) {
+      return;
+    }
+
+    consumedCommentTargetRef.current = targetCommentId;
+    setHighlightedCommentId(targetCommentId);
+
+    targetElement.scrollIntoView({ behavior: "smooth", block: "center" });
+
+    const clearHighlightId = window.setTimeout(() => {
+      setHighlightedCommentId((current) => (current === targetCommentId ? null : current));
+    }, 4200);
+
+    return () => {
+      window.clearTimeout(clearHighlightId);
+    };
+  }, [targetCommentId, comments]);
 
   const totalCommentCount = useMemo(
     () => comments.reduce((sum, comment) => sum + 1 + comment.replyCount, 0),
@@ -934,6 +967,7 @@ export default function SinglePostPage() {
         currentMemberSlug={memberProfileQuery.data?.slug}
         familyId={familyId}
         isAdmin={isAdmin}
+        highlightedMediaTagId={targetMediaTagId}
       />
 
       <div className="mt-6">
@@ -983,6 +1017,7 @@ export default function SinglePostPage() {
           comments={comments}
           currentMemberId={memberProfileQuery.data?.id}
           currentMemberSlug={memberProfileQuery.data?.slug}
+          highlightedCommentId={highlightedCommentId}
           onToggleLike={handleToggleLike}
           onStartReply={handleStartReply}
           onStartEdit={handleStartEdit}

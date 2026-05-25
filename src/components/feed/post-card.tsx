@@ -74,6 +74,7 @@ type PostCardProps = {
   currentMemberSlug?: string;
   familyId?: string;
   isAdmin?: boolean;
+  highlightedMediaTagId?: string | null;
 };
 
 function getInitials(name: string) {
@@ -93,12 +94,15 @@ export function PostCard({
   currentMemberSlug,
   familyId,
   isAdmin = false,
+  highlightedMediaTagId,
 }: PostCardProps) {
   const pathname = usePathname();
   const router = useRouter();
   const trpcUtils = api.useUtils();
   const [viewerOpen, setViewerOpen] = useState(false);
   const [viewerStart, setViewerStart] = useState(0);
+  const [activeHighlightedMediaTagId, setActiveHighlightedMediaTagId] = useState<string | null>(null);
+  const consumedMediaTagIdRef = useRef<string | null>(null);
   const likeIconRef = useRef<HTMLSpanElement>(null);
   const [optimisticLikedByCurrentUser, setOptimisticLikedByCurrentUser] = useState<
     boolean | undefined
@@ -121,6 +125,39 @@ export function PostCard({
     setOptimisticLikedByCurrentUser(undefined);
     setOptimisticReactionCount(undefined);
   }, [post.id, post.likedByCurrentUser, post.reactionCount]);
+
+  useEffect(() => {
+    if (!highlightedMediaTagId) {
+      return;
+    }
+
+    if (consumedMediaTagIdRef.current === highlightedMediaTagId) {
+      return;
+    }
+
+    const mediaIndex = post.mediaItems.findIndex((mediaItem) =>
+      (mediaItem.tags ?? []).some((tag) => tag.id === highlightedMediaTagId),
+    );
+
+    if (mediaIndex < 0) {
+      return;
+    }
+
+    consumedMediaTagIdRef.current = highlightedMediaTagId;
+    setViewerStart(mediaIndex);
+    setViewerOpen(true);
+    setActiveHighlightedMediaTagId(highlightedMediaTagId);
+
+    const clearHighlightId = window.setTimeout(() => {
+      setActiveHighlightedMediaTagId((current) =>
+        current === highlightedMediaTagId ? null : current,
+      );
+    }, 5200);
+
+    return () => {
+      window.clearTimeout(clearHighlightId);
+    };
+  }, [highlightedMediaTagId, post.mediaItems]);
 
   const likedByCurrentUser = optimisticLikedByCurrentUser ?? post.likedByCurrentUser ?? false;
   const reactionCount = optimisticReactionCount ?? post.reactionCount;
@@ -370,6 +407,7 @@ export function PostCard({
       <MediaViewerDialog
         items={post.mediaItems}
         startIndex={viewerStart}
+        highlightedTagId={activeHighlightedMediaTagId}
         open={viewerOpen}
         onOpenChange={setViewerOpen}
         familyId={familyId}
