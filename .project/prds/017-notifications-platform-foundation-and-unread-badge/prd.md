@@ -136,6 +136,7 @@ Out of scope in this PRD:
   - [x] media tags -> post detail page with media tag target.
   - [x] invite events -> invites settings view.
 - [x] On post detail route, support notification target landing behaviors by URL params (`commentId`, `mediaTagId`) including auto-scroll/open and temporary target highlighting.
+- [x] Apply role-aware notification filter visibility on /notifications: hide admin-oriented Invite/System tabs for non-admin members while keeping those tabs available to OWNER/ADMIN roles.
 
 ### Phase 5: Navigation Badge Integration
 
@@ -183,6 +184,7 @@ Out of scope in this PRD:
 - [x] Notification cards use personalized actor-aware copy for mention/tag/engagement/invite event types.
 - [x] Notification cards deep-link to contextual destinations (post/comment/media tag/invite settings) when target metadata is available.
 - [x] Notification deep links to post details provide visible target focus (scroll + temporary highlight for comments; media viewer opens and highlights targeted tag).
+- [x] Notification filter tabs are role-aware: non-admin members do not see Invite/System tabs, while OWNER/ADMIN users retain full filter visibility.
 - [x] Desktop sidebar and mobile header show unread badges with 99+ cap behavior.
 - [x] Unread badge in shell surfaces refreshes in-session outside /notifications without requiring navigation.
 - [x] Badge count is scoped to signed-in claimed member in active family context.

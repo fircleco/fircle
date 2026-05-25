@@ -20,6 +20,8 @@ const filters: { label: string; value: FilterCategory }[] = [
   { label: "System", value: "SYSTEM" },
 ];
 
+const adminOnlyFilters: ReadonlySet<FilterCategory> = new Set(["INVITE", "SYSTEM"]);
+
 export default function NotificationsPage() {
   const [activeFilter, setActiveFilter] = useState<FilterCategory>("all");
   const autoReadTriggeredFamilyRef = useRef<string | null>(null);
@@ -32,6 +34,18 @@ export default function NotificationsPage() {
   });
 
   const familyId = managementContext.data?.family?.id;
+  const isAdmin = managementContext.data?.role === "OWNER" || managementContext.data?.role === "ADMIN";
+
+  const visibleFilters = useMemo(
+    () => filters.filter((filter) => isAdmin || !adminOnlyFilters.has(filter.value)),
+    [isAdmin],
+  );
+
+  useEffect(() => {
+    if (!visibleFilters.some((filter) => filter.value === activeFilter)) {
+      setActiveFilter("all");
+    }
+  }, [activeFilter, visibleFilters]);
 
   const notificationsQuery = api.notification.listByFamily.useQuery(
     {
@@ -170,7 +184,7 @@ export default function NotificationsPage() {
         role="tablist"
         aria-label="Notification filters"
       >
-        {filters.map(({ label, value }) => (
+        {visibleFilters.map(({ label, value }) => (
           <button
             key={value}
             role="tab"
