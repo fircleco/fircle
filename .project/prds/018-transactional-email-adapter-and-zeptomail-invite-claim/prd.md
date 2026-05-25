@@ -128,16 +128,16 @@ Out of scope for this PRD:
 
 #### Tasks
 
-- [ ] Integrate invite email sending in src/server/api/routers/invite.ts createInvite flow:
+- [x] Integrate invite email sending in src/server/api/routers/invite.ts createInvite flow:
   - Trigger only for email-bound invites with an invited email.
   - Use invite-created template and adapter send function.
-- [ ] Integrate claim-link email sending in src/server/api/routers/family-member.ts for:
+- [x] Integrate claim-link email sending in src/server/api/routers/family-member.ts for:
   - createUnclaimedMember flow when claim invite is auto-generated.
   - createClaimLink flow when link is regenerated.
-- [ ] Implement non-blocking failure behavior for send failures:
+- [x] Implement non-blocking failure behavior for send failures:
   - Preserve successful domain writes.
   - Emit structured error logs for operational visibility.
-- [ ] Add minimal dedupe/idempotency guardrails so retries of mutation logic do not accidentally send duplicate emails unless a new token/code is generated.
+- [x] Add minimal dedupe/idempotency guardrails so retries of mutation logic do not accidentally send duplicate emails unless a new token/code is generated.
 
 ### Phase 6: Tests, Verification, and Release Readiness
 

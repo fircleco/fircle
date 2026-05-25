@@ -3,6 +3,7 @@ import { TRPCError } from "@trpc/server"
 import { type Prisma } from "../../../../generated/prisma"
 import { z } from "zod"
 
+import { env } from "~/env"
 import {
   createTRPCRouter,
   protectedProcedure,
@@ -26,6 +27,11 @@ import {
 import { getInviteExpiryDate } from "~/lib/invite"
 import { checkRateLimit, getClientIp } from "~/lib/rate-limit"
 import { getMemberSlugBase, resolveUniqueMemberSlug, slugifyMemberText } from "~/lib/member-slug"
+import {
+  buildClaimLinkCreatedTemplate,
+  getEmailProvider,
+  resolveAppBaseUrlFromHeaders,
+} from "~/server/email"
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -619,6 +625,61 @@ export const familyMemberRouter = createTRPCRouter({
           console.log(
             `[claim-link:auto-created] inviteId=${result.claimInvite.id} memberId=${member.id} familyId=${member.familyId} type=${result.claimInvite.type} createdBy=${ctx.session.user.id} at=${new Date().toISOString()}`,
           )
+
+          if (result.claimInvite.type === "EMAIL_BOUND" && result.claimInvite.invitedEmail) {
+            const emailProvider = getEmailProvider()
+            const appBaseUrl = resolveAppBaseUrlFromHeaders(ctx.headers)
+            const fromAddress = env.EMAIL_FROM_ADDRESS ? String(env.EMAIL_FROM_ADDRESS) : null
+            const fromName = env.EMAIL_FROM_NAME ? String(env.EMAIL_FROM_NAME) : "Fircle"
+
+            if (!emailProvider) {
+              console.info(
+                `[claim-link:email-skipped] inviteId=${result.claimInvite.id} reason=email-provider-not-configured`,
+              )
+            } else if (!appBaseUrl) {
+              console.warn(
+                `[claim-link:email-skipped] inviteId=${result.claimInvite.id} reason=app-base-url-unresolved`,
+              )
+            } else if (!fromAddress) {
+              console.warn(
+                `[claim-link:email-skipped] inviteId=${result.claimInvite.id} reason=missing-from-address`,
+              )
+            } else {
+              const family = await ctx.db.family.findUnique({
+                where: { id: member.familyId },
+                select: { name: true },
+              })
+
+              const template = buildClaimLinkCreatedTemplate({
+                familyName: family?.name ?? "your family",
+                memberName: member.name,
+                claimToken: result.claimInvite.code,
+                appBaseUrl,
+                expiresAt: result.claimInvite.expiresAt,
+              })
+
+              try {
+                await emailProvider.send({
+                  event: "claim-link-created",
+                  to: { email: result.claimInvite.invitedEmail },
+                  from: { email: fromAddress, name: fromName },
+                  subject: template.subject,
+                  html: template.html,
+                  text: template.text,
+                  metadata: {
+                    client_reference: `claim-link-created:${result.claimInvite.id}`,
+                    invite_id: result.claimInvite.id,
+                    family_id: member.familyId,
+                    member_id: member.id,
+                  },
+                })
+              } catch (error) {
+                console.error(
+                  `[claim-link:email-send-failed] inviteId=${result.claimInvite.id} familyId=${member.familyId} memberId=${member.id} reason=${error instanceof Error ? error.message : String(error)}`,
+                )
+              }
+            }
+          }
         }
 
         return {
@@ -839,6 +900,61 @@ export const familyMemberRouter = createTRPCRouter({
       console.log(
         `[claim-link:created] inviteId=${invite.id} memberId=${member.id} familyId=${member.familyId} type=${type} createdBy=${ctx.session.user.id} at=${new Date().toISOString()}`,
       )
+
+      if (invite.type === "EMAIL_BOUND" && invite.invitedEmail) {
+        const emailProvider = getEmailProvider()
+        const appBaseUrl = resolveAppBaseUrlFromHeaders(ctx.headers)
+        const fromAddress = env.EMAIL_FROM_ADDRESS ? String(env.EMAIL_FROM_ADDRESS) : null
+        const fromName = env.EMAIL_FROM_NAME ? String(env.EMAIL_FROM_NAME) : "Fircle"
+
+        if (!emailProvider) {
+          console.info(
+            `[claim-link:email-skipped] inviteId=${invite.id} reason=email-provider-not-configured`,
+          )
+        } else if (!appBaseUrl) {
+          console.warn(
+            `[claim-link:email-skipped] inviteId=${invite.id} reason=app-base-url-unresolved`,
+          )
+        } else if (!fromAddress) {
+          console.warn(
+            `[claim-link:email-skipped] inviteId=${invite.id} reason=missing-from-address`,
+          )
+        } else {
+          const family = await ctx.db.family.findUnique({
+            where: { id: member.familyId },
+            select: { name: true },
+          })
+
+          const template = buildClaimLinkCreatedTemplate({
+            familyName: family?.name ?? "your family",
+            memberName: member.name,
+            claimToken: invite.code,
+            appBaseUrl,
+            expiresAt: invite.expiresAt,
+          })
+
+          try {
+            await emailProvider.send({
+              event: "claim-link-created",
+              to: { email: invite.invitedEmail },
+              from: { email: fromAddress, name: fromName },
+              subject: template.subject,
+              html: template.html,
+              text: template.text,
+              metadata: {
+                client_reference: `claim-link-created:${invite.id}`,
+                invite_id: invite.id,
+                family_id: member.familyId,
+                member_id: member.id,
+              },
+            })
+          } catch (error) {
+            console.error(
+              `[claim-link:email-send-failed] inviteId=${invite.id} familyId=${member.familyId} memberId=${member.id} reason=${error instanceof Error ? error.message : String(error)}`,
+            )
+          }
+        }
+      }
 
       return {
         id: invite.id,

@@ -3,6 +3,7 @@ import { TRPCError } from "@trpc/server"
 import { type Prisma } from "../../../../generated/prisma"
 import { z } from "zod"
 
+import { env } from "~/env"
 import {
   createTRPCRouter,
   protectedProcedure,
@@ -24,6 +25,11 @@ import {
 import { normalizeEmail } from "~/lib/email"
 import { checkRateLimit, getClientIp } from "~/lib/rate-limit"
 import { getMemberSlugBase, resolveUniqueMemberSlug } from "~/lib/member-slug"
+import {
+  buildInviteCreatedTemplate,
+  getEmailProvider,
+  resolveAppBaseUrlFromHeaders,
+} from "~/server/email"
 import { createNotifications, getClaimedAdminMemberIds } from "~/server/notifications"
 
 const internalMediaUrlSchema = z
@@ -518,6 +524,13 @@ export const inviteRouter = createTRPCRouter({
           expiresAt: getInviteExpiryDate(new Date(), input.expiresInDays),
           status: "PENDING",
         },
+        include: {
+          family: {
+            select: {
+              name: true,
+            },
+          },
+        },
       })
 
       await ctx.db.$transaction(async (tx) => {
@@ -545,6 +558,54 @@ export const inviteRouter = createTRPCRouter({
       console.log(
         `[invite:created] id=${invite.id} code=${invite.code} type=${invite.type} familyId=${invite.familyId} createdBy=${ctx.session.user.id} at=${new Date().toISOString()}`,
       )
+
+      if (invite.type === "EMAIL_BOUND" && invite.invitedEmail) {
+        const emailProvider = getEmailProvider()
+        const appBaseUrl = resolveAppBaseUrlFromHeaders(ctx.headers)
+        const fromAddress = env.EMAIL_FROM_ADDRESS ? String(env.EMAIL_FROM_ADDRESS) : null
+        const fromName = env.EMAIL_FROM_NAME ? String(env.EMAIL_FROM_NAME) : "Fircle"
+
+        if (!emailProvider) {
+          console.info(
+            `[invite:email-skipped] inviteId=${invite.id} reason=email-provider-not-configured`,
+          )
+        } else if (!appBaseUrl) {
+          console.warn(
+            `[invite:email-skipped] inviteId=${invite.id} reason=app-base-url-unresolved`,
+          )
+        } else if (!fromAddress) {
+          console.warn(
+            `[invite:email-skipped] inviteId=${invite.id} reason=missing-from-address`,
+          )
+        } else {
+          const template = buildInviteCreatedTemplate({
+            familyName: invite.family.name,
+            inviteCode: invite.code,
+            appBaseUrl,
+            expiresAt: invite.expiresAt,
+          })
+
+          try {
+            await emailProvider.send({
+              event: "invite-created",
+              to: { email: invite.invitedEmail },
+              from: { email: fromAddress, name: fromName },
+              subject: template.subject,
+              html: template.html,
+              text: template.text,
+              metadata: {
+                client_reference: `invite-created:${invite.id}`,
+                invite_id: invite.id,
+                family_id: invite.familyId,
+              },
+            })
+          } catch (error) {
+            console.error(
+              `[invite:email-send-failed] inviteId=${invite.id} familyId=${invite.familyId} reason=${error instanceof Error ? error.message : String(error)}`,
+            )
+          }
+        }
+      }
 
       return {
         id: invite.id,
