@@ -35,7 +35,7 @@ export default function NotificationsPage() {
   const notificationsQuery = api.notification.listByFamily.useQuery(
     {
       familyId: familyId ?? "",
-      limit: 100,
+      limit: 50,
     },
     {
       enabled: Boolean(familyId),
