@@ -2,6 +2,7 @@ import { TRPCError } from "@trpc/server"
 import { z } from "zod"
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc"
+import type { PrismaClient } from "../../../../generated/prisma";
 
 const notificationListInputSchema = z.object({
   familyId: z.string().cuid(),
@@ -102,7 +103,7 @@ function encodeCursor(input: { createdAt: Date; id: string }) {
   return `${input.createdAt.toISOString()}__${input.id}`
 }
 
-async function requireFamilyMembership(familyId: string, userId: string, db: typeof import("~/server/db").db) {
+async function requireFamilyMembership(familyId: string, userId: string, db: PrismaClient) {
   const membership = await db.familyMember.findUnique({
     where: {
       familyId_userId: {

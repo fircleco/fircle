@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, House, Image, PlusCircle, User, Users } from "~/components/ui/icons";
+import { House, Image, PlusCircle, User, Users } from "~/components/ui/icons";
 
 import { useGlobalComposer } from "~/components/feed/global-composer-provider";
 import { cn } from "~/lib/utils";

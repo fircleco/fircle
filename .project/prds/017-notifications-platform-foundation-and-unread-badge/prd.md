@@ -151,18 +151,18 @@ Out of scope in this PRD:
 #### Tasks
 
 - [ ] Add router tests in [test/server/api/routers](test/server/api/routers) for:
-  - [ ] family/membership scoping and authorization.
-  - [ ] unread count accuracy.
-  - [ ] list ordering and pagination behavior.
-  - [ ] mark-as-read and mark-all-as-read behavior.
-- [ ] Add event-producer tests for tagging/mention/invite pathways creating expected recipient notifications.
-- [ ] Add UI tests (where supported) for badge rendering and 99+ cap behavior.
-- [ ] Run lint and targeted tests for changed areas.
+  - [x] family/membership scoping and authorization.
+  - [x] unread count accuracy.
+  - [x] list ordering and pagination behavior.
+  - [x] mark-as-read and mark-all-as-read behavior.
+- [x] Add event-producer tests for tagging/mention/invite pathways creating expected recipient notifications.
+- [x] Add UI tests (where supported) for badge rendering and 99+ cap behavior.
+- [x] Run lint and targeted tests for changed areas.
 - [ ] Perform manual QA on desktop and mobile shell for unread badge consistency and auto-read behavior.
 
 ## Acceptance Criteria
 
-- [ ] Notification domain models and migration are present and applied successfully.
+- [x] Notification domain models and migration are present and applied successfully.
 - [x] Notification router is registered and exposes unread count, list, mark one read, and mark all read procedures.
 - [x] Tagging and mention flows create notification records for claimed recipients only.
 - [x] Comment, reply, and like activity is recognized in the notification model as engagement-class activity.
@@ -172,5 +172,5 @@ Out of scope in this PRD:
 - [x] Desktop sidebar and mobile header show unread badges with 99+ cap behavior.
 - [x] Badge count is scoped to signed-in claimed member in active family context.
 - [x] Mobile bottom nav remains unchanged in this PRD.
-- [ ] No email or push delivery execution is introduced in this phase.
-- [ ] Tests and lint for modified areas pass.
+- [x] No email or push delivery execution is introduced in this phase.
+- [x] Tests and lint for modified areas pass.

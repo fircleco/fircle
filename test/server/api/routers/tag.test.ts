@@ -8,7 +8,18 @@ vi.mock("~/server/db", () => ({
   db: {},
 }));
 
+vi.mock("~/server/notifications", () => ({
+  createNotifications: vi.fn().mockResolvedValue(undefined),
+  getClaimedMemberIds: vi
+    .fn()
+    .mockImplementation(async (_tx: unknown, _familyId: string, memberIds: string[]) => memberIds),
+  getClaimedAdminMemberIds: vi.fn().mockResolvedValue([]),
+}));
+
 import { tagRouter } from "~/server/api/routers/tag";
+import { createNotifications } from "~/server/notifications";
+
+const createNotificationsMock = vi.mocked(createNotifications);
 
 function createCaller(db: unknown, userId = "user-1") {
   return tagRouter.createCaller({
@@ -149,6 +160,7 @@ describe("tagRouter", () => {
           .mockResolvedValueOnce(null),
         update: postMediaUpdate,
       },
+      $transaction: vi.fn(async (callback: (txArg: Record<string, never>) => Promise<unknown>) => callback({})),
     } as never;
 
     const caller = createCaller(db);
@@ -187,6 +199,19 @@ describe("tagRouter", () => {
         status: "claimed",
       },
     });
+    expect(createNotificationsMock).toHaveBeenCalledWith(
+      expect.anything(),
+      [
+        expect.objectContaining({
+          familyId,
+          category: "TAG",
+          eventType: "MEDIA_TAG_CREATED",
+          sourceType: "mediaTag",
+          recipientMemberId: taggedMemberId,
+          actorMemberId: authorMemberId,
+        }),
+      ],
+    );
   });
 
   it("allows a family admin to create a video tag on another member's post", async () => {
@@ -236,6 +261,7 @@ describe("tagRouter", () => {
           ],
         }),
       },
+      $transaction: vi.fn(async (callback: (txArg: Record<string, never>) => Promise<unknown>) => callback({})),
     } as never;
 
     const caller = createCaller(db, "admin-user");
@@ -392,6 +418,7 @@ describe("tagRouter", () => {
           ],
         }),
       },
+      $transaction: vi.fn(async (callback: (txArg: Record<string, never>) => Promise<unknown>) => callback({})),
     } as never;
 
     const caller = createCaller(db, "owner-user");

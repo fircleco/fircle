@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Bell, House, Image, Plus, Settings, User, Users } from "~/components/ui/icons";
 
 import { useGlobalComposer } from "~/components/feed/global-composer-provider";
+import { formatUnreadBadgeCount } from "~/components/nav/unread-badge";
 import { ThemeToggle } from "~/components/theme-toggle";
 import { Button } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
@@ -24,14 +25,6 @@ function isActivePath(pathname: string, href: string) {
   }
 
   return pathname === href || pathname.startsWith(`${href}/`);
-}
-
-function formatBadgeCount(count: number) {
-  if (count <= 0) {
-    return null;
-  }
-
-  return count > 99 ? "99+" : String(count);
 }
 
 export function DesktopSidebar() {
@@ -55,7 +48,7 @@ export function DesktopSidebar() {
     },
   );
 
-  const unreadLabel = formatBadgeCount(unreadCountQuery.data?.count ?? 0);
+  const unreadLabel = formatUnreadBadgeCount(unreadCountQuery.data?.count ?? 0);
 
   return (
     <aside className="fixed top-0 left-0 hidden h-screen w-72 border-r border-border bg-background md:flex md:flex-col">

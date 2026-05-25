@@ -102,7 +102,7 @@ export default function NotificationsPage() {
     markAllAsReadMutation,
   ]);
 
-  const notifications = notificationsQuery.data?.items ?? [];
+  const notifications = useMemo(() => notificationsQuery.data?.items ?? [], [notificationsQuery.data?.items]);
 
   const filtered = useMemo(
     () =>

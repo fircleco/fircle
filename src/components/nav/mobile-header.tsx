@@ -3,16 +3,9 @@
 import Link from "next/link";
 import { Bell, Menu } from "~/components/ui/icons";
 
+import { formatUnreadBadgeCount } from "~/components/nav/unread-badge";
 import { Button } from "~/components/ui/button";
 import { api } from "~/trpc/react";
-
-function formatBadgeCount(count: number) {
-  if (count <= 0) {
-    return null;
-  }
-
-  return count > 99 ? "99+" : String(count);
-}
 
 export function MobileHeader() {
   const managementContext = api.invite.getManagementContext.useQuery(undefined, {
@@ -32,7 +25,7 @@ export function MobileHeader() {
     },
   );
 
-  const unreadLabel = formatBadgeCount(unreadCountQuery.data?.count ?? 0);
+  const unreadLabel = formatUnreadBadgeCount(unreadCountQuery.data?.count ?? 0);
 
   return (
     <header className="sticky top-0 z-30 flex h-14 w-full items-center border-b border-border bg-background/80 px-3 backdrop-blur-sm md:hidden">

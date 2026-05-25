@@ -17,7 +17,18 @@ vi.mock("~/server/storage", () => ({
   }),
 }));
 
+vi.mock("~/server/notifications", () => ({
+  createNotifications: vi.fn().mockResolvedValue(undefined),
+  getClaimedMemberIds: vi
+    .fn()
+    .mockImplementation(async (_tx: unknown, _familyId: string, memberIds: string[]) => memberIds),
+  getClaimedAdminMemberIds: vi.fn().mockResolvedValue([]),
+}));
+
 import { createPostInputSchema, postRouter } from "~/server/api/routers/post";
+import { createNotifications } from "~/server/notifications";
+
+const createNotificationsMock = vi.mocked(createNotifications);
 
 describe("createPostInputSchema", () => {
   it("rejects text posts with media", () => {
@@ -388,6 +399,25 @@ describe("postRouter.create", () => {
         },
       },
     ]);
+    expect(createNotificationsMock).toHaveBeenCalledWith(
+      tx,
+      expect.arrayContaining([
+        expect.objectContaining({
+          familyId,
+          category: "MENTION",
+          eventType: "POST_MENTION_CREATED",
+          actorMemberId: "member-1",
+          recipientMemberId: "clh0000000000000000000011",
+        }),
+        expect.objectContaining({
+          familyId,
+          category: "MENTION",
+          eventType: "POST_MENTION_CREATED",
+          actorMemberId: "member-1",
+          recipientMemberId: "clh0000000000000000000012",
+        }),
+      ]),
+    );
   });
 
   it("rejects post mentions for members outside the family", async () => {
@@ -710,6 +740,7 @@ describe("postRouter comments", () => {
           },
         }),
       },
+      $transaction: vi.fn(async (callback: (txArg: Record<string, never>) => Promise<unknown>) => callback({})),
     } as never;
 
     const caller = postRouter.createCaller({
