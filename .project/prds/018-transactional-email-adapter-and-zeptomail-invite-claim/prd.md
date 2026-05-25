@@ -100,13 +100,13 @@ Out of scope for this PRD:
 
 #### Tasks
 
-- [ ] Add ZeptoMail provider implementation under src/server/email that satisfies the provider interface.
-- [ ] Implement request/response mapping including:
+- [x] Add ZeptoMail provider implementation under src/server/email that satisfies the provider interface.
+- [x] Implement request/response mapping including:
   - Recipient handling.
   - Subject/body delivery.
   - Provider message id extraction.
-- [ ] Implement robust error mapping for ZeptoMail responses into typed provider errors.
-- [ ] Add structured logging metadata for provider send attempts and outcomes without leaking sensitive payload content.
+- [x] Implement robust error mapping for ZeptoMail responses into typed provider errors.
+- [x] Add structured logging metadata for provider send attempts and outcomes without leaking sensitive payload content.
 
 ### Phase 4: Event Templates and Link Builders
 
