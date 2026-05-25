@@ -135,14 +135,14 @@ Out of scope in this PRD:
 
 #### Tasks
 
-- [ ] Add unread count query wiring to [src/components/nav/desktop-sidebar.tsx](src/components/nav/desktop-sidebar.tsx).
-- [ ] Add unread count query wiring to [src/components/nav/mobile-header.tsx](src/components/nav/mobile-header.tsx).
-- [ ] Implement badge display behavior:
-  - [ ] hide when count is 0.
-  - [ ] show exact number for 1-99.
-  - [ ] show 99+ when count > 99.
-- [ ] Keep [src/components/nav/mobile-bottom-nav.tsx](src/components/nav/mobile-bottom-nav.tsx) unchanged in this phase.
-- [ ] Ensure nav layout does not shift when badge appears/disappears.
+- [x] Add unread count query wiring to [src/components/nav/desktop-sidebar.tsx](src/components/nav/desktop-sidebar.tsx).
+- [x] Add unread count query wiring to [src/components/nav/mobile-header.tsx](src/components/nav/mobile-header.tsx).
+- [x] Implement badge display behavior:
+  - [x] hide when count is 0.
+  - [x] show exact number for 1-99.
+  - [x] show 99+ when count > 99.
+- [x] Keep [src/components/nav/mobile-bottom-nav.tsx](src/components/nav/mobile-bottom-nav.tsx) unchanged in this phase.
+- [x] Ensure nav layout does not shift when badge appears/disappears.
 
 ### Phase 6: Testing and Quality Validation
 
@@ -169,8 +169,8 @@ Out of scope in this PRD:
 - [x] Initial admin invite/system events create notification records in foundation scope.
 - [x] /notifications renders database-backed notifications instead of static mocks.
 - [x] Opening /notifications auto-marks unread items as read.
-- [ ] Desktop sidebar and mobile header show unread badges with 99+ cap behavior.
-- [ ] Badge count is scoped to signed-in claimed member in active family context.
-- [ ] Mobile bottom nav remains unchanged in this PRD.
+- [x] Desktop sidebar and mobile header show unread badges with 99+ cap behavior.
+- [x] Badge count is scoped to signed-in claimed member in active family context.
+- [x] Mobile bottom nav remains unchanged in this PRD.
 - [ ] No email or push delivery execution is introduced in this phase.
 - [ ] Tests and lint for modified areas pass.

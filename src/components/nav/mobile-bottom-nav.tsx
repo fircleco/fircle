@@ -10,9 +10,8 @@ import { cn } from "~/lib/utils";
 const items = [
   { href: "/", label: "Feed", icon: House },
   { href: "/members", label: "Members", icon: Users },
-  { href: "/gallery", label: "Gallery", icon: Image },
   { href: "#", label: "Create", icon: PlusCircle, prominent: true, action: "composer" },
-  { href: "/notifications", label: "Notifications", icon: Bell },
+  { href: "/gallery", label: "Gallery", icon: Image },
   { href: "/profile", label: "Profile", icon: User },
 ];
 
