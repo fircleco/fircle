@@ -170,7 +170,7 @@ Out of scope in this PRD:
 - [x] Add event-producer tests for tagging/mention/invite pathways creating expected recipient notifications.
 - [x] Add UI tests (where supported) for badge rendering and 99+ cap behavior.
 - [x] Run lint and targeted tests for changed areas.
-- [ ] Perform manual QA on desktop and mobile shell for unread badge consistency and auto-read behavior.
+- [x] Perform manual QA on desktop and mobile shell for unread badge consistency and auto-read behavior.
 
 ## Acceptance Criteria
 
