@@ -54,7 +54,7 @@ Open-source MVP focused on becoming functional quickly for one family instance, 
 - [x] Post creation with photo and video uploads
 - [x] Member tagging in photos and videos
 - [x] Member mention in post caption
-- [ ] Media Gallery (general and member)
+- [x] Media Gallery (general and member)
 
 ### Active Focus (Phase 2)
 - [ ] Notifications platform foundation
