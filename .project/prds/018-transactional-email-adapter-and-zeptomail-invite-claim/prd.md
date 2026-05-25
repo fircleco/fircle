@@ -1,6 +1,6 @@
 ---
 title: "Transactional Email Adapter Platform - BYO Provider with ZeptoMail for Invite and Claim Flows"
-status: draft
+status: in-progress
 references:
   - type: doc
     url: .project/brief.md
@@ -68,17 +68,17 @@ Out of scope for this PRD:
 
 #### Tasks
 
-- [ ] Create a new email provider domain module at src/server/email with:
+- [x] Create a new email provider domain module at src/server/email with:
   - Provider driver type.
   - Provider interface for send operation.
   - Typed message input/output contracts.
   - Error type/classification for retryable and non-retryable failures.
-- [ ] Implement provider factory and singleton getter similar to src/server/storage/provider.ts:
+- [x] Implement provider factory and singleton getter similar to src/server/storage/provider.ts:
   - createEmailProvider()
   - getEmailProvider()
   - Exhaustive driver switch handling.
-- [ ] Ensure provider construction validates required provider-specific configuration only when that provider is selected.
-- [ ] Add a no-provider mode that returns null or equivalent from the provider getter when email is not configured.
+- [x] Ensure provider construction validates required provider-specific configuration only when that provider is selected.
+- [x] Add a no-provider mode that returns null or equivalent from the provider getter when email is not configured.
 
 ### Phase 2: Environment Configuration and Validation
 
