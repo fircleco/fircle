@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Bell, Menu } from "~/components/ui/icons";
 
 import { formatUnreadBadgeCount } from "~/components/nav/unread-badge";
@@ -8,6 +9,9 @@ import { Button } from "~/components/ui/button";
 import { api } from "~/trpc/react";
 
 export function MobileHeader() {
+  const pathname = usePathname();
+  const shouldPollUnread = !pathname.startsWith("/notifications");
+
   const managementContext = api.invite.getManagementContext.useQuery(undefined, {
     retry: false,
     refetchOnWindowFocus: false,
@@ -21,11 +25,15 @@ export function MobileHeader() {
     {
       enabled: Boolean(familyId),
       retry: false,
-      refetchOnWindowFocus: false,
+      refetchOnWindowFocus: shouldPollUnread,
+      refetchInterval: shouldPollUnread ? 30_000 : false,
     },
   );
 
-  const unreadLabel = formatUnreadBadgeCount(unreadCountQuery.data?.count ?? 0);
+  const unreadCount = typeof unreadCountQuery.data?.count === "number"
+    ? unreadCountQuery.data.count
+    : 0;
+  const unreadLabel = formatUnreadBadgeCount(unreadCount);
 
   return (
     <header className="sticky top-0 z-30 flex h-14 w-full items-center border-b border-border bg-background/80 px-3 backdrop-blur-sm md:hidden">

@@ -30,6 +30,7 @@ function isActivePath(pathname: string, href: string) {
 export function DesktopSidebar() {
   const pathname = usePathname();
   const { openComposer } = useGlobalComposer();
+  const shouldPollUnread = !pathname.startsWith("/notifications");
 
   const managementContext = api.invite.getManagementContext.useQuery(undefined, {
     retry: false,
@@ -44,7 +45,8 @@ export function DesktopSidebar() {
     {
       enabled: Boolean(familyId),
       retry: false,
-      refetchOnWindowFocus: false,
+      refetchOnWindowFocus: shouldPollUnread,
+      refetchInterval: shouldPollUnread ? 30_000 : false,
     },
   );
 

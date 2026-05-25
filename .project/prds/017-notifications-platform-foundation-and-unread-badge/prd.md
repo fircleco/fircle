@@ -138,6 +138,8 @@ Out of scope in this PRD:
 
 - [x] Add unread count query wiring to [src/components/nav/desktop-sidebar.tsx](src/components/nav/desktop-sidebar.tsx).
 - [x] Add unread count query wiring to [src/components/nav/mobile-header.tsx](src/components/nav/mobile-header.tsx).
+- [x] Enable unread-count polling in nav shell surfaces (desktop sidebar + mobile header) while user is outside /notifications.
+- [x] Disable unread-count polling while user is on /notifications to keep page content and styling stable during a visit.
 - [x] Implement badge display behavior:
   - [x] hide when count is 0.
   - [x] show exact number for 1-99.
@@ -172,6 +174,7 @@ Out of scope in this PRD:
 - [x] Opening /notifications auto-marks unread items as read.
 - [x] Notification section placement and card styling remain stable for the duration of a page visit — items do not visually reshuffle when auto-read fires.
 - [x] Desktop sidebar and mobile header show unread badges with 99+ cap behavior.
+- [x] Unread badge in shell surfaces refreshes in-session outside /notifications without requiring navigation.
 - [x] Badge count is scoped to signed-in claimed member in active family context.
 - [x] Mobile bottom nav remains unchanged in this PRD.
 - [x] No email or push delivery execution is introduced in this phase.
