@@ -114,13 +114,13 @@ Out of scope for this PRD:
 
 #### Tasks
 
-- [ ] Create template builder module(s) for invite-created and claim-link-created events that produce subject + html/text output.
-- [ ] Centralize app link generation for invite and claim URLs to avoid route drift and duplicated string construction.
-- [ ] Include essential dynamic fields in templates:
+- [x] Create template builder module(s) for invite-created and claim-link-created events that produce subject + html/text output.
+- [x] Centralize app link generation for invite and claim URLs to avoid route drift and duplicated string construction.
+- [x] Include essential dynamic fields in templates:
   - Family name.
   - Recipient-facing action URL.
   - Expiration context when available.
-- [ ] Ensure template output is safely encoded/sanitized and testable as pure functions.
+- [x] Ensure template output is safely encoded/sanitized and testable as pure functions.
 
 ### Phase 5: Invite and Claim-Flow Integration
 
