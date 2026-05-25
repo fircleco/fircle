@@ -89,15 +89,15 @@ Out of scope in this PRD:
 
 #### Tasks
 
-- [ ] Create [src/server/api/routers/notification.ts](src/server/api/routers/notification.ts).
-- [ ] Register notification router in [src/server/api/root.ts](src/server/api/root.ts).
-- [ ] Implement protected procedures with membership checks:
-  - [ ] getUnreadCount(familyId) -> { count }.
-  - [ ] listByFamily(familyId, cursor?, limit?) -> paginated items.
-  - [ ] markAsRead(notificationId) for single-item updates.
-  - [ ] markAllAsRead(familyId) for bulk read-state update.
-- [ ] Define stable response DTOs for notifications page rendering and badge count consumption.
-- [ ] Ensure list ordering is deterministic (createdAt desc, id desc tie-break).
+- [x] Create [src/server/api/routers/notification.ts](src/server/api/routers/notification.ts).
+- [x] Register notification router in [src/server/api/root.ts](src/server/api/root.ts).
+- [x] Implement protected procedures with membership checks:
+  - [x] getUnreadCount(familyId) -> { count }.
+  - [x] listByFamily(familyId, cursor?, limit?) -> paginated items.
+  - [x] markAsRead(notificationId) for single-item updates.
+  - [x] markAllAsRead(familyId) for bulk read-state update.
+- [x] Define stable response DTOs for notifications page rendering and badge count consumption.
+- [x] Ensure list ordering is deterministic (createdAt desc, id desc tie-break).
 
 ### Phase 3: Notification Event Producers (No Transport Sending)
 
@@ -163,7 +163,7 @@ Out of scope in this PRD:
 ## Acceptance Criteria
 
 - [ ] Notification domain models and migration are present and applied successfully.
-- [ ] Notification router is registered and exposes unread count, list, mark one read, and mark all read procedures.
+- [x] Notification router is registered and exposes unread count, list, mark one read, and mark all read procedures.
 - [ ] Tagging and mention flows create notification records for claimed recipients only.
 - [ ] Comment, reply, and like activity is recognized in the notification model as engagement-class activity.
 - [ ] Initial admin invite/system events create notification records in foundation scope.
