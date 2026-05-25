@@ -1,5 +1,7 @@
 import "server-only";
 
+import { env } from "~/env";
+
 import { ZeptoMailEmailProvider } from "./zeptomail-provider";
 import type { EmailDriver, TransactionalEmailProvider } from "./types";
 
@@ -33,13 +35,13 @@ export function getEmailProvider(): TransactionalEmailProvider | null {
 }
 
 export function getConfiguredEmailDriver(): EmailDriver | null {
-  const rawDriver = process.env.EMAIL_DRIVER?.trim().toLowerCase();
+  const rawDriver = env.EMAIL_DRIVER;
 
   if (!rawDriver) {
     return null;
   }
 
-  switch (rawDriver) {
+  switch (rawDriver.toLowerCase()) {
     case "zeptomail":
       return "zeptomail";
     default:

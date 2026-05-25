@@ -86,13 +86,13 @@ Out of scope for this PRD:
 
 #### Tasks
 
-- [ ] Extend src/env.js with server env variables for transactional email:
+- [x] Extend src/env.js with server env variables for transactional email:
   - Email driver selector.
   - Sender address/name.
   - ZeptoMail credentials.
-- [ ] Use conditional validation rules so ZeptoMail credentials are required only when ZeptoMail driver is selected.
-- [ ] Document expected environment variables in README.md (or equivalent environment section) with minimal setup examples.
-- [ ] Verify type-safe env access in all new email modules.
+- [x] Use conditional validation rules so ZeptoMail credentials are required only when ZeptoMail driver is selected.
+- [x] Document expected environment variables in README.md (or equivalent environment section) with minimal setup examples.
+- [x] Verify type-safe env access in all new email modules.
 
 ### Phase 3: ZeptoMail Provider Implementation
 

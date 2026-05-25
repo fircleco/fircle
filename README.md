@@ -49,6 +49,15 @@ Required variables:
 - `R2_SECRET_ACCESS_KEY` (R2 API secret access key)
 - `R2_PUBLIC_BASE_URL` (public read URL base for uploaded objects)
 
+Optional transactional email variables (required only when `EMAIL_DRIVER=zeptomail`):
+
+- `EMAIL_DRIVER` (`zeptomail`)
+- `EMAIL_FROM_ADDRESS` (sender email address)
+- `EMAIL_FROM_NAME` (sender display name)
+- `ZEPTOMAIL_API_KEY` (ZeptoMail API key)
+- `ZEPTOMAIL_ACCOUNT_ID` (ZeptoMail account id)
+- `ZEPTOMAIL_API_BASE_URL` (optional override, defaults to `https://api.zeptomail.com`)
+
 Example:
 
 ```env
@@ -61,6 +70,16 @@ R2_BUCKET="fircle-media"
 R2_ACCESS_KEY_ID="your-r2-access-key-id"
 R2_SECRET_ACCESS_KEY="your-r2-secret-access-key"
 R2_PUBLIC_BASE_URL="https://media.example.com"
+
+# Optional: transactional email provider
+# Leave EMAIL_DRIVER unset to run without outbound email.
+EMAIL_DRIVER="zeptomail"
+EMAIL_FROM_ADDRESS="noreply@example.com"
+EMAIL_FROM_NAME="Fircle"
+ZEPTOMAIL_API_KEY="your-zeptomail-api-key"
+ZEPTOMAIL_ACCOUNT_ID="your-zeptomail-account-id"
+# Optional override
+# ZEPTOMAIL_API_BASE_URL="https://api.zeptomail.com"
 ```
 
 ### 3. Start a local database

@@ -1,6 +1,9 @@
 import { createEnv } from "@t3-oss/env-nextjs";
 import { z } from "zod";
 
+const isZeptoMailDriver =
+  process.env.EMAIL_DRIVER?.trim().toLowerCase() === "zeptomail";
+
 export const env = createEnv({
   /**
    * Specify your server-side environment variables schema here. This way you can ensure the app
@@ -21,6 +24,31 @@ export const env = createEnv({
     R2_ACCESS_KEY_ID: z.string(),
     R2_SECRET_ACCESS_KEY: z.string(),
     R2_PUBLIC_BASE_URL: z.string().url(),
+    EMAIL_DRIVER: z.enum(["zeptomail"]).optional(),
+    EMAIL_FROM_ADDRESS: z
+      .string()
+      .email()
+      .optional()
+      .refine((value) => !isZeptoMailDriver || Boolean(value), {
+        message: "EMAIL_FROM_ADDRESS is required when EMAIL_DRIVER=zeptomail",
+      }),
+    EMAIL_FROM_NAME: z
+      .string()
+      .min(1)
+      .optional()
+      .refine((value) => !isZeptoMailDriver || Boolean(value), {
+        message: "EMAIL_FROM_NAME is required when EMAIL_DRIVER=zeptomail",
+      }),
+    ZEPTOMAIL_API_KEY: z.string().optional().refine((value) => !isZeptoMailDriver || Boolean(value), {
+      message: "ZEPTOMAIL_API_KEY is required when EMAIL_DRIVER=zeptomail",
+    }),
+    ZEPTOMAIL_ACCOUNT_ID: z
+      .string()
+      .optional()
+      .refine((value) => !isZeptoMailDriver || Boolean(value), {
+        message: "ZEPTOMAIL_ACCOUNT_ID is required when EMAIL_DRIVER=zeptomail",
+      }),
+    ZEPTOMAIL_API_BASE_URL: z.string().url().optional(),
   },
 
   /**
@@ -46,6 +74,12 @@ export const env = createEnv({
     R2_ACCESS_KEY_ID: process.env.R2_ACCESS_KEY_ID,
     R2_SECRET_ACCESS_KEY: process.env.R2_SECRET_ACCESS_KEY,
     R2_PUBLIC_BASE_URL: process.env.R2_PUBLIC_BASE_URL,
+    EMAIL_DRIVER: process.env.EMAIL_DRIVER,
+    EMAIL_FROM_ADDRESS: process.env.EMAIL_FROM_ADDRESS,
+    EMAIL_FROM_NAME: process.env.EMAIL_FROM_NAME,
+    ZEPTOMAIL_API_KEY: process.env.ZEPTOMAIL_API_KEY,
+    ZEPTOMAIL_ACCOUNT_ID: process.env.ZEPTOMAIL_ACCOUNT_ID,
+    ZEPTOMAIL_API_BASE_URL: process.env.ZEPTOMAIL_API_BASE_URL,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
