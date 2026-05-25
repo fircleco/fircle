@@ -30,10 +30,14 @@ const categoryColors: Record<NotificationListItem["category"], string> = {
 
 type NotificationCardProps = {
   notification: NotificationListItem;
+  /** Overrides notification.isRead for visual styling so the card appearance
+   * doesn't shift when auto-read updates the server state mid-visit. */
+  initialIsRead?: boolean;
 };
 
-export function NotificationCard({ notification }: NotificationCardProps) {
-  const { title, body, isRead, eventType, category, createdAt } = notification;
+export function NotificationCard({ notification, initialIsRead }: NotificationCardProps) {
+  const { title, body, isRead: serverIsRead, eventType, category, createdAt } = notification;
+  const isRead = initialIsRead ?? serverIsRead;
   const createdAtLabel = formatDistanceToNow(new Date(createdAt), { addSuffix: true });
   const thumbnailUrl = null;
 

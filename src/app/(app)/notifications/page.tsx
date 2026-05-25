@@ -23,6 +23,7 @@ const filters: { label: string; value: FilterCategory }[] = [
 export default function NotificationsPage() {
   const [activeFilter, setActiveFilter] = useState<FilterCategory>("all");
   const autoReadTriggeredFamilyRef = useRef<string | null>(null);
+  const initialReadStateRef = useRef<Map<string, boolean> | null>(null);
   const trpcUtils = api.useUtils();
 
   const managementContext = api.invite.getManagementContext.useQuery(undefined, {
@@ -104,6 +105,14 @@ export default function NotificationsPage() {
 
   const notifications = useMemo(() => notificationsQuery.data?.items ?? [], [notificationsQuery.data?.items]);
 
+  // Capture initial isRead state once on first successful load so section
+  // placement doesn't shift when auto-read flips items server-side.
+  if (initialReadStateRef.current === null && notifications.length > 0) {
+    initialReadStateRef.current = new Map(
+      notifications.map((n) => [n.id, n.isRead]),
+    );
+  }
+
   const filtered = useMemo(
     () =>
       activeFilter === "all"
@@ -112,8 +121,9 @@ export default function NotificationsPage() {
     [activeFilter, notifications],
   );
 
-  const unread = filtered.filter((notification) => !notification.isRead);
-  const read = filtered.filter((notification) => notification.isRead);
+  const snapshot = initialReadStateRef.current;
+  const unread = filtered.filter((n) => !(snapshot?.get(n.id) ?? n.isRead));
+  const read = filtered.filter((n) => snapshot?.get(n.id) ?? n.isRead);
   const unreadCount = unreadCountQuery.data?.count ?? 0;
   const isLoading = managementContext.isLoading || (Boolean(familyId) && notificationsQuery.isLoading);
   const hasNoFamily = !managementContext.isLoading && !familyId;
@@ -224,7 +234,7 @@ export default function NotificationsPage() {
               </h2>
               <div className="space-y-2">
                 {unread.map((notification) => (
-                  <NotificationCard key={notification.id} notification={notification} />
+                  <NotificationCard key={notification.id} notification={notification} initialIsRead={snapshot?.get(notification.id) ?? notification.isRead} />
                 ))}
               </div>
             </section>
@@ -238,7 +248,7 @@ export default function NotificationsPage() {
               </h2>
               <div className="space-y-2">
                 {read.map((notification) => (
-                  <NotificationCard key={notification.id} notification={notification} />
+                  <NotificationCard key={notification.id} notification={notification} initialIsRead={snapshot?.get(notification.id) ?? notification.isRead} />
                 ))}
               </div>
             </section>

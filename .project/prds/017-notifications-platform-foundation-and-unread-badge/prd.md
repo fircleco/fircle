@@ -128,6 +128,7 @@ Out of scope in this PRD:
 - [x] Trigger auto-mark-read when page opens after initial successful load.
 - [x] Keep existing visual style and card structure while swapping data source.
 - [x] Update [src/components/notifications/notification-card.tsx](src/components/notifications/notification-card.tsx) typing/mapping as needed for live DTOs.
+- [x] Freeze notification section placement and card visual state (highlight, bold, unread dot) for the duration of the page visit so auto-read mutations do not reshuffle items in real time. Snapshot initial `isRead` values on first successful query load; pass snapshot value as `initialIsRead` prop to `NotificationCard` for styling; use snapshot for unread/read section grouping.
 
 ### Phase 5: Navigation Badge Integration
 
@@ -169,6 +170,7 @@ Out of scope in this PRD:
 - [x] Initial admin invite/system events create notification records in foundation scope.
 - [x] /notifications renders database-backed notifications instead of static mocks.
 - [x] Opening /notifications auto-marks unread items as read.
+- [x] Notification section placement and card styling remain stable for the duration of a page visit — items do not visually reshuffle when auto-read fires.
 - [x] Desktop sidebar and mobile header show unread badges with 99+ cap behavior.
 - [x] Badge count is scoped to signed-in claimed member in active family context.
 - [x] Mobile bottom nav remains unchanged in this PRD.
