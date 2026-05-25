@@ -387,8 +387,13 @@ export const notificationRouter = createTRPCRouter({
         select: notificationSelect,
       })
 
+      const targetHrefs = await resolveNotificationTargetHrefs(ctx.db, [updatedNotification])
+
       return {
-        notification: updatedNotification,
+        notification: {
+          ...updatedNotification,
+          targetHref: targetHrefs.get(updatedNotification.id) ?? null,
+        },
       } satisfies NotificationReadResponse
     }),
 

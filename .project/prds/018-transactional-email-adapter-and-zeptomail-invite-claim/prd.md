@@ -145,15 +145,15 @@ Out of scope for this PRD:
 
 #### Tasks
 
-- [ ] Add unit tests for provider factory behavior:
+- [x] Add unit tests for provider factory behavior:
   - No provider configured.
   - ZeptoMail selected with valid config.
   - Misconfigured ZeptoMail config path.
-- [ ] Add unit tests for template builders to verify event-specific subjects, bodies, and links.
-- [ ] Extend invite router tests in test/server/api/routers/invite.test.ts to verify adapter send invocation and failure handling.
-- [ ] Extend family-member router tests in test/server/api/routers/family-member.test.ts to verify claim-link send behavior for creation and regeneration paths.
-- [ ] Add integration-style assertions (mocked provider) for optional-provider mode where flows succeed without send attempts.
-- [ ] Run lint, typecheck, and targeted tests before marking PRD work complete.
+- [x] Add unit tests for template builders to verify event-specific subjects, bodies, and links.
+- [x] Extend invite router tests in test/server/api/routers/invite.test.ts to verify adapter send invocation and failure handling.
+- [x] Extend family-member router tests in test/server/api/routers/family-member.test.ts to verify claim-link send behavior for creation and regeneration paths.
+- [x] Add integration-style assertions (mocked provider) for optional-provider mode where flows succeed without send attempts.
+- [x] Run lint, typecheck, and targeted tests before marking PRD work complete.
 
 ## Acceptance Criteria
 

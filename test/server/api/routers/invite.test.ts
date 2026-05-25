@@ -14,7 +14,23 @@ vi.mock("~/server/notifications", () => ({
   getClaimedMemberIds: vi.fn().mockResolvedValue([]),
 }));
 
+vi.mock("~/server/email", () => ({
+  getEmailProvider: vi.fn().mockReturnValue(null),
+  resolveAppBaseUrlFromHeaders: vi.fn().mockReturnValue("https://fircle.example.com"),
+  buildInviteCreatedTemplate: vi.fn().mockReturnValue({
+    subject: "Invite subject",
+    html: "<p>Invite html</p>",
+    text: "Invite text",
+    actionUrl: "https://fircle.example.com/auth/invite/INVITE_CODE_123456",
+  }),
+}));
+
 import { inviteRouter } from "~/server/api/routers/invite";
+import {
+  buildInviteCreatedTemplate,
+  getEmailProvider,
+  resolveAppBaseUrlFromHeaders,
+} from "~/server/email";
 import { createNotifications, getClaimedAdminMemberIds } from "~/server/notifications";
 
 function createCaller(db: unknown, userId = "user-1") {
@@ -30,6 +46,7 @@ function createCaller(db: unknown, userId = "user-1") {
 describe("inviteRouter notification producers", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    vi.clearAllMocks();
   });
 
   const familyId = "clh0000000000000000000002";
@@ -89,5 +106,181 @@ describe("inviteRouter notification producers", () => {
         }),
       ],
     );
+  });
+
+  it("sends invite-created email for EMAIL_BOUND invites when provider is configured", async () => {
+    const send = vi.fn().mockResolvedValue({
+      driver: "zeptomail",
+      providerMessageId: "req-1",
+      acceptedAt: new Date(),
+    });
+    vi.mocked(getEmailProvider).mockReturnValue({
+      driver: "zeptomail",
+      send,
+    });
+
+    const invite = {
+      id: "clh0000000000000000005010",
+      code: "INVITE_CODE_123456",
+      type: "EMAIL_BOUND",
+      invitedEmail: "invitee@example.com",
+      familyId,
+      createdAt: new Date("2030-01-01T00:00:00.000Z"),
+      expiresAt: new Date("2030-01-08T00:00:00.000Z"),
+      status: "PENDING",
+      family: {
+        name: "Ng Family",
+      },
+    };
+
+    const db = {
+      familyMember: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: actorMemberId,
+          familyId,
+          role: "ADMIN",
+        }),
+      },
+      invite: {
+        findUnique: vi.fn().mockResolvedValue(null),
+        findFirst: vi.fn().mockResolvedValue(null),
+        create: vi.fn().mockResolvedValue(invite),
+      },
+      user: {
+        findUnique: vi.fn().mockResolvedValue(null),
+      },
+      $transaction: vi.fn(async (callback: (txArg: Record<string, never>) => Promise<unknown>) => callback({})),
+    } as never;
+
+    const caller = createCaller(db);
+
+    const result = await caller.createInvite({
+      familyId,
+      type: "EMAIL_BOUND",
+      invitedEmail: "invitee@example.com",
+      expiresInDays: 7,
+    });
+
+    expect(result.id).toBe(invite.id);
+    expect(resolveAppBaseUrlFromHeaders).toHaveBeenCalled();
+    expect(buildInviteCreatedTemplate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        familyName: "Ng Family",
+        inviteCode: invite.code,
+      }),
+    );
+    expect(send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event: "invite-created",
+        to: { email: "invitee@example.com" },
+      }),
+    );
+  });
+
+  it("does not fail invite creation when provider send throws", async () => {
+    const send = vi.fn().mockRejectedValue(new Error("provider down"));
+    vi.mocked(getEmailProvider).mockReturnValue({
+      driver: "zeptomail",
+      send,
+    });
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    const invite = {
+      id: "clh0000000000000000005011",
+      code: "INVITE_CODE_987654",
+      type: "EMAIL_BOUND",
+      invitedEmail: "invitee@example.com",
+      familyId,
+      createdAt: new Date("2030-01-01T00:00:00.000Z"),
+      expiresAt: new Date("2030-01-08T00:00:00.000Z"),
+      status: "PENDING",
+      family: {
+        name: "Ng Family",
+      },
+    };
+
+    const db = {
+      familyMember: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: actorMemberId,
+          familyId,
+          role: "ADMIN",
+        }),
+      },
+      invite: {
+        findUnique: vi.fn().mockResolvedValue(null),
+        findFirst: vi.fn().mockResolvedValue(null),
+        create: vi.fn().mockResolvedValue(invite),
+      },
+      user: {
+        findUnique: vi.fn().mockResolvedValue(null),
+      },
+      $transaction: vi.fn(async (callback: (txArg: Record<string, never>) => Promise<unknown>) => callback({})),
+    } as never;
+
+    const caller = createCaller(db);
+
+    await expect(
+      caller.createInvite({
+        familyId,
+        type: "EMAIL_BOUND",
+        invitedEmail: "invitee@example.com",
+        expiresInDays: 7,
+      }),
+    ).resolves.toMatchObject({
+      id: invite.id,
+    });
+  });
+
+  it("skips email send when no provider is configured and still succeeds", async () => {
+    vi.mocked(getEmailProvider).mockReturnValue(null);
+
+    const invite = {
+      id: "clh0000000000000000005012",
+      code: "INVITE_CODE_555555",
+      type: "EMAIL_BOUND",
+      invitedEmail: "invitee@example.com",
+      familyId,
+      createdAt: new Date("2030-01-01T00:00:00.000Z"),
+      expiresAt: new Date("2030-01-08T00:00:00.000Z"),
+      status: "PENDING",
+      family: {
+        name: "Ng Family",
+      },
+    };
+
+    const db = {
+      familyMember: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: actorMemberId,
+          familyId,
+          role: "ADMIN",
+        }),
+      },
+      invite: {
+        findUnique: vi.fn().mockResolvedValue(null),
+        findFirst: vi.fn().mockResolvedValue(null),
+        create: vi.fn().mockResolvedValue(invite),
+      },
+      user: {
+        findUnique: vi.fn().mockResolvedValue(null),
+      },
+      $transaction: vi.fn(async (callback: (txArg: Record<string, never>) => Promise<unknown>) => callback({})),
+    } as never;
+
+    const caller = createCaller(db);
+
+    await expect(
+      caller.createInvite({
+        familyId,
+        type: "EMAIL_BOUND",
+        invitedEmail: "invitee@example.com",
+        expiresInDays: 7,
+      }),
+    ).resolves.toMatchObject({
+      id: invite.id,
+    });
+
+    expect(buildInviteCreatedTemplate).not.toHaveBeenCalled();
   });
 });
