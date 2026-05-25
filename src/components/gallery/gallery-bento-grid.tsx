@@ -21,7 +21,7 @@ function hashString(value: string) {
 
 function getBentoTileClass(positionInGroup: number, bigTilePosition: number) {
   if (positionInGroup === bigTilePosition) {
-    return "col-span-2 aspect-[8/5] lg:col-span-2";
+    return "col-span-1 aspect-4/5 lg:col-span-2 lg:aspect-[8/5]";
   }
 
   return "col-span-1 aspect-4/5 lg:col-span-1";
