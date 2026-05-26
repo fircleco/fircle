@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 import { ThemeToggle } from "~/components/theme-toggle";
+import { beginNavigationProgress } from "~/components/nav/navigation-progress";
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -69,11 +70,13 @@ export default function SignInPage() {
       const next = new URLSearchParams();
       next.set("error", "invalid");
       next.set("callbackUrl", callbackUrl);
+      beginNavigationProgress();
       router.replace(`/auth/signin?${next.toString()}`);
       setIsLoading(false);
       return;
     }
 
+    beginNavigationProgress();
     router.replace(result.url ?? callbackUrl);
   };
 

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
+import { beginNavigationProgress } from "~/components/nav/navigation-progress";
 import { LogoutButton } from "~/components/auth/logout-button";
 import { Logout } from "~/components/ui/icons";
 import { cn } from "~/lib/utils";
@@ -53,6 +54,7 @@ export default function SettingsLayout({
       !canManageSettings &&
       currentPathIsAdminOnly
     ) {
+      beginNavigationProgress();
       router.replace("/settings");
     }
   }, [

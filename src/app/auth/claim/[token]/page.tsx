@@ -6,6 +6,7 @@ import { useState } from "react";
 import { AlertCircle, ShieldCheck } from "~/components/ui/icons";
 
 import { ThemeToggle } from "~/components/theme-toggle";
+import { beginNavigationProgress } from "~/components/nav/navigation-progress";
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -48,6 +49,7 @@ export default function ClaimAccountPage() {
 
   const claimMember = api.familyMember.claimMemberProfile.useMutation({
     onSuccess: () => {
+      beginNavigationProgress();
       router.replace("/auth/signin?claimed=1");
     },
     onError(error) {

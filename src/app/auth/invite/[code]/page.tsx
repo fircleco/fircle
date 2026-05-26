@@ -7,6 +7,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 import { ThemeToggle } from "~/components/theme-toggle";
+import { beginNavigationProgress } from "~/components/nav/navigation-progress";
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -145,10 +146,12 @@ export default function InviteAcceptancePage() {
         const next = new URLSearchParams();
         next.set("error", "invalid");
         next.set("callbackUrl", callbackUrl);
+        beginNavigationProgress();
         router.replace(`/auth/signin?${next.toString()}`);
         return;
       }
 
+      beginNavigationProgress();
       router.replace(signInResult.url ?? callbackUrl);
     } catch (error) {
       if (error instanceof Error) {

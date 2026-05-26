@@ -9,6 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import { beginNavigationProgress } from "~/components/nav/navigation-progress";
 import { api } from "~/trpc/react";
 
 type UploadIntentItem = {
@@ -94,6 +95,7 @@ export default function AddMemberPage() {
 
   useEffect(() => {
     if (showPermissionDenied) {
+      beginNavigationProgress();
       router.replace("/members");
     }
   }, [router, showPermissionDenied]);
