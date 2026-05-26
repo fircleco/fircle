@@ -330,10 +330,10 @@ export default function FamilySettingsPage() {
               </AvatarFallback>
             </Avatar>
 
-            <div className="min-w-0">
+            {/* <div className="min-w-0">
               <p className="font-medium text-sm">Live preview</p>
               <p className="truncate text-muted-foreground text-xs">{previewName}</p>
-            </div>
+            </div> */}
 
             <div className="ml-auto flex items-center gap-2">
               <Button
