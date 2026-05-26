@@ -2,9 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, House, Image, Logout, Menu, Settings, User, Users } from "~/components/ui/icons";
+import { Bell, House, Image, Menu, Settings, User, Users } from "~/components/ui/icons";
 
-import { useLogoutAction } from "~/components/auth/logout-button";
 import { formatUnreadBadgeCount } from "~/components/nav/unread-badge";
 import { ThemeToggle } from "~/components/theme-toggle";
 import { Button } from "~/components/ui/button";
@@ -25,7 +24,6 @@ const menuItems = [
   { href: "/members", label: "Members", icon: Users },
   { href: "/gallery", label: "Gallery", icon: Image },
   { href: "/profile", label: "Profile", icon: User },
-  { href: "/settings", label: "Settings", icon: Settings },
 ];
 
 function isActivePath(pathname: string, href: string) {
@@ -39,7 +37,6 @@ function isActivePath(pathname: string, href: string) {
 export function MobileHeader() {
   const pathname = usePathname();
   const shouldPollUnread = !pathname.startsWith("/notifications");
-  const { logout, isSigningOut } = useLogoutAction();
 
   const managementContext = api.invite.getManagementContext.useQuery(undefined, {
     retry: false,
@@ -116,20 +113,21 @@ export function MobileHeader() {
             <SheetFooter className="border-t px-2 py-3">
               <ThemeToggle
                 title="Toggle theme"
-                className="w-full justify-start gap-3 rounded-xl px-3"
+                className="w-fit justify-start gap-3 rounded-xl px-3"
               />
-              {/* <Button
-                type="button"
-                variant="ghost"
-                className="w-full justify-start gap-3 rounded-xl px-3"
-                onClick={() => {
-                  void logout();
-                }}
-                disabled={isSigningOut}
-              >
-                <Logout className="size-5" />
-                <span>{isSigningOut ? "Logging out..." : "Log out"}</span>
-              </Button> */}
+              <SheetClose asChild>
+                <Link
+                  href="/settings"
+                  className={cn(
+                    "flex items-center gap-3 rounded-xl px-3 py-2.5 text-base font-medium transition-colors",
+                    pathname.startsWith("/settings") ? "bg-muted text-foreground" : "hover:bg-muted",
+                  )}
+                >
+                  <Settings className="size-6" />
+                  <span>Settings</span>
+                </Link>
+              </SheetClose>
+              
             </SheetFooter>
           </SheetContent>
         </Sheet>
