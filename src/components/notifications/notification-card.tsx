@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
-import { Bell, Comment, Heart, Image as ImageIcon, UserCheck, UserX, Video } from "~/components/ui/icons";
+import { Bell, Comment, Heart, Image as ImageIcon, UserCheck, UserSquare, UserX, Video } from "~/components/ui/icons";
 
 type NotificationListItem = {
   id: string;
@@ -34,8 +34,8 @@ type NotificationListItem = {
 const eventIcons: Record<NotificationListItem["eventType"], React.ReactNode> = {
   MEDIA_TAG_CREATED: <ImageIcon className="size-4" aria-hidden="true" />,
   MEDIA_TAG_UPDATED: <Video className="size-4" aria-hidden="true" />,
-  POST_MENTION_CREATED: <UserCheck className="size-4" aria-hidden="true" />,
-  COMMENT_MENTION_CREATED: <UserX className="size-4" aria-hidden="true" />,
+  POST_MENTION_CREATED: <UserSquare className="size-4" aria-hidden="true" />,
+  COMMENT_MENTION_CREATED: <UserSquare className="size-4" aria-hidden="true" />,
   POST_COMMENT_CREATED: <Comment className="size-4" aria-hidden="true" />,
   COMMENT_REPLIED: <Comment className="size-4" aria-hidden="true" />,
   POST_LIKED: <Heart className="size-4" aria-hidden="true" />,
