@@ -156,7 +156,6 @@ export default function NotificationsPage() {
     <section className="mx-auto w-full max-w-2xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
       {/* Header */}
       <header className="space-y-1">
-        <p className="text-sm font-medium text-muted-foreground">Activity</p>
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-3xl font-semibold tracking-tight">Notifications</h1>

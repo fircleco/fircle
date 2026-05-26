@@ -159,15 +159,10 @@ export default function GalleryPage() {
   return (
     <section className="w-full px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto w-full max-w-6xl space-y-6">
-        <header className="space-y-1">
-          <p className="text-sm font-medium uppercase tracking-[0.2em] text-muted-foreground">
-            Memories
-          </p>
-          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Gallery</h1>
-          <p className="max-w-2xl text-sm text-muted-foreground sm:text-base">
-            {familyName
-              ? `Browse ${familyName} photo and video moments in a media-first timeline.`
-              : "Browse your family photo and video moments in a media-first timeline."}
+        <header className="space-y-1 mx-auto w-full max-w-2xl">
+          <h1 className="text-3xl font-semibold tracking-tight">Gallery</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Browse your family photo and video moments in a media-first timeline.
           </p>
         </header>
 

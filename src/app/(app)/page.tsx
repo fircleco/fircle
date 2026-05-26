@@ -210,9 +210,9 @@ export default function FeedPage() {
     <>
       <section className="px-4 pb-6 pt-5 sm:px-6 md:px-8">
         <div className="mx-auto w-full max-w-2xl space-y-4">
-          <header className="space-y-1.5">
-            <h1 className="font-semibold text-2xl tracking-tight">Family Feed</h1>
-            <p className="text-muted-foreground text-sm sm:text-base">
+          <header className="space-y-1 mx-auto w-full max-w-2xl">
+            <h1 className="text-3xl font-semibold tracking-tight">Feed</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
               Recent memories from your family circle.
             </p>
           </header>
