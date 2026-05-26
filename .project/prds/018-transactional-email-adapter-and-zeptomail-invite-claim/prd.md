@@ -11,6 +11,9 @@ references:
   - type: prd
     url: .project/prds/008-unclaimed-member-creation-and-claim-flow/prd.md
     description: "Unclaimed member and claim-link generation flows"
+  - type: pr
+    url: https://github.com/babblebey/fircle/pull/27
+    description: "Implementation pull request - feat: implement transactional email and integrate for invite and member claim"
 ---
 
 > **Instructions for AI Agents:**
