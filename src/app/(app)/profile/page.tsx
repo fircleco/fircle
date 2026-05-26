@@ -97,7 +97,7 @@ function mapApiPostToPostCardData(item: {
 
 type ProfileTab = "posts" | "tagged" | "liked" | "gallery";
 
-const tabs: { id: ProfileTab; label: string; icon: typeof FileText }[] = [
+const tabs: { id: ProfileTab; label: string; icon: typeof Dash }[] = [
   { id: "posts", label: "Posts", icon: Dash },
   { id: "gallery", label: "Gallery", icon: Image },
   { id: "tagged", label: "Mentions & Tags", icon: UserSquare },
@@ -207,7 +207,7 @@ export default function ProfilePage() {
                     </div>
                   ) : (
                     <EmptyState
-                      icon={FileText}
+                      icon={Dash}
                       title="No posts yet"
                       description={`${member.name.split(" ")[0]} hasn't posted anything yet.`}
                     />
@@ -294,7 +294,7 @@ function EmptyState({
   title,
   description,
 }: {
-  icon: typeof FileText;
+  icon: typeof Dash;
   title: string;
   description: string;
 }) {
