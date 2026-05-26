@@ -273,6 +273,7 @@ function VideoTagEditorPanel({
 
 function MediaSlide({
   item,
+  isActive,
   tags,
   taggedMembers,
   editorEnabled,
@@ -288,6 +289,7 @@ function MediaSlide({
   highlightedTagId,
 }: {
   item: MediaViewerItem;
+  isActive: boolean;
   tags: MediaTagRecord[];
   taggedMembers: TaggedMember[];
   editorEnabled: boolean;
@@ -304,6 +306,7 @@ function MediaSlide({
 }) {
   const [hoveredTagId, setHoveredTagId] = React.useState<string | null>(null);
   const [pinnedTagId, setPinnedTagId] = React.useState<string | null>(null);
+  const videoRef = React.useRef<HTMLVideoElement>(null);
 
   const clearActiveTag = React.useCallback(() => {
     setHoveredTagId(null);
@@ -331,12 +334,39 @@ function MediaSlide({
     setPinnedTagId(highlightedTagId);
   }, [highlightedTagId, tags]);
 
+  React.useEffect(() => {
+    if (item.type !== "video") {
+      return;
+    }
+
+    const video = videoRef.current;
+    if (!video) {
+      return;
+    }
+
+    if (isActive) {
+      const playPromise = video.play();
+      if (playPromise) {
+        void playPromise.catch(() => {
+          // Ignore autoplay failures caused by browser media policies.
+        });
+      }
+      return;
+    }
+
+    video.pause();
+    video.currentTime = 0;
+  }, [isActive, item.type, item.url]);
+
   if (item.type === "video") {
     return (
-      <div className="relative flex h-full w-full items-center justify-center">
+      <div className="relative flex h-full w-full items-center justify-center" data-media-slide data-active={isActive ? "true" : "false"}>
         <video
+          ref={videoRef}
           src={item.url}
+          autoPlay={isActive}
           controls
+          playsInline
           className="max-h-full w-full max-w-full rounded-lg object-contain"
           aria-label={item.alt}
         />
@@ -367,6 +397,8 @@ function MediaSlide({
   return (
     <div
       className="relative flex h-full w-full items-center justify-center"
+      data-media-slide
+      data-active={isActive ? "true" : "false"}
       onClick={clearActiveTag}
     >
       <div className="relative inline-flex max-h-full max-w-full">
@@ -775,6 +807,7 @@ export function MediaViewerDialog({
                 <div className={mediaFrameClass}>
                   <MediaSlide
                     item={items[0]!}
+                    isActive={true}
                     tags={currentItem?.id === items[0]!.id ? currentTags : (items[0]!.tags ?? [])}
                     taggedMembers={
                       currentItem?.id === items[0]!.id
@@ -811,6 +844,7 @@ export function MediaViewerDialog({
                       <div className={mediaFrameClass}>
                         <MediaSlide
                           item={item}
+                          isActive={current === index}
                           tags={current === index ? currentTags : (item.tags ?? [])}
                           taggedMembers={current === index ? taggedMembers : (item.taggedMembers ?? [])}
                           editorEnabled={editorOpen && current === index}
