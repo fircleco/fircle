@@ -4,7 +4,6 @@ import { ImageOff } from "~/components/ui/icons";
 import { useMemo } from "react";
 
 import { ComposerEntry } from "~/components/feed/composer-entry";
-import { useGlobalComposer } from "~/components/feed/global-composer-provider";
 import { PostCard } from "~/components/feed/post-card";
 import type { PostCardData } from "~/components/feed/post-card";
 import { api } from "~/trpc/react";
@@ -167,8 +166,6 @@ function FeedSkeletonList() {
 }
 
 export default function FeedPage() {
-  const { openComposer } = useGlobalComposer();
-
   const managementContext = api.invite.getManagementContext.useQuery(undefined, {
     retry: false,
     refetchOnWindowFocus: false,
@@ -221,7 +218,7 @@ export default function FeedPage() {
           </header>
 
           <div className="supports-backdrop-filter:bg-background/80 sticky top-0 z-20 -mx-1 rounded-3xl bg-background/95 px-1 pb-2 pt-1 backdrop-blur">
-            <ComposerEntry user={currentUser} onOpenComposer={openComposer} />
+            <ComposerEntry user={currentUser} familyId={familyId} />
           </div>
 
           {hasNoFamily ? (
