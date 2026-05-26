@@ -189,6 +189,9 @@ export default function MemberProfilePage() {
   const memberPosts: PostCardData[] = (memberPostsQuery.data?.items ?? []).map(mapApiPostToPostCardData);
   const taggedPosts: PostCardData[] = (taggedPostsQuery.data?.items ?? []).map(mapApiPostToPostCardData);
   const likedPosts: PostCardData[] = (likedPostsQuery.data?.items ?? []).map(mapApiPostToPostCardData);
+  const isPostsLoading = memberPostsQuery.isLoading || (memberPostsQuery.isFetching && !memberPostsQuery.data);
+  const isTaggedLoading = taggedPostsQuery.isLoading || (taggedPostsQuery.isFetching && !taggedPostsQuery.data);
+  const isLikedLoading = likedPostsQuery.isLoading || (likedPostsQuery.isFetching && !likedPostsQuery.data);
 
   const isLoading = managementContext.isLoading || memberProfileQuery.isLoading;
   const hasNoFamily = !managementContext.isLoading && !familyId;
@@ -240,7 +243,9 @@ export default function MemberProfilePage() {
             <div className="pt-4">
               {activeTab === "posts" && (
                 <>
-                  {memberPosts.length > 0 ? (
+                  {isPostsLoading ? (
+                    <PostListSkeleton />
+                  ) : memberPosts.length > 0 ? (
                     <div className="space-y-4 mx-auto max-w-2xl">
                       {memberPosts.map((post) => (
                         <PostCard
@@ -252,19 +257,21 @@ export default function MemberProfilePage() {
                         />
                       ))}
                     </div>
-                  ) : (
+                  ) : memberPostsQuery.isSuccess ? (
                     <EmptyState
                       icon={Dash}
                       title="No posts yet"
                       description={`${member.name.split(" ")[0]} hasn't posted anything yet.`}
                     />
-                  )}
+                  ) : null}
                 </>
               )}
 
               {activeTab === "tagged" && (
                 <>
-                  {taggedPosts.length > 0 ? (
+                  {isTaggedLoading ? (
+                    <PostListSkeleton />
+                  ) : taggedPosts.length > 0 ? (
                     <div className="space-y-4 mx-auto max-w-2xl">
                       {taggedPosts.map((post) => (
                         <PostCard
@@ -276,13 +283,13 @@ export default function MemberProfilePage() {
                         />
                       ))}
                     </div>
-                  ) : (
+                  ) : taggedPostsQuery.isSuccess ? (
                     <EmptyState
                       icon={UserSquare}
                       title="No mentions or tags yet"
                       description={`Posts that mention or tag ${member.name.split(" ")[0]} will appear here.`}
                     />
-                  )}
+                  ) : null}
                 </>
               )}
 
@@ -294,7 +301,9 @@ export default function MemberProfilePage() {
 
               {activeTab === "liked" && (
                 <>
-                  {likedPosts.length > 0 ? (
+                  {isLikedLoading ? (
+                    <PostListSkeleton />
+                  ) : likedPosts.length > 0 ? (
                     <div className="space-y-4 mx-auto max-w-2xl">
                       {likedPosts.map((post) => (
                         <PostCard
@@ -306,13 +315,13 @@ export default function MemberProfilePage() {
                         />
                       ))}
                     </div>
-                  ) : (
+                  ) : likedPostsQuery.isSuccess ? (
                     <EmptyState
                       icon={Heart}
                       title="No liked posts"
                       description={`Posts ${member.name.split(" ")[0]} likes will show up here.`}
                     />
-                  )}
+                  ) : null}
                 </>
               )}
             </div>
@@ -351,44 +360,18 @@ function MemberProfileSkeleton({ isAdmin }: { isAdmin: boolean }) {
 
       {isAdmin ? (
         <div className="mx-auto flex max-w-2xl justify-center">
-          <Skeleton className="h-9 w-44 rounded-full" />
+          <Skeleton className="h-16 w-full rounded-full" />
         </div>
       ) : null}
 
-      <section>
-        <div className="mx-auto flex w-full max-w-2xl border-b">
+      <section className="space-y-4">
+        <div className="mx-auto flex w-full max-w-2xl gap-1 border-b pb-1">
           {Array.from({ length: 4 }).map((_, index) => (
-            <Skeleton key={`member-tab-skeleton-${index}`} className="h-12 flex-1 rounded-none first:rounded-tl-3xl last:rounded-tr-3xl" />
+            <Skeleton key={`member-tab-skeleton-${index}`} className="h-10 flex-1 rounded-2xl" />
           ))}
         </div>
 
-        <div className="pt-4 space-y-4">
-          <div className="mx-auto max-w-2xl rounded-3xl border border-border/80 bg-card/90 p-4 sm:p-5">
-            <div className="flex items-center gap-3">
-              <Skeleton className="size-10 rounded-full" />
-              <div className="space-y-2">
-                <Skeleton className="h-3.5 w-28 rounded-full" />
-                <Skeleton className="h-3 w-16 rounded-full" />
-              </div>
-            </div>
-            <Skeleton className="mt-4 h-3.5 w-11/12 rounded-full" />
-            <Skeleton className="mt-2 h-3.5 w-9/12 rounded-full" />
-            <Skeleton className="mt-4 aspect-video rounded-2xl" />
-          </div>
-
-          <div className="mx-auto max-w-2xl rounded-3xl border border-border/80 bg-card/90 p-4 sm:p-5">
-            <div className="flex items-center gap-3">
-              <Skeleton className="size-10 rounded-full" />
-              <div className="space-y-2">
-                <Skeleton className="h-3.5 w-28 rounded-full" />
-                <Skeleton className="h-3 w-16 rounded-full" />
-              </div>
-            </div>
-            <Skeleton className="mt-4 h-3.5 w-10/12 rounded-full" />
-            <Skeleton className="mt-2 h-3.5 w-8/12 rounded-full" />
-            <Skeleton className="mt-4 aspect-video rounded-2xl" />
-          </div>
-        </div>
+        <PostListSkeleton />
       </section>
     </div>
   );
@@ -410,6 +393,31 @@ function EmptyState({
       </div>
       <p className="mt-3 font-medium text-sm">{title}</p>
       <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+    </div>
+  );
+}
+
+function PostListSkeleton() {
+  return (
+    <div className="mx-auto w-full max-w-2xl space-y-4" aria-hidden>
+      {Array.from({ length: 2 }).map((_, index) => (
+        <article
+          key={`member-tab-post-skeleton-${index}`}
+          className="mx-auto max-w-2xl rounded-3xl border border-border/80 bg-card/90 p-4 sm:p-5"
+        >
+          <div className="flex items-center gap-3">
+            <Skeleton className="size-10 rounded-full" />
+            <div className="space-y-2">
+              <Skeleton className="h-3.5 w-28 rounded-full" />
+              <Skeleton className="h-3 w-16 rounded-full" />
+            </div>
+          </div>
+          <Skeleton className="mt-4 h-3.5 w-11/12 rounded-full" />
+          <Skeleton className="mt-2 h-3.5 w-9/12 rounded-full" />
+          <Skeleton className="mt-4 aspect-video rounded-2xl" />
+          <Skeleton className="mt-4 h-3.5 w-32 rounded-full" />
+        </article>
+      ))}
     </div>
   );
 }
