@@ -54,6 +54,7 @@ export const Layers3 = createIcon("Layers01Icon");
 export const Link2 = createIcon("Link02Icon");
 export const ListVideo = createIcon("ListVideoIcon");
 export const Loader = createIcon("Loading03Icon");
+export const Logout = createIcon("LogoutSquare01Icon");
 export const Menu = createIcon("Menu01Icon");
 export const More = createIcon("MoreHorizontalCircle01Icon");
 export const Comment = createIcon("Comment02Icon");
