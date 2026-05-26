@@ -81,6 +81,19 @@ export function MemberGalleryTab({ familyId, memberId, memberName }: MemberGalle
     },
   );
 
+  const managementContext = api.invite.getManagementContext.useQuery(undefined, {
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+
+  const isAdmin = managementContext.data?.role === "OWNER" || managementContext.data?.role === "ADMIN";
+
+  const currentMemberQuery = api.familyMember.getCurrentUserMemberProfile.useQuery(
+    { familyId: familyId ?? "" },
+    { enabled: Boolean(familyId), retry: false, refetchOnWindowFocus: false },
+  );
+  const currentMemberId = currentMemberQuery.data?.id;
+
   const publishedItems = useMemo<FamilyGalleryItem[]>(() => {
     return memberGalleryQuery.data?.publishedMedia ?? [];
   }, [memberGalleryQuery.data?.publishedMedia]);
@@ -107,6 +120,16 @@ export function MemberGalleryTab({ familyId, memberId, memberName }: MemberGalle
       return b.id.localeCompare(a.id);
     });
   }, [publishedItems, taggedItems]);
+
+  const taggableMediaIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const item of allItems) {
+      if (isAdmin || (currentMemberId && item.post.author.id === currentMemberId)) {
+        ids.add(item.mediaItem.id);
+      }
+    }
+    return ids;
+  }, [allItems, currentMemberId, isAdmin]);
 
   function openViewer(index: number) {
     setViewerItems(allItems.map((item) => item.mediaItem));
@@ -158,7 +181,8 @@ export function MemberGalleryTab({ familyId, memberId, memberName }: MemberGalle
         open={viewerOpen}
         onOpenChange={setViewerOpen}
         familyId={familyId}
-        canManageTags={false}
+        canManageTags={taggableMediaIds.size > 0}
+        canManageTagsForItem={(item) => taggableMediaIds.has(item.id)}
       />
     </div>
   );

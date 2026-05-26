@@ -57,6 +57,7 @@ type MediaViewerDialogProps = {
   onOpenChange: (open: boolean) => void;
   familyId?: string;
   canManageTags?: boolean;
+  canManageTagsForItem?: (item: MediaViewerItem) => boolean;
 };
 
 function getInitials(name: string) {
@@ -345,12 +346,9 @@ function MediaSlide({
     }
 
     if (isActive) {
-      const playPromise = video.play();
-      if (playPromise) {
-        void playPromise.catch(() => {
-          // Ignore autoplay failures caused by browser media policies.
-        });
-      }
+      void video.play().catch(() => {
+        // Ignore autoplay failures caused by browser media policies.
+      });
       return;
     }
 
@@ -586,6 +584,7 @@ export function MediaViewerDialog({
   onOpenChange,
   familyId,
   canManageTags = false,
+  canManageTagsForItem,
 }: MediaViewerDialogProps) {
   const [current, setCurrent] = React.useState(startIndex);
   const [carouselApi, setCarouselApi] = React.useState<CarouselApi>();
@@ -595,6 +594,10 @@ export function MediaViewerDialog({
   const mediaViewportClass = "w-full max-w-7xl";
   const mediaFrameClass = "flex h-[calc(100vh-8rem)] w-full items-center justify-center";
   const currentItem = items[current] ?? null;
+  const canManageCurrentItemTags =
+    canManageTags &&
+    Boolean(currentItem) &&
+    (canManageTagsForItem ? canManageTagsForItem(currentItem) : true);
 
   const familyMembersQuery = api.familyMember.listFamilyMembers.useQuery(
     { familyId: familyId ?? "" },
@@ -754,6 +757,13 @@ export function MediaViewerDialog({
     setPendingPoint(null);
   }, [current, open]);
 
+  React.useEffect(() => {
+    if (!canManageCurrentItemTags && editorOpen) {
+      setEditorOpen(false);
+      setPendingPoint(null);
+    }
+  }, [canManageCurrentItemTags, editorOpen]);
+
   const isSingle = items.length === 1;
 
   return (
@@ -774,12 +784,13 @@ export function MediaViewerDialog({
           {/* Top bar */}
           <div className="absolute w-full flex shrink-0 items-center justify-between px-4 py-3 z-50">
             <div className="flex items-center gap-3">
-              {!isSingle ? (
+              {/* Hiding Intentionally for now */}
+              {/* {!isSingle ? (
                 <span className="text-sm font-medium dark:text-white/60 text-muted-foreground">
                   {current + 1} / {items.length}
                 </span>
-              ) : null}
-              {familyId && currentItem && canManageTags ? (
+              ) : null} */}
+              {familyId && currentItem && canManageCurrentItemTags ? (
                 <Button
                   className="flex size-10 items-center justify-center rounded-full dark:bg-white/10 dark:text-white dark:hover:bg-white/20 bg-black/10 text-foreground hover:bg-black/20 transition-colors active:translate-y-0 active:scale-100"
                   aria-label={editorOpen ? "Done tagging" : "Tag people"}

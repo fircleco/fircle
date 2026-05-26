@@ -57,6 +57,13 @@ export default function GalleryPage() {
 
   const familyId = managementContext.data?.family?.id;
   const familyName = managementContext.data?.family?.name;
+  const isAdmin = managementContext.data?.role === "OWNER" || managementContext.data?.role === "ADMIN";
+
+  const currentMemberQuery = api.familyMember.getCurrentUserMemberProfile.useQuery(
+    { familyId: familyId ?? "" },
+    { enabled: Boolean(familyId), retry: false, refetchOnWindowFocus: false },
+  );
+  const currentMemberId = currentMemberQuery.data?.id;
 
   const familyGalleryQuery = mediaGalleryApi.media.getFamilyGallery.useQuery(
     {
@@ -138,6 +145,16 @@ export default function GalleryPage() {
     [galleryItems],
   );
 
+  const taggableMediaIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const item of galleryItems) {
+      if (isAdmin || (currentMemberId && item.post.author.id === currentMemberId)) {
+        ids.add(item.mediaItem.id);
+      }
+    }
+    return ids;
+  }, [currentMemberId, galleryItems, isAdmin]);
+
   const isLoadingGallery =
     managementContext.isLoading || (Boolean(familyId) && familyGalleryQuery.isLoading && !items.length);
   const hasNoFamily = !managementContext.isLoading && !familyId;
@@ -208,7 +225,8 @@ export default function GalleryPage() {
           open={viewerOpen}
           onOpenChange={setViewerOpen}
           familyId={familyId}
-          canManageTags={false}
+          canManageTags={taggableMediaIds.size > 0}
+          canManageTagsForItem={(item) => taggableMediaIds.has(item.id)}
         />
       </div>
     </section>
