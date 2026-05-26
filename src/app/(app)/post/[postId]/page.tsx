@@ -985,7 +985,7 @@ export default function SinglePostPage() {
         />
       </div>
 
-      <section className="mt-5" aria-label="Comments">
+      <section id="comments" className="mt-5" aria-label="Comments">
         <p className="sr-only" role="status" aria-live="polite">
           {commentActionStatus ?? ""}
         </p>

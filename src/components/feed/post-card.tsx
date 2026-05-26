@@ -239,8 +239,16 @@ export function PostCard({
   }
 
   function handleOpenComments() {
+    if (!isClickable) {
+      document.getElementById("comments")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+      return;
+    }
+
     beginNavigationProgress();
-    router.push(`/post/${post.id}`);
+    router.push(`/post/${post.id}#comments`);
   }
 
   return (
@@ -387,7 +395,7 @@ export function PostCard({
           size="sm"
           className="rounded-2xl px-3"
           onClick={handleOpenComments}
-          aria-label={`Open comments for this post (${post.commentCount})`}
+          aria-label={`${isClickable ? "Open" : "Scroll to"} comments for this post (${post.commentCount})`}
         >
           <Comment className="size-5" />
           Comment
