@@ -254,6 +254,7 @@ export async function POST(request: NextRequest) {
       media: uploadedMedia,
     });
   } catch (error) {
+    console.error("[video-ingest] Video processing failed", error);
     return jsonError(500, "INTERNAL_SERVER_ERROR", "Video processing failed", {
       message: describeError(error),
     });

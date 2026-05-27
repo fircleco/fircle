@@ -67,11 +67,12 @@ type ComposerEntryProps = {
   familyId?: string;
 };
 
-function getUploadErrorMessage(error: unknown) {
-  if (error instanceof Error && error.message) {
-    return error.message;
-  }
-  return "Upload failed. Please try again.";
+function logUploadError(context: string, error: unknown) {
+  console.error(`[ComposerEntry] ${context}`, error);
+}
+
+function getFriendlyUploadErrorMessage(fallback: string) {
+  return fallback;
 }
 
 function uploadFileWithProgress(
@@ -288,7 +289,8 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
                 file: compressedFile,
               });
             } catch (error) {
-              const message = getUploadErrorMessage(error);
+              logUploadError("Image compression failed", error);
+              const message = getFriendlyUploadErrorMessage("Image processing failed. Please try again.");
               setSelectedMedia((current) =>
                 current.map((item, itemIndex) =>
                   itemIndex === index
@@ -389,18 +391,21 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
                 sizeBytes: media.file.size,
               });
             } catch (error) {
-              const message = getUploadErrorMessage(error);
+              logUploadError("Image upload failed", error);
+              const friendlyMessage = getFriendlyUploadErrorMessage(
+                "Image upload failed. Please try again.",
+              );
               setSelectedMedia((current) =>
                 current.map((item) =>
                   item.id === media.id
                     ? {
                         ...item,
-                        uploadError: message,
+                        uploadError: friendlyMessage,
                       }
                     : item,
                 ),
               );
-              throw new Error(message);
+              throw new Error(friendlyMessage);
             }
           }
         }
@@ -489,19 +494,22 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
               ),
             );
           } catch (error) {
-            const message = getUploadErrorMessage(error);
+            logUploadError("Video ingest failed", error);
+            const friendlyMessage = getFriendlyUploadErrorMessage(
+              "Video upload failed. Please try again.",
+            );
             setSelectedMedia((current) =>
               current.map((item) =>
                 item.id === media.id
                   ? {
                       ...item,
                       isVideoProcessing: false,
-                      uploadError: message,
+                      uploadError: friendlyMessage,
                     }
                   : item,
               ),
             );
-            throw new Error(message);
+            throw new Error(friendlyMessage);
           }
         }
 
@@ -545,7 +553,8 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
       setCaption("");
       await trpcUtils.post.getFeed.invalidate();
     } catch (error) {
-      setPublishError(getUploadErrorMessage(error));
+      logUploadError("Publishing composer post failed", error);
+      setPublishError("Could not publish your post. Please try again.");
     } finally {
       setIsCompressing(false);
       setIsUploading(false);
