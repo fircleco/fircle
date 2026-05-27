@@ -62,6 +62,27 @@ function sanitizeInputExtension(fileName: string) {
   return ext;
 }
 
+function describeError(error: unknown): string {
+  if (!(error instanceof Error)) {
+    return "Unknown error";
+  }
+
+  const parts = [error.message];
+
+  const cause = error.cause;
+  if (cause instanceof Error) {
+    const nested = [cause.message];
+    const causeCode =
+      "code" in cause && typeof cause.code === "string" ? cause.code : undefined;
+    if (causeCode) {
+      nested.push(`code=${causeCode}`);
+    }
+    parts.push(`cause: ${nested.join(" ")}`);
+  }
+
+  return parts.join(" | ");
+}
+
 async function uploadTranscodedVideo(input: {
   objectKey: string;
   buffer: Buffer;
@@ -75,14 +96,33 @@ async function uploadTranscodedVideo(input: {
     sizeBytes: input.buffer.byteLength,
   });
 
-  const uploadResponse = await fetch(intent.uploadUrl, {
-    method: "PUT",
-    headers: intent.requiredHeaders,
-    body: input.buffer as unknown as BodyInit,
-  });
+  const uploadTarget = new URL(intent.uploadUrl);
+  const targetSummary = `${uploadTarget.origin}${uploadTarget.pathname}`;
+
+  let uploadResponse: Response;
+  try {
+    uploadResponse = await fetch(intent.uploadUrl, {
+      method: "PUT",
+      headers: intent.requiredHeaders,
+      body: input.buffer as unknown as BodyInit,
+    });
+  } catch (error) {
+    throw new Error(
+      `Transcoded video upload request failed for ${targetSummary}. ${describeError(error)}`,
+      {
+        cause: error instanceof Error ? error : undefined,
+      },
+    );
+  }
 
   if (!uploadResponse.ok) {
-    throw new Error(`Transcoded video upload failed with status ${uploadResponse.status}`);
+    const responseBody = await uploadResponse.text().catch(() => "");
+    const bodySnippet = responseBody.trim().slice(0, 300);
+    throw new Error(
+      `Transcoded video upload failed for ${targetSummary} with status ${uploadResponse.status}${
+        bodySnippet ? ` body=${bodySnippet}` : ""
+      }`,
+    );
   }
 
   return {
@@ -190,7 +230,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     return jsonError(500, "INTERNAL_SERVER_ERROR", "Video processing failed", {
-      message: error instanceof Error ? error.message : "Unknown error",
+      message: describeError(error),
     });
   } finally {
     await rm(tempRoot, { recursive: true, force: true }).catch(() => undefined);

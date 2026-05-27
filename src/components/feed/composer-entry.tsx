@@ -36,6 +36,16 @@ type VideoIngestedMedia = {
   durationMs?: number;
 };
 
+type VideoIngestResponse = {
+  media?: VideoIngestedMedia;
+  error?: {
+    message?: string;
+    details?: {
+      message?: string;
+    };
+  };
+};
+
 type SelectedMedia = {
   id: string;
   file: File;
@@ -428,25 +438,43 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
               body: formData,
             });
 
-            const ingestBody = (await ingestResponse.json()) as {
-              media?: VideoIngestedMedia;
-              error?: { message?: string };
-            };
+            const ingestRaw = await ingestResponse.text();
+            const ingestBody: VideoIngestResponse | null = (() => {
+              if (!ingestRaw) {
+                return null;
+              }
 
-            if (!ingestResponse.ok || !ingestBody.media) {
-              throw new Error(ingestBody.error?.message ?? "Video processing failed.");
+              try {
+                return JSON.parse(ingestRaw) as VideoIngestResponse;
+              } catch {
+                return null;
+              }
+            })();
+
+            if (!ingestResponse.ok || !ingestBody?.media) {
+              const detailedMessage = ingestBody?.error?.details?.message;
+              const apiMessage = ingestBody?.error?.message;
+              const fallbackMessage = ingestRaw && !ingestBody ? ingestRaw : undefined;
+              throw new Error(
+                detailedMessage ??
+                  apiMessage ??
+                  fallbackMessage ??
+                  `Video processing failed (status ${ingestResponse.status}).`,
+              );
             }
 
+            const ingestedMedia = ingestBody.media;
+
             uploadedMediaById.set(media.id, {
-              provider: ingestBody.media.provider,
-              bucket: ingestBody.media.bucket,
-              objectKey: ingestBody.media.objectKey,
-              url: ingestBody.media.url,
-              mimeType: ingestBody.media.mimeType,
-              sizeBytes: ingestBody.media.sizeBytes,
-              width: ingestBody.media.width,
-              height: ingestBody.media.height,
-              durationMs: ingestBody.media.durationMs,
+              provider: ingestedMedia.provider,
+              bucket: ingestedMedia.bucket,
+              objectKey: ingestedMedia.objectKey,
+              url: ingestedMedia.url,
+              mimeType: ingestedMedia.mimeType,
+              sizeBytes: ingestedMedia.sizeBytes,
+              width: ingestedMedia.width,
+              height: ingestedMedia.height,
+              durationMs: ingestedMedia.durationMs,
             });
 
             setSelectedMedia((current) =>
