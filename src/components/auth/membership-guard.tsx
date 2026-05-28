@@ -27,9 +27,14 @@ export function MembershipGuard({ children }: { children: React.ReactNode }) {
 
   if (managementContext.isLoading || (!hasFamilyMembership && !signOutTriggered.current)) {
     return (
-      <div className="flex flex-col gap-2 min-h-dvh items-center justify-center px-4 text-center text-foreground text-sm">
-        <p className="font-semibold text-xl leading-none tracking-tight">Fircle</p>
-        <Loader className="size-6 animate-spin" />
+      <div className="flex flex-col min-h-dvh items-center px-4 text-center text-foreground text-sm">
+        <div className="flex-1 flex items-center justify-center">
+          <Loader className="size-6 animate-spin" />
+        </div>
+        <div className="items-end pb-6">
+          <span className="text-xs text-muted-foreground">Powered by</span>
+          <p className="font-semibold text-xl leading-none tracking-tight">Fircle</p>
+        </div>
       </div>
     );
   }
