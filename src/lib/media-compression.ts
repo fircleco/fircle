@@ -1,4 +1,5 @@
 import imageCompression from "browser-image-compression";
+import heic2any from "heic2any";
 
 const IMAGE_MAX_DIMENSION = 2048;
 const IMAGE_QUALITY = 0.85;
@@ -17,13 +18,6 @@ const MIME_BY_EXTENSION: Record<string, string> = {
 function getExtension(fileName: string) {
   const extension = /\.([a-z0-9]{2,10})$/i.exec(fileName)?.[1];
   return extension?.toLowerCase();
-}
-
-function createNormalizedFile(file: File, mimeType: string) {
-  return new File([file], file.name, {
-    type: mimeType,
-    lastModified: file.lastModified,
-  });
 }
 
 function toWebpName(fileName: string) {
@@ -51,12 +45,28 @@ export async function compressImage(
     throw new Error("Only image files can be compressed as images.");
   }
 
-  // Many browsers cannot decode HEIC/HEIF, so keep the original bytes and upload as-is.
-  if (resolvedMimeType === "image/heic" || resolvedMimeType === "image/heif") {
-    return createNormalizedFile(file, resolvedMimeType);
-  }
+  const fileForCompression =
+    resolvedMimeType === "image/heic" || resolvedMimeType === "image/heif"
+      ? await (async () => {
+          const converted = await heic2any({
+            blob: file,
+            toType: "image/webp",
+            quality: IMAGE_QUALITY,
+          });
 
-  const compressed = await imageCompression(file, {
+          const webpBlob = Array.isArray(converted) ? converted[0] : converted;
+          if (!(webpBlob instanceof Blob)) {
+            throw new Error("HEIC conversion produced an invalid result.");
+          }
+
+          return new File([webpBlob], toWebpName(file.name), {
+            type: "image/webp",
+            lastModified: Date.now(),
+          });
+        })()
+      : file;
+
+  const compressed = await imageCompression(fileForCompression, {
     maxWidthOrHeight: IMAGE_MAX_DIMENSION,
     initialQuality: IMAGE_QUALITY,
     fileType: "image/webp",
