@@ -8,7 +8,7 @@ import { Button } from "~/components/ui/button";
 import { AlertCircle, ArrowRight, Camera, Loader, Security, User } from "~/components/ui/icons";
 import { Input } from "~/components/ui/input";
 import { Skeleton } from "~/components/ui/skeleton";
-import { createPreviewUrl } from "~/lib/media-compression";
+import { createInstantPreviewUrl } from "~/lib/media-compression";
 import { api } from "~/trpc/react";
 
 type UploadIntentItem = {
@@ -158,6 +158,7 @@ export default function AccountSettingsPage() {
   );
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const avatarPreviewSelectionRef = useRef(0);
   const trpcUtils = api.useUtils();
 
   const changeMyPassword = api.familyMember.changeMyPassword.useMutation({
@@ -206,7 +207,7 @@ export default function AccountSettingsPage() {
   const profilePreviewName = profileName.trim().length > 0 ? profileName : (myMemberProfile.data?.name ?? "Member");
   const profileInitials = useMemo(() => getInitials(profilePreviewName), [profilePreviewName]);
 
-  async function handleAvatarSelected(file: File | null) {
+  function handleAvatarSelected(file: File | null) {
     if (!file) {
       return;
     }
@@ -228,12 +229,29 @@ export default function AccountSettingsPage() {
       URL.revokeObjectURL(selectedAvatarPreviewUrl);
     }
 
+    const selectionId = ++avatarPreviewSelectionRef.current;
+    const previewUrl = createInstantPreviewUrl(file, (upgradedPreviewUrl) => {
+      if (avatarPreviewSelectionRef.current !== selectionId) {
+        URL.revokeObjectURL(upgradedPreviewUrl);
+        return;
+      }
+
+      setSelectedAvatarPreviewUrl((currentPreviewUrl) => {
+        if (currentPreviewUrl) {
+          URL.revokeObjectURL(currentPreviewUrl);
+        }
+        return upgradedPreviewUrl;
+      });
+    });
+
     setSelectedAvatarFile(file);
-    setSelectedAvatarPreviewUrl(await createPreviewUrl(file));
+    setSelectedAvatarPreviewUrl(previewUrl);
     setUploadProgress(0);
   }
 
   function handleRemoveAvatar() {
+    avatarPreviewSelectionRef.current += 1;
+
     if (selectedAvatarPreviewUrl) {
       URL.revokeObjectURL(selectedAvatarPreviewUrl);
     }

@@ -7,7 +7,7 @@ import { Button } from "~/components/ui/button";
 import { Camera, Loader, User, X } from "~/components/ui/icons";
 import { Input } from "~/components/ui/input";
 import type { FamilyMemberProfile } from "~/lib/mocks/family-members";
-import { compressImage, createPreviewUrl } from "~/lib/media-compression";
+import { compressImage, createInstantPreviewUrl } from "~/lib/media-compression";
 import { api } from "~/trpc/react";
 
 type EditProfileDialogProps = {
@@ -127,6 +127,7 @@ export function EditProfileDialog({
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const avatarPreviewSelectionRef = useRef(0);
   const trpcUtils = api.useUtils();
   const updateProfile = api.familyMember.updateMemberProfile.useMutation();
 
@@ -177,7 +178,7 @@ export function EditProfileDialog({
     setOpen(false);
   };
 
-  const handleAvatarSelected = async (file: File | null) => {
+  const handleAvatarSelected = (file: File | null) => {
     if (!file) {
       return;
     }
@@ -198,12 +199,29 @@ export function EditProfileDialog({
       URL.revokeObjectURL(selectedAvatarPreviewUrl);
     }
 
+    const selectionId = ++avatarPreviewSelectionRef.current;
+    const previewUrl = createInstantPreviewUrl(file, (upgradedPreviewUrl) => {
+      if (avatarPreviewSelectionRef.current !== selectionId) {
+        URL.revokeObjectURL(upgradedPreviewUrl);
+        return;
+      }
+
+      setSelectedAvatarPreviewUrl((currentPreviewUrl) => {
+        if (currentPreviewUrl) {
+          URL.revokeObjectURL(currentPreviewUrl);
+        }
+        return upgradedPreviewUrl;
+      });
+    });
+
     setSelectedAvatarFile(file);
-    setSelectedAvatarPreviewUrl(await createPreviewUrl(file));
+    setSelectedAvatarPreviewUrl(previewUrl);
     setUploadProgress(0);
   };
 
   const handleRemoveAvatar = () => {
+    avatarPreviewSelectionRef.current += 1;
+
     if (selectedAvatarPreviewUrl) {
       URL.revokeObjectURL(selectedAvatarPreviewUrl);
     }

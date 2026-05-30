@@ -19,7 +19,7 @@ import {
   type MentionableMember,
 } from "~/components/feed/mention-helpers";
 import { MentionSuggestionsPopover } from "~/components/feed/mention-suggestions-popover";
-import { createPreviewUrl, resolveMediaMimeType } from "~/lib/media-compression";
+import { createInstantPreviewUrl, resolveMediaMimeType } from "~/lib/media-compression";
 
 type UploadIntentItem = {
   provider: string;
@@ -249,7 +249,7 @@ export function PostComposerDialog({
     resetComposer();
   };
 
-  const addFiles = async (files: File[]) => {
+  const addFiles = (files: File[]) => {
     if (files.length === 0) {
       return;
     }
@@ -269,21 +269,41 @@ export function PostComposerDialog({
       setPublishError(`Only ${MAX_FILES_PER_POST} files are allowed per post.`);
     }
 
-    const nextMedia = await Promise.all(
-      nextFiles.map(async (file) => {
+    const nextMedia = nextFiles.map((file) => {
         const resolvedMimeType = resolveMediaMimeType(file);
+        const id = crypto.randomUUID();
+        const previewUrl = createInstantPreviewUrl(file, (upgradedPreviewUrl) => {
+          setSelectedMedia((current) => {
+            const target = current.find((item) => item.id === id);
+            if (!target) {
+              URL.revokeObjectURL(upgradedPreviewUrl);
+              return current;
+            }
+
+            return current.map((item) => {
+              if (item.id !== id) {
+                return item;
+              }
+
+              URL.revokeObjectURL(item.previewUrl);
+              return {
+                ...item,
+                previewUrl: upgradedPreviewUrl,
+              };
+            });
+          });
+        });
 
         return {
-          id: crypto.randomUUID(),
+          id,
           file,
-          previewUrl: await createPreviewUrl(file),
+          previewUrl,
           kind: resolvedMimeType.startsWith("video/") ? ("video" as const) : ("image" as const),
           caption: "",
           uploadProgress: 0,
           uploadError: null,
         };
-      }),
-    );
+      });
 
     setSelectedMedia((current) => {
       return [...current, ...nextMedia];
@@ -494,7 +514,7 @@ export function PostComposerDialog({
             multiple
             className="hidden"
             onChange={(event) => {
-              void addFiles(Array.from(event.currentTarget.files ?? []));
+              addFiles(Array.from(event.currentTarget.files ?? []));
               event.currentTarget.value = "";
             }}
           />
@@ -505,7 +525,7 @@ export function PostComposerDialog({
             multiple
             className="hidden"
             onChange={(event) => {
-              void addFiles(Array.from(event.currentTarget.files ?? []));
+              addFiles(Array.from(event.currentTarget.files ?? []));
               event.currentTarget.value = "";
             }}
           />

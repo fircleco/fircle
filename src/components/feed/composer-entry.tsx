@@ -9,7 +9,7 @@ import { Button } from "~/components/ui/button";
 import { canPublishComposerPost } from "~/components/feed/post-composer-logic";
 import {
   compressImage,
-  createPreviewUrl,
+  createInstantPreviewUrl,
   resolveMediaMimeType,
   shouldUseServerVideoCompression,
 } from "~/lib/media-compression";
@@ -69,6 +69,7 @@ type SelectedMedia = {
   previewUrl: string;
   kind: "image" | "video";
   resolvedMimeType: string;
+  isPreviewConversionPending: boolean;
   previewFailed: boolean;
   compressionProgress: number;
   uploadProgress: number;
@@ -197,7 +198,7 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
     };
   }, [revokeObjectUrls]);
 
-  const addFiles = async (files: File[]) => {
+  const addFiles = (files: File[]) => {
     if (files.length === 0) {
       return;
     }
@@ -216,16 +217,53 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
       setPublishError(`Only ${MAX_FILES_PER_POST} files are allowed per post.`);
     }
 
-    const nextMedia = await Promise.all(
-      nextFiles.map(async (file) => {
+    const nextMedia = nextFiles.map((file) => {
         const resolvedMimeType = resolveMediaMimeType(file);
+        const id = crypto.randomUUID();
+      const isHeicPreview = resolvedMimeType === "image/heic" || resolvedMimeType === "image/heif";
+        const previewUrl = createInstantPreviewUrl(file, (upgradedPreviewUrl) => {
+          setSelectedMedia((current) => {
+            const target = current.find((item) => item.id === id);
+            if (!target) {
+              URL.revokeObjectURL(upgradedPreviewUrl);
+              return current;
+            }
+
+            return current.map((item) => {
+              if (item.id !== id) {
+                return item;
+              }
+
+              URL.revokeObjectURL(item.previewUrl);
+              return {
+                ...item,
+                previewUrl: upgradedPreviewUrl,
+                isPreviewConversionPending: false,
+                previewFailed: false,
+              };
+            });
+          });
+        }, () => {
+          setSelectedMedia((current) =>
+            current.map((item) =>
+              item.id === id
+                ? {
+                    ...item,
+                    isPreviewConversionPending: false,
+                    previewFailed: true,
+                  }
+                : item,
+            ),
+          );
+        });
 
         return {
-          id: crypto.randomUUID(),
+          id,
           file,
-          previewUrl: await createPreviewUrl(file),
+          previewUrl,
           kind: resolvedMimeType.startsWith("video/") ? ("video" as const) : ("image" as const),
           resolvedMimeType,
+          isPreviewConversionPending: isHeicPreview,
           previewFailed: false,
           compressionProgress: 0,
           uploadProgress: 0,
@@ -233,8 +271,7 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
           uploadError: null,
           uploadedMedia: null,
         };
-      }),
-    );
+      });
 
     setSelectedMedia((current) => {
       return [...current, ...nextMedia];
@@ -625,7 +662,7 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
             multiple
             className="hidden"
             onChange={(event) => {
-              void addFiles(Array.from(event.currentTarget.files ?? []));
+              addFiles(Array.from(event.currentTarget.files ?? []));
               event.currentTarget.value = "";
             }}
           />
@@ -636,7 +673,7 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
             multiple
             className="hidden"
             onChange={(event) => {
-              void addFiles(Array.from(event.currentTarget.files ?? []));
+              addFiles(Array.from(event.currentTarget.files ?? []));
               event.currentTarget.value = "";
             }}
           />
@@ -694,7 +731,12 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
 
                   {item.kind === "video" ? (
                     <video src={item.previewUrl} className="h-28 w-full object-cover" muted playsInline />
-                  ) : item.previewFailed ? (
+                  ) : item.isPreviewConversionPending ? (
+                    <div className="flex h-28 w-full flex-col items-center justify-center gap-1 bg-muted px-2 text-center text-[11px] text-muted-foreground">
+                      <Loader className="size-4 animate-spin" aria-hidden="true" />
+                      <span>Preparing preview...</span>
+                    </div>
+                  ) : item.previewFailed && !item.isPreviewConversionPending ? (
                     <div className="flex h-28 w-full items-center justify-center bg-muted px-2 text-center text-[11px] text-muted-foreground">
                       Preview unavailable for this image format.
                     </div>
@@ -710,7 +752,7 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
                         onError={() => {
                           setSelectedMedia((current) =>
                             current.map((media) =>
-                              media.id === item.id
+                              media.id === item.id && !media.isPreviewConversionPending
                                 ? {
                                     ...media,
                                     previewFailed: true,

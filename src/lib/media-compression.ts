@@ -105,6 +105,42 @@ export async function createPreviewUrl(file: File): Promise<string> {
   }
 }
 
+export function createInstantPreviewUrl(
+  file: File,
+  onUpgradedPreviewUrl?: (upgradedUrl: string) => void,
+  onPreviewUpgradeFailed?: () => void,
+): string {
+  const immediatePreviewUrl = URL.createObjectURL(file);
+  const resolvedMimeType = resolveMediaMimeType(file);
+
+  if (resolvedMimeType !== "image/heic" && resolvedMimeType !== "image/heif") {
+    return immediatePreviewUrl;
+  }
+
+  void (async () => {
+    try {
+      const converted = await heic2any({
+        blob: file,
+        toType: "image/jpeg",
+        quality: IMAGE_PREVIEW_QUALITY,
+      });
+
+      const previewBlob = Array.isArray(converted) ? converted[0] : converted;
+      if (!(previewBlob instanceof Blob)) {
+        onPreviewUpgradeFailed?.();
+        return;
+      }
+
+      onUpgradedPreviewUrl?.(URL.createObjectURL(previewBlob));
+    } catch {
+      onPreviewUpgradeFailed?.();
+      // Keep the immediate preview URL when HEIC conversion fails.
+    }
+  })();
+
+  return immediatePreviewUrl;
+}
+
 export function shouldUseServerVideoCompression(file: File) {
   return resolveMediaMimeType(file).startsWith("video/");
 }

@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Skeleton } from "~/components/ui/skeleton";
-import { compressImage, createPreviewUrl } from "~/lib/media-compression";
+import { compressImage, createInstantPreviewUrl } from "~/lib/media-compression";
 import { api } from "~/trpc/react";
 
 type UploadIntentItem = {
@@ -103,6 +103,7 @@ export default function FamilySettingsPage() {
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const imagePreviewSelectionRef = useRef(0);
 
   const managementContext = api.invite.getManagementContext.useQuery(undefined, {
     retry: false,
@@ -147,7 +148,7 @@ export default function FamilySettingsPage() {
     };
   }, [selectedImagePreviewUrl]);
 
-  async function handleImageSelected(file: File | null) {
+  function handleImageSelected(file: File | null) {
     if (!file) {
       return;
     }
@@ -169,12 +170,29 @@ export default function FamilySettingsPage() {
       URL.revokeObjectURL(selectedImagePreviewUrl);
     }
 
+    const selectionId = ++imagePreviewSelectionRef.current;
+    const previewUrl = createInstantPreviewUrl(file, (upgradedPreviewUrl) => {
+      if (imagePreviewSelectionRef.current !== selectionId) {
+        URL.revokeObjectURL(upgradedPreviewUrl);
+        return;
+      }
+
+      setSelectedImagePreviewUrl((currentPreviewUrl) => {
+        if (currentPreviewUrl) {
+          URL.revokeObjectURL(currentPreviewUrl);
+        }
+        return upgradedPreviewUrl;
+      });
+    });
+
     setSelectedFamilyImageFile(file);
-    setSelectedImagePreviewUrl(await createPreviewUrl(file));
+    setSelectedImagePreviewUrl(previewUrl);
     setUploadProgress(0);
   }
 
   function handleRemoveImage() {
+    imagePreviewSelectionRef.current += 1;
+
     if (selectedImagePreviewUrl) {
       URL.revokeObjectURL(selectedImagePreviewUrl);
     }

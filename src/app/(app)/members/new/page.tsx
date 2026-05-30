@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { beginNavigationProgress } from "~/components/nav/navigation-progress";
-import { createPreviewUrl } from "~/lib/media-compression";
+import { createInstantPreviewUrl } from "~/lib/media-compression";
 import { api } from "~/trpc/react";
 
 type UploadIntentItem = {
@@ -82,6 +82,7 @@ export default function AddMemberPage() {
   const [formError, setFormError] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const avatarPreviewSelectionRef = useRef(0);
 
   const managementContext = api.invite.getManagementContext.useQuery(undefined, {
     retry: false,
@@ -112,7 +113,7 @@ export default function AddMemberPage() {
   const createMember = api.familyMember.createUnclaimedMember.useMutation();
   const updateMemberProfile = api.familyMember.updateMemberProfile.useMutation();
 
-  const handleAvatarSelected = async (file: File | null) => {
+  const handleAvatarSelected = (file: File | null) => {
     if (!file) return;
     setFormError(null);
 
@@ -130,12 +131,29 @@ export default function AddMemberPage() {
       URL.revokeObjectURL(selectedAvatarPreviewUrl);
     }
 
+    const selectionId = ++avatarPreviewSelectionRef.current;
+    const previewUrl = createInstantPreviewUrl(file, (upgradedPreviewUrl) => {
+      if (avatarPreviewSelectionRef.current !== selectionId) {
+        URL.revokeObjectURL(upgradedPreviewUrl);
+        return;
+      }
+
+      setSelectedAvatarPreviewUrl((currentPreviewUrl) => {
+        if (currentPreviewUrl) {
+          URL.revokeObjectURL(currentPreviewUrl);
+        }
+        return upgradedPreviewUrl;
+      });
+    });
+
     setSelectedAvatarFile(file);
-    setSelectedAvatarPreviewUrl(await createPreviewUrl(file));
+    setSelectedAvatarPreviewUrl(previewUrl);
     setUploadProgress(0);
   };
 
   const handleRemoveAvatar = () => {
+    avatarPreviewSelectionRef.current += 1;
+
     if (selectedAvatarPreviewUrl) {
       URL.revokeObjectURL(selectedAvatarPreviewUrl);
     }
@@ -236,6 +254,8 @@ export default function AddMemberPage() {
   };
 
   const handleAddAnother = () => {
+    avatarPreviewSelectionRef.current += 1;
+
     setMemberName("");
     setMemberNickname("");
     setMemberEmail("");
@@ -307,7 +327,14 @@ export default function AddMemberPage() {
                   <div className="mt-2 flex flex-wrap items-center gap-2 rounded-xl border bg-background/80 px-2 py-2">
                     <Link2 className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
                     <p className="min-w-0 flex-1 break-all font-mono text-xs sm:text-sm">{autoClaimUrl}</p>
-                    <Button type="button" size="sm" variant="outline" onClick={handleCopyClaimLink}>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        void handleCopyClaimLink();
+                      }}
+                    >
                       {isClaimLinkCopied ? (
                         <>
                           <Check className="size-4" aria-hidden="true" />
