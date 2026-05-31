@@ -10,6 +10,7 @@ import { ThemeToggle } from "~/components/theme-toggle";
 import { Button } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
+import { Logo } from "~/components/ui/logo";
 
 const items = [
   { href: "/", label: "Home", icon: House },
@@ -55,9 +56,10 @@ export function DesktopSidebar() {
   return (
     <aside className="fixed top-0 left-0 hidden h-screen w-72 border-r border-border bg-background md:flex md:flex-col">
       <div className="flex h-16 items-center px-6">
-        <span className="font-semibold text-xl leading-none tracking-tight">
-          Fircle
-        </span>
+        <Link href="/" className="inline-flex items-center gap-2" aria-label="Fircle home">
+          <Logo className="h-6 w-auto text-foreground" aria-hidden="true" />
+          <span className="font-semibold text-2xl leading-none tracking-tight">Fircle</span>
+        </Link>
       </div>
 
       <nav className="mt-4 flex flex-1 flex-col gap-2 px-4">

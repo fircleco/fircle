@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { signOut } from "next-auth/react";
 import { Loader } from "~/components/ui/icons";
+import { Logo } from "~/components/ui/logo";
 
 import { api } from "~/trpc/react";
 
@@ -33,7 +34,10 @@ export function MembershipGuard({ children }: { children: React.ReactNode }) {
         </div>
         <div className="items-end pb-6">
           <span className="text-xs text-muted-foreground">Powered by</span>
-          <p className="font-semibold text-xl leading-none tracking-tight">Fircle</p>
+          <div className="mt-1 flex items-center justify-center gap-2 text-foreground">
+            <Logo className="h-6 w-auto shrink-0" aria-hidden="true" />
+            <p className="font-semibold text-xl leading-none tracking-tight">Fircle</p>
+          </div>
         </div>
       </div>
     );

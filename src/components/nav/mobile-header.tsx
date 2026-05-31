@@ -7,6 +7,7 @@ import { Bell, House, Image, Menu, Settings, User, Users } from "~/components/ui
 import { formatUnreadBadgeCount } from "~/components/nav/unread-badge";
 import { ThemeToggle } from "~/components/theme-toggle";
 import { Button } from "~/components/ui/button";
+import { Logo } from "~/components/ui/logo";
 import {
   Sheet,
   SheetClose,
@@ -79,7 +80,10 @@ export function MobileHeader() {
 
           <SheetContent side="left" showCloseButton={false} className="w-[84vw] max-w-sm p-0">
             <SheetHeader className="border-b px-5 py-3">
-              <SheetTitle>Fircle</SheetTitle>
+              <SheetTitle className="inline-flex items-center gap-2 text-foreground">
+                <Logo className="h-5 w-auto shrink-0" aria-hidden="true" />
+                <span className="font-semibold text-xl leading-none tracking-tight">Fircle</span>
+              </SheetTitle>
             </SheetHeader>
             
             <nav className="px-2 py-3" aria-label="Mobile menu">
@@ -133,7 +137,10 @@ export function MobileHeader() {
         </Sheet>
 
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <span className="font-bold tracking-tight text-xl">Fircle</span>
+          <span className="inline-flex items-center gap-2 text-foreground">
+            <Logo className="h-6 w-auto shrink-0" aria-hidden="true" />
+            <span className="font-semibold text-xl leading-none tracking-tight">Fircle</span>
+          </span>
         </div>
 
         <div className="ml-auto flex items-center gap-2">
