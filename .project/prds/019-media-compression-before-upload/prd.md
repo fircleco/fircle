@@ -120,11 +120,11 @@ The implementation is phased to ship image compression first and then server-sid
   - [ ] Upload a video and confirm server-side MP4 transcode and successful publish.
   - [ ] Upload avatar and family image and confirm pre-upload compression behavior.
   - [ ] Select HEIC/HEIF files for avatar and family image and confirm previews render before save.
-- [ ] Run project tests with `pnpm test` and resolve any regressions.
-- [ ] Validate user-facing failure behavior:
-  - [ ] Image compression and server video processing failures surface actionable errors and block publish/save safely.
-  - [ ] Existing upload error UX remains intact.
-- [ ] Add/update targeted tests around compression integration points where practical (composer publish path, video ingest route, and profile/family save paths).
+- [x] Run project tests with `pnpm test` and resolve any regressions.
+- [x] Validate user-facing failure behavior:
+  - [x] Image compression and server video processing failures surface actionable errors and block publish/save safely.
+  - [x] Existing upload error UX remains intact.
+- [x] Add/update targeted tests around compression integration points where practical (composer publish path, video ingest route, and profile/family save paths).
 
 ## Acceptance Criteria
 
@@ -137,7 +137,7 @@ The implementation is phased to ship image compression first and then server-sid
 - [ ] Video uploads are transcoded server-side to MP4 (`video/mp4`) with configured constraints before final storage in R2.
 - [ ] No client-side ffmpeg.wasm dependency is required for video processing.
 - [ ] Avatar and family settings image saves compress files before storing.
-- [ ] `pnpm test` passes with no new regressions.
+- [x] `pnpm test` passes with no new regressions.
 
 ## Risks and Further Considerations
 

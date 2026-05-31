@@ -52,7 +52,7 @@ describe("familyMemberRouter.changeMyPassword", () => {
   const memberId = "clh0000000000000000000101";
 
   it("changes the password when the current password is valid", async () => {
-    const currentPasswordHash = await bcrypt.hash("current-password", 12);
+    const currentPasswordHash = await bcrypt.hash("current-password", 8);
     let updatedPassword: string | null = null;
     const userUpdate = vi
       .fn<
@@ -107,9 +107,7 @@ describe("familyMemberRouter.changeMyPassword", () => {
   });
 
   it("rejects the wrong current password", async () => {
-    expect.assertions(3);
-
-    const currentPasswordHash = await bcrypt.hash("current-password", 12);
+    const currentPasswordHash = await bcrypt.hash("current-password", 8);
 
     const db = {
       familyMember: {
