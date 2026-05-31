@@ -1,6 +1,6 @@
 ---
 title: "Media Compression Before Upload (WebP Images + Server-Side Video Processing)"
-status: in-progress
+status: completed
 references:
   - type: doc
     url: .project/brief.md
@@ -128,14 +128,14 @@ The implementation is phased to ship image compression first and then server-sid
 
 ## Acceptance Criteria
 
-- [ ] All three upload surfaces use shared client-side image compression before upload intent requests.
-- [ ] HEIC/HEIF image inputs are converted to WebP outputs prior to upload.
-- [ ] HEIC/HEIF files are preview-detectable and browser-preview compatible on all active upload surfaces by using `heic2any` conversion for preview URLs.
-- [ ] Composer visibly represents compression/upload/processing phases, including `Compressing...` and video processing action states.
-- [ ] Upload intent metadata (`mimeType`, `sizeBytes`) reflects compressed outputs, not originals.
-- [ ] Compressed image uploads persist with `image/webp` MIME across composer, avatar, and family image surfaces.
-- [ ] Video uploads are transcoded server-side to MP4 (`video/mp4`) with configured constraints before final storage in R2.
-- [ ] No client-side ffmpeg.wasm dependency is required for video processing.
+- [x] All three upload surfaces use shared client-side image compression before upload intent requests.
+- [x] HEIC/HEIF image inputs are converted to WebP outputs prior to upload.
+- [x] HEIC/HEIF files are preview-detectable and browser-preview compatible on all active upload surfaces by using `heic2any` conversion for preview URLs.
+- [x] Composer visibly represents compression/upload/processing phases, including `Compressing...` and video processing action states.
+- [x] Upload intent metadata (`mimeType`, `sizeBytes`) reflects compressed outputs, not originals.
+- [x] Compressed image uploads persist with `image/webp` MIME across composer, avatar, and family image surfaces.
+- [x] Video uploads are transcoded server-side to MP4 (`video/mp4`) with configured constraints before final storage in R2.
+- [x] No client-side ffmpeg.wasm dependency is required for video processing.
 - [ ] Avatar and family settings image saves compress files before storing.
 - [x] `pnpm test` passes with no new regressions.
 
