@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { beginNavigationProgress } from "~/components/nav/navigation-progress";
-import { createInstantPreviewUrl } from "~/lib/media-compression";
+import { createInstantPreviewUrl, resolveMediaMimeType } from "~/lib/media-compression";
 import { api } from "~/trpc/react";
 
 type UploadIntentItem = {
@@ -117,7 +117,7 @@ export default function AddMemberPage() {
     if (!file) return;
     setFormError(null);
 
-    if (!ACCEPTED_AVATAR_MIME_TYPES.has(file.type)) {
+    if (!ACCEPTED_AVATAR_MIME_TYPES.has(resolveMediaMimeType(file))) {
       setFormError("Please select a supported image format (jpg, png, webp, heic, heif).");
       return;
     }

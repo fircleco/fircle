@@ -7,7 +7,7 @@ import { Button } from "~/components/ui/button";
 import { Camera, Loader, User, X } from "~/components/ui/icons";
 import { Input } from "~/components/ui/input";
 import type { FamilyMemberProfile } from "~/lib/mocks/family-members";
-import { compressImage, createInstantPreviewUrl } from "~/lib/media-compression";
+import { compressImage, createInstantPreviewUrl, resolveMediaMimeType } from "~/lib/media-compression";
 import { api } from "~/trpc/react";
 
 type EditProfileDialogProps = {
@@ -185,7 +185,7 @@ export function EditProfileDialog({
 
     setSaveError(null);
 
-    if (!ACCEPTED_AVATAR_MIME_TYPES.has(file.type)) {
+    if (!ACCEPTED_AVATAR_MIME_TYPES.has(resolveMediaMimeType(file))) {
       setSaveError("Please select a supported image format (jpg, png, webp, heic, heif).");
       return;
     }

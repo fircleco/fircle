@@ -8,7 +8,7 @@ import { Button } from "~/components/ui/button";
 import { AlertCircle, ArrowRight, Camera, Loader, Security, User } from "~/components/ui/icons";
 import { Input } from "~/components/ui/input";
 import { Skeleton } from "~/components/ui/skeleton";
-import { createInstantPreviewUrl } from "~/lib/media-compression";
+import { createInstantPreviewUrl, resolveMediaMimeType } from "~/lib/media-compression";
 import { api } from "~/trpc/react";
 
 type UploadIntentItem = {
@@ -215,7 +215,7 @@ export default function AccountSettingsPage() {
     setProfileError(null);
     setProfileSuccess(null);
 
-    if (!ACCEPTED_AVATAR_MIME_TYPES.has(file.type)) {
+    if (!ACCEPTED_AVATAR_MIME_TYPES.has(resolveMediaMimeType(file))) {
       setProfileError("Please select a supported image format (jpg, png, webp, heic, heif).");
       return;
     }

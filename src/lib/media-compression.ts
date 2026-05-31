@@ -1,5 +1,4 @@
 import imageCompression from "browser-image-compression";
-import heic2any from "heic2any";
 
 const IMAGE_MAX_DIMENSION = 2048;
 const IMAGE_QUALITY = 0.85;
@@ -15,6 +14,8 @@ const MIME_BY_EXTENSION: Record<string, string> = {
   mov: "video/quicktime",
   webm: "video/webm",
 };
+
+type Heic2Any = typeof import("heic2any").default;
 
 function getExtension(fileName: string) {
   const extension = /\.([a-z0-9]{2,10})$/i.exec(fileName)?.[1];
@@ -36,6 +37,11 @@ export function resolveMediaMimeType(file: File) {
   return extension ? (MIME_BY_EXTENSION[extension] ?? "application/octet-stream") : "application/octet-stream";
 }
 
+async function loadHeic2Any(): Promise<Heic2Any> {
+  const heic2anyModule = await import("heic2any");
+  return heic2anyModule.default;
+}
+
 export async function compressImage(
   file: File,
   onProgress?: (percent: number) => void,
@@ -49,6 +55,7 @@ export async function compressImage(
   const fileForCompression =
     resolvedMimeType === "image/heic" || resolvedMimeType === "image/heif"
       ? await (async () => {
+          const heic2any = await loadHeic2Any();
           const converted = await heic2any({
             blob: file,
             toType: "image/webp",
@@ -88,6 +95,7 @@ export async function createPreviewUrl(file: File): Promise<string> {
   }
 
   try {
+    const heic2any = await loadHeic2Any();
     const converted = await heic2any({
       blob: file,
       toType: "image/jpeg",
@@ -119,6 +127,7 @@ export function createInstantPreviewUrl(
 
   void (async () => {
     try {
+      const heic2any = await loadHeic2Any();
       const converted = await heic2any({
         blob: file,
         toType: "image/jpeg",

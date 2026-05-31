@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Skeleton } from "~/components/ui/skeleton";
-import { compressImage, createInstantPreviewUrl } from "~/lib/media-compression";
+import { compressImage, createInstantPreviewUrl, resolveMediaMimeType } from "~/lib/media-compression";
 import { api } from "~/trpc/react";
 
 type UploadIntentItem = {
@@ -156,7 +156,7 @@ export default function FamilySettingsPage() {
     setSaveError(null);
     setSaveSuccess(null);
 
-    if (!ACCEPTED_FAMILY_IMAGE_MIME_TYPES.has(file.type)) {
+    if (!ACCEPTED_FAMILY_IMAGE_MIME_TYPES.has(resolveMediaMimeType(file))) {
       setSaveError("Please select a supported image format (jpg, png, webp, heic, heif).");
       return;
     }

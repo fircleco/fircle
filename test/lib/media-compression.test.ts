@@ -108,6 +108,36 @@ describe("media-compression", () => {
 
     expect(immediateUrl).toBe("blob:immediate");
 
+    await vi.dynamicImportSettled();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(heic2anyMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        blob: image,
+        toType: "image/jpeg",
+      }),
+    );
+    expect(upgradedUrl).toBe("blob:upgraded");
+  });
+
+  it("upgrades HEIC preview when file.type is blank but extension is supported", async () => {
+    const image = new File(["heic"], "photo.heic", { type: "" });
+    const upgradedBlob = new Blob(["jpeg-preview"], { type: "image/jpeg" });
+
+    createObjectUrlMock
+      .mockReturnValueOnce("blob:immediate")
+      .mockReturnValueOnce("blob:upgraded");
+    heic2anyMock.mockResolvedValue(upgradedBlob);
+
+    let upgradedUrl: string | null = null;
+    const immediateUrl = createInstantPreviewUrl(image, (url) => {
+      upgradedUrl = url;
+    });
+
+    expect(immediateUrl).toBe("blob:immediate");
+
+    await vi.dynamicImportSettled();
     await Promise.resolve();
     await Promise.resolve();
 
