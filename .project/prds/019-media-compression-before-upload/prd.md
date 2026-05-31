@@ -113,13 +113,13 @@ The implementation is phased to ship image compression first and then server-sid
 
 #### Tasks
 
-- [ ] Manual verification checklist:
-  - [ ] Upload a large JPEG/PNG from composer and confirm R2 object size reduction after WebP conversion.
-  - [ ] Upload a HEIC photo and confirm stored MIME is `image/webp` and render is correct.
-  - [ ] Select a HEIC/HEIF image in composer and confirm preview renders before publish.
-  - [ ] Upload a video and confirm server-side MP4 transcode and successful publish.
-  - [ ] Upload avatar and family image and confirm pre-upload compression behavior.
-  - [ ] Select HEIC/HEIF files for avatar and family image and confirm previews render before save.
+- [x] Manual verification checklist:
+  - [x] Upload a large JPEG/PNG from composer and confirm R2 object size reduction after WebP conversion.
+  - [x] Upload a HEIC photo and confirm stored MIME is `image/webp` and render is correct.
+  - [x] Select a HEIC/HEIF image in composer and confirm preview renders before publish.
+  - [x] Upload a video and confirm server-side MP4 transcode and successful publish.
+  - [x] Upload avatar and family image and confirm pre-upload compression behavior.
+  - [x] Select HEIC/HEIF files for avatar and family image and confirm previews render before save.
 - [x] Run project tests with `pnpm test` and resolve any regressions.
 - [x] Validate user-facing failure behavior:
   - [x] Image compression and server video processing failures surface actionable errors and block publish/save safely.
