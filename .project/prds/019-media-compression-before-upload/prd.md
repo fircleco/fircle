@@ -11,6 +11,9 @@ references:
   - type: prd
     url: .project/prds/013-member-profile-and-user-account-management/prd.md
     description: "Avatar and profile image upload/edit flows"
+  - type: pr
+    url: https://github.com/babblebey/fircle/pull/30
+    description: "Implementation pull request - feat: unified media upload compression"
 ---
 
 > **Instructions for AI Agents:**
