@@ -77,6 +77,7 @@ export default function AddMemberPage() {
   const [isClaimLinkCopied, setIsClaimLinkCopied] = useState(false);
   const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(null);
   const [selectedAvatarPreviewUrl, setSelectedAvatarPreviewUrl] = useState<string | null>(null);
+  const [isPreviewConverting, setIsPreviewConverting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -131,7 +132,12 @@ export default function AddMemberPage() {
       URL.revokeObjectURL(selectedAvatarPreviewUrl);
     }
 
+    const resolvedMimeType = resolveMediaMimeType(file);
+    const shouldShowPreviewConversion =
+      resolvedMimeType === "image/heic" || resolvedMimeType === "image/heif";
+
     const selectionId = ++avatarPreviewSelectionRef.current;
+    setIsPreviewConverting(shouldShowPreviewConversion);
     const previewUrl = createInstantPreviewUrl(file, (upgradedPreviewUrl) => {
       if (avatarPreviewSelectionRef.current !== selectionId) {
         URL.revokeObjectURL(upgradedPreviewUrl);
@@ -144,6 +150,13 @@ export default function AddMemberPage() {
         }
         return upgradedPreviewUrl;
       });
+      setIsPreviewConverting(false);
+    }, () => {
+      if (avatarPreviewSelectionRef.current !== selectionId) {
+        return;
+      }
+
+      setIsPreviewConverting(false);
     });
 
     setSelectedAvatarFile(file);
@@ -160,6 +173,7 @@ export default function AddMemberPage() {
     setSelectedAvatarFile(null);
     setSelectedAvatarPreviewUrl(null);
     setUploadProgress(0);
+    setIsPreviewConverting(false);
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -267,6 +281,7 @@ export default function AddMemberPage() {
     setSelectedAvatarFile(null);
     setSelectedAvatarPreviewUrl(null);
     setUploadProgress(0);
+    setIsPreviewConverting(false);
     setIsSubmitted(false);
     setFormError(null);
   };
@@ -472,15 +487,23 @@ export default function AddMemberPage() {
                 }}
               />
               <div className="flex items-center gap-3 rounded-2xl border bg-muted/20 p-3">
-                <Avatar className="size-12 shrink-0 border">
-                  <AvatarImage
-                    src={selectedAvatarPreviewUrl ?? undefined}
-                    alt={memberName || "Profile photo"}
-                  />
-                  <AvatarFallback>
-                    <User className="size-5 text-muted-foreground" aria-hidden="true" />
-                  </AvatarFallback>
-                </Avatar>
+                <div className="relative shrink-0">
+                  <Avatar className="size-12 border">
+                    <AvatarImage
+                      src={selectedAvatarPreviewUrl ?? undefined}
+                      alt={memberName || "Profile photo"}
+                    />
+                    <AvatarFallback>
+                      <User className="size-5 text-muted-foreground" aria-hidden="true" />
+                    </AvatarFallback>
+                  </Avatar>
+                  {isPreviewConverting ? (
+                    <div className="absolute inset-0 flex items-center justify-center rounded-full bg-background">
+                      <Loader className="size-4 animate-spin text-foreground" aria-hidden="true" />
+                      <span className="sr-only">Converting image preview</span>
+                    </div>
+                  ) : null}
+                </div>
                 <div className="ml-auto flex items-center gap-2">
                   <Button
                     type="button"

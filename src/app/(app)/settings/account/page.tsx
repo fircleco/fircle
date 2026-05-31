@@ -138,6 +138,7 @@ export default function AccountSettingsPage() {
   const [profileSuccess, setProfileSuccess] = useState<string | null>(null);
   const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(null);
   const [selectedAvatarPreviewUrl, setSelectedAvatarPreviewUrl] = useState<string | null>(null);
+  const [isPreviewConverting, setIsPreviewConverting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isProfileSaving, setIsProfileSaving] = useState(false);
 
@@ -192,6 +193,7 @@ export default function AccountSettingsPage() {
     setProfileSlug(nextSlug);
     setProfileImageUrl(myMemberProfile.data.image ?? "");
     setProfileError(null);
+    setIsPreviewConverting(false);
   }, [myMemberProfile.data]);
 
   useEffect(() => {
@@ -229,7 +231,12 @@ export default function AccountSettingsPage() {
       URL.revokeObjectURL(selectedAvatarPreviewUrl);
     }
 
+    const resolvedMimeType = resolveMediaMimeType(file);
+    const shouldShowPreviewConversion =
+      resolvedMimeType === "image/heic" || resolvedMimeType === "image/heif";
+
     const selectionId = ++avatarPreviewSelectionRef.current;
+    setIsPreviewConverting(shouldShowPreviewConversion);
     const previewUrl = createInstantPreviewUrl(file, (upgradedPreviewUrl) => {
       if (avatarPreviewSelectionRef.current !== selectionId) {
         URL.revokeObjectURL(upgradedPreviewUrl);
@@ -242,6 +249,12 @@ export default function AccountSettingsPage() {
         }
         return upgradedPreviewUrl;
       });
+      setIsPreviewConverting(false);
+    }, () => {
+      if (avatarPreviewSelectionRef.current !== selectionId) {
+        return;
+      }
+      setIsPreviewConverting(false);
     });
 
     setSelectedAvatarFile(file);
@@ -259,6 +272,7 @@ export default function AccountSettingsPage() {
     setSelectedAvatarFile(null);
     setSelectedAvatarPreviewUrl(null);
     setUploadProgress(0);
+    setIsPreviewConverting(false);
     setProfileImageUrl("");
     setProfileSuccess(null);
   }
@@ -365,6 +379,7 @@ export default function AccountSettingsPage() {
 
       setSelectedAvatarFile(null);
       setSelectedAvatarPreviewUrl(null);
+      setIsPreviewConverting(false);
       setUploadProgress(0);
       setProfileImageUrl(nextAvatarUrl);
       setProfileSuccess("Profile settings updated.");
@@ -466,10 +481,18 @@ export default function AccountSettingsPage() {
               />
 
               <div className="flex items-center gap-3 rounded-2xl border bg-muted/20 p-3">
-                <Avatar className="size-14 shrink-0 border">
-                  <AvatarImage src={avatarPreviewUrl || undefined} alt={profilePreviewName} />
-                  <AvatarFallback className="text-sm font-semibold text-foreground">{profileInitials}</AvatarFallback>
-                </Avatar>
+                <div className="relative shrink-0">
+                  <Avatar className="size-14 border">
+                    <AvatarImage src={avatarPreviewUrl || undefined} alt={profilePreviewName} />
+                    <AvatarFallback className="text-sm font-semibold text-foreground">{profileInitials}</AvatarFallback>
+                  </Avatar>
+                  {isPreviewConverting ? (
+                    <div className="absolute inset-0 flex items-center justify-center rounded-full bg-background">
+                      <Loader className="size-4 animate-spin text-foreground" aria-hidden="true" />
+                      <span className="sr-only">Converting image preview</span>
+                    </div>
+                  ) : null}
+                </div>
 
                 {/* <div className="min-w-0">
                   <p className="font-medium text-sm">Live preview</p>

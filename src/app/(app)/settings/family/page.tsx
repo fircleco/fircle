@@ -97,6 +97,7 @@ export default function FamilySettingsPage() {
   const [familyImageUrl, setFamilyImageUrl] = useState("");
   const [selectedFamilyImageFile, setSelectedFamilyImageFile] = useState<File | null>(null);
   const [selectedImagePreviewUrl, setSelectedImagePreviewUrl] = useState<string | null>(null);
+  const [isPreviewConverting, setIsPreviewConverting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -138,6 +139,7 @@ export default function FamilySettingsPage() {
     setFamilyDescription(family.description ?? "");
     setFamilyImageUrl(family.image ?? "");
     setSaveError(null);
+    setIsPreviewConverting(false);
   }, [managementContextData?.family]);
 
   useEffect(() => {
@@ -170,7 +172,12 @@ export default function FamilySettingsPage() {
       URL.revokeObjectURL(selectedImagePreviewUrl);
     }
 
+    const resolvedMimeType = resolveMediaMimeType(file);
+    const shouldShowPreviewConversion =
+      resolvedMimeType === "image/heic" || resolvedMimeType === "image/heif";
+
     const selectionId = ++imagePreviewSelectionRef.current;
+    setIsPreviewConverting(shouldShowPreviewConversion);
     const previewUrl = createInstantPreviewUrl(file, (upgradedPreviewUrl) => {
       if (imagePreviewSelectionRef.current !== selectionId) {
         URL.revokeObjectURL(upgradedPreviewUrl);
@@ -183,6 +190,12 @@ export default function FamilySettingsPage() {
         }
         return upgradedPreviewUrl;
       });
+      setIsPreviewConverting(false);
+    }, () => {
+      if (imagePreviewSelectionRef.current !== selectionId) {
+        return;
+      }
+      setIsPreviewConverting(false);
     });
 
     setSelectedFamilyImageFile(file);
@@ -200,6 +213,7 @@ export default function FamilySettingsPage() {
     setSelectedFamilyImageFile(null);
     setSelectedImagePreviewUrl(null);
     setUploadProgress(0);
+    setIsPreviewConverting(false);
     setFamilyImageUrl("");
     setSaveError(null);
     setSaveSuccess(null);
@@ -292,6 +306,7 @@ export default function FamilySettingsPage() {
 
       setSelectedFamilyImageFile(null);
       setSelectedImagePreviewUrl(null);
+      setIsPreviewConverting(false);
       setUploadProgress(0);
       setFamilyImageUrl(nextFamilyImageUrl);
       setSaveSuccess("Family identity updated.");
@@ -345,12 +360,20 @@ export default function FamilySettingsPage() {
           />
 
           <div className="flex items-center gap-3 rounded-2xl border bg-muted/20 p-3">
-            <Avatar className="size-14 shrink-0 border">
-              <AvatarImage src={previewImage || undefined} alt={previewName} />
-              <AvatarFallback className="text-sm font-semibold text-foreground">
-                {getInitials(previewName) || "FM"}
-              </AvatarFallback>
-            </Avatar>
+            <div className="relative shrink-0">
+              <Avatar className="size-14 border">
+                <AvatarImage src={previewImage || undefined} alt={previewName} />
+                <AvatarFallback className="text-sm font-semibold text-foreground">
+                  {getInitials(previewName) || "FM"}
+                </AvatarFallback>
+              </Avatar>
+              {isPreviewConverting ? (
+                <div className="absolute inset-0 flex items-center justify-center rounded-full bg-background">
+                  <Loader className="size-4 animate-spin text-foreground" aria-hidden="true" />
+                  <span className="sr-only">Converting image preview</span>
+                </div>
+              ) : null}
+            </div>
 
             {/* <div className="min-w-0">
               <p className="font-medium text-sm">Live preview</p>
