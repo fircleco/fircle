@@ -28,7 +28,10 @@ export const metadata: Metadata = {
     title: "Fircle",
     description: "Family-first social network focused on private sharing and memory preservation.",
   },
-  icons: [{ rel: "icon", url: "/favicon.ico" }],
+  icons: {
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    shortcut: [{ url: "/icon.svg", type: "image/svg+xml" }],
+  },
 };
 
 const geist = Geist({
