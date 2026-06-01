@@ -475,7 +475,7 @@ export const notificationRouter = createTRPCRouter({
 
       const enabledByEventType = new Map(
         existingPreferences.map((preference) => [
-          preference.eventType as PushEventType,
+          preference.eventType,
           preference.isEnabled,
         ]),
       )

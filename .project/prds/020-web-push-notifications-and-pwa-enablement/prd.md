@@ -195,7 +195,7 @@ Out of scope for this PRD:
 - [x] Invalid/expired subscriptions are cleaned up automatically after terminal provider errors.
 - [ ] PWA manifest and service worker registration are present and working in supported browsers.
 - [x] Existing in-app notification list/unread badge behavior remains functional.
-- [ ] Lint/typecheck/targeted tests for modified areas pass.
+- [x] Lint/typecheck/targeted tests for modified areas pass.
 
 ## Further Considerations
 

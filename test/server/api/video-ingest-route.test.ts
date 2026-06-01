@@ -190,7 +190,7 @@ describe("POST /api/uploads/video/ingest", () => {
 
     const { POST } = await import("~/app/api/uploads/video/ingest/route");
     const response = await POST(createMultipartRequest(formData) as never);
-    const payload = await response.json();
+    const payload: unknown = await response.json();
 
     expect(response.status).toBe(200);
     expect(mocked.transcodeVideoToMp4).toHaveBeenCalledTimes(1);

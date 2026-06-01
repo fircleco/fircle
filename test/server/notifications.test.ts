@@ -183,21 +183,34 @@ describe("notifications module", () => {
       2,
       expect.objectContaining({
         where: { id: "delivery-1" },
-        data: expect.objectContaining({
-          status: "SENT",
-          attemptCount: 2,
-          providerMessageId: "provider-123",
-          errorMessage: null,
-        }),
       }),
     );
 
-    expect(dbMock.pushSubscription.updateMany).toHaveBeenCalledWith({
-      where: { endpoint: "https://push.example.com/sub-1" },
-      data: {
-        lastUsedAt: expect.any(Date),
-      },
+    const sentUpdateCall = dbMock.notificationDeliveryLog.update.mock.calls[1]?.[0] as
+      | {
+          data: {
+            status: string;
+            attemptCount: number;
+            providerMessageId: string;
+            errorMessage: string | null;
+          };
+        }
+      | undefined;
+    expect(sentUpdateCall?.data).toMatchObject({
+      status: "SENT",
+      attemptCount: 2,
+      providerMessageId: "provider-123",
+      errorMessage: null,
     });
+
+    const updateManyCall = dbMock.pushSubscription.updateMany.mock.calls[0]?.[0] as
+      | {
+          where: { endpoint: string };
+          data: { lastUsedAt: Date };
+        }
+      | undefined;
+    expect(updateManyCall?.where).toEqual({ endpoint: "https://push.example.com/sub-1" });
+    expect(updateManyCall?.data.lastUsedAt).toBeInstanceOf(Date);
   });
 
   it("cleans up invalid subscriptions and marks delivery as SKIPPED", async () => {
@@ -239,11 +252,20 @@ describe("notifications module", () => {
     expect(dbMock.notificationDeliveryLog.update).toHaveBeenLastCalledWith(
       expect.objectContaining({
         where: { id: "delivery-1" },
-        data: expect.objectContaining({
-          status: "SKIPPED",
-          errorMessage: "Terminal error: 410 Gone",
-        }),
       }),
     );
+
+    const skippedUpdateCall = dbMock.notificationDeliveryLog.update.mock.calls.at(-1)?.[0] as
+      | {
+          data: {
+            status: string;
+            errorMessage: string;
+          };
+        }
+      | undefined;
+    expect(skippedUpdateCall?.data).toMatchObject({
+      status: "SKIPPED",
+      errorMessage: "Terminal error: 410 Gone",
+    });
   });
 });

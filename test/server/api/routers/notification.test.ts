@@ -402,23 +402,27 @@ describe("notificationRouter", () => {
     });
 
     expect(result.subscription.endpoint).toBe("https://push.example.com/sub-2");
-    expect(pushSubscriptionUpsert).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: {
-          endpoint: "https://push.example.com/sub-2",
-        },
-        create: expect.objectContaining({
-          familyId,
-          memberId: recipientMemberId,
-          userAgent: "Edge Test Agent",
-        }),
-        update: expect.objectContaining({
-          familyId,
-          memberId: recipientMemberId,
-          userAgent: "Edge Test Agent",
-        }),
-      }),
-    );
+    const upsertCallArgs = pushSubscriptionUpsert.mock.calls[0]?.[0] as
+      | {
+          where: { endpoint: string };
+          create: { familyId: string; memberId: string; userAgent: string | null };
+          update: { familyId: string; memberId: string; userAgent: string | null };
+        }
+      | undefined;
+    expect(upsertCallArgs).toBeDefined();
+    expect(upsertCallArgs?.where).toEqual({
+      endpoint: "https://push.example.com/sub-2",
+    });
+    expect(upsertCallArgs?.create).toMatchObject({
+      familyId,
+      memberId: recipientMemberId,
+      userAgent: "Edge Test Agent",
+    });
+    expect(upsertCallArgs?.update).toMatchObject({
+      familyId,
+      memberId: recipientMemberId,
+      userAgent: "Edge Test Agent",
+    });
   });
 
   it("unsubscribes push endpoint only for caller membership", async () => {

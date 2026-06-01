@@ -31,7 +31,7 @@ describe("media-compression", () => {
       "URL",
       {
         createObjectURL: createObjectUrlMock,
-      } as unknown as typeof URL,
+      },
     );
   });
 
