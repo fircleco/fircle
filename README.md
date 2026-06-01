@@ -58,6 +58,25 @@ Optional transactional email variables (required only when `EMAIL_DRIVER=zeptoma
 - `ZEPTOMAIL_ACCOUNT_ID` (ZeptoMail account id)
 - `ZEPTOMAIL_API_BASE_URL` (optional override, defaults to `https://api.zeptomail.com`)
 
+Web push variables:
+
+- `NEXT_PUBLIC_VAPID_PUBLIC_KEY` (browser-safe VAPID public key)
+- `VAPID_PRIVATE_KEY` (server-only VAPID private key)
+- `VAPID_SUBJECT` (`mailto:you@example.com` or an `https://` URL)
+
+Push env behavior:
+
+- In `production`, all three VAPID variables are required.
+- In `development` and `test`, VAPID variables are optional unless any one of them is set; then all three are required.
+
+Generate VAPID keys:
+
+```bash
+pnpm dlx web-push generate-vapid-keys
+```
+
+Copy the generated values into `.env` as `NEXT_PUBLIC_VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY`, then set `VAPID_SUBJECT` to a valid `mailto:` or `https://` value.
+
 Example:
 
 ```env
@@ -80,6 +99,11 @@ ZEPTOMAIL_API_KEY="your-zeptomail-api-key"
 ZEPTOMAIL_ACCOUNT_ID="your-zeptomail-account-id"
 # Optional override
 # ZEPTOMAIL_API_BASE_URL="https://api.zeptomail.com"
+
+# Optional in development/test, required in production for web push
+NEXT_PUBLIC_VAPID_PUBLIC_KEY="your-vapid-public-key"
+VAPID_PRIVATE_KEY="your-vapid-private-key"
+VAPID_SUBJECT="mailto:you@example.com"
 ```
 
 ### 3. Start a local database

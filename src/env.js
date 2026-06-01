@@ -3,6 +3,15 @@ import { z } from "zod";
 
 const isZeptoMailDriver =
   process.env.EMAIL_DRIVER?.trim().toLowerCase() === "zeptomail";
+const isProduction = process.env.NODE_ENV === "production";
+
+const hasAnyPushEnv = Boolean(
+  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ??
+    process.env.VAPID_PRIVATE_KEY ??
+    process.env.VAPID_SUBJECT,
+);
+
+const requiresPushEnv = isProduction || hasAnyPushEnv;
 
 export const env = createEnv({
   /**
@@ -49,6 +58,23 @@ export const env = createEnv({
         message: "ZEPTOMAIL_ACCOUNT_ID is required when EMAIL_DRIVER=zeptomail",
       }),
     ZEPTOMAIL_API_BASE_URL: z.string().url().optional(),
+    VAPID_PRIVATE_KEY: z
+      .string()
+      .optional()
+      .refine((value) => !requiresPushEnv || Boolean(value), {
+        message:
+          "VAPID_PRIVATE_KEY is required in production (and whenever any VAPID env is configured)",
+      }),
+    VAPID_SUBJECT: z
+      .string()
+      .optional()
+      .refine((value) => !requiresPushEnv || Boolean(value), {
+        message:
+          "VAPID_SUBJECT is required in production (and whenever any VAPID env is configured)",
+      })
+      .refine((value) => !value || value.startsWith("mailto:") || /^https?:\/\//.test(value), {
+        message: "VAPID_SUBJECT must be a mailto: or http(s) URL",
+      }),
   },
 
   /**
@@ -57,7 +83,13 @@ export const env = createEnv({
    * `NEXT_PUBLIC_`.
    */
   client: {
-    // NEXT_PUBLIC_CLIENTVAR: z.string(),
+    NEXT_PUBLIC_VAPID_PUBLIC_KEY: z
+      .string()
+      .optional()
+      .refine((value) => !requiresPushEnv || Boolean(value), {
+        message:
+          "NEXT_PUBLIC_VAPID_PUBLIC_KEY is required in production (and whenever any VAPID env is configured)",
+      }),
   },
 
   /**
@@ -80,6 +112,9 @@ export const env = createEnv({
     ZEPTOMAIL_API_KEY: process.env.ZEPTOMAIL_API_KEY,
     ZEPTOMAIL_ACCOUNT_ID: process.env.ZEPTOMAIL_ACCOUNT_ID,
     ZEPTOMAIL_API_BASE_URL: process.env.ZEPTOMAIL_API_BASE_URL,
+    NEXT_PUBLIC_VAPID_PUBLIC_KEY: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+    VAPID_PRIVATE_KEY: process.env.VAPID_PRIVATE_KEY,
+    VAPID_SUBJECT: process.env.VAPID_SUBJECT,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

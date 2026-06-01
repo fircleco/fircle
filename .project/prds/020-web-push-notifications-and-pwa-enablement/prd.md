@@ -1,6 +1,6 @@
 ---
 title: "Web Push Notifications and PWA Enablement"
-status: draft
+status: in-progress
 references:
   - type: doc
     url: .project/brief.md
@@ -75,13 +75,13 @@ Out of scope for this PRD:
 
 #### Tasks
 
-- [ ] Resolve merge conflict markers in [src/app/layout.tsx](src/app/layout.tsx) and keep a single metadata/icons shape.
-- [ ] Extend [src/env.js](src/env.js) with push configuration:
-  - [ ] `NEXT_PUBLIC_VAPID_PUBLIC_KEY`
-  - [ ] `VAPID_PRIVATE_KEY`
-  - [ ] `VAPID_SUBJECT` (mailto or URL form)
-- [ ] Ensure runtime env mapping and validation rules are explicit for development vs production.
-- [ ] Add environment documentation in [README.md](README.md) for generating and configuring VAPID keys.
+- [x] Resolve merge conflict markers in [src/app/layout.tsx](src/app/layout.tsx) and keep a single metadata/icons shape.
+- [x] Extend [src/env.js](src/env.js) with push configuration:
+  - [x] `NEXT_PUBLIC_VAPID_PUBLIC_KEY`
+  - [x] `VAPID_PRIVATE_KEY`
+  - [x] `VAPID_SUBJECT` (mailto or URL form)
+- [x] Ensure runtime env mapping and validation rules are explicit for development vs production.
+- [x] Add environment documentation in [README.md](README.md) for generating and configuring VAPID keys.
 
 ### Phase 2: Push Subscription Data Model and Migration
 
