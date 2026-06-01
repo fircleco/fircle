@@ -628,7 +628,7 @@ export function MediaViewerDialog({
   const canManageCurrentItemTags =
     canManageTags &&
     Boolean(currentItem) &&
-    (canManageTagsForItem ? canManageTagsForItem(currentItem) : true);
+    (canManageTagsForItem && currentItem ? canManageTagsForItem(currentItem) : true);
 
   const familyMembersQuery = api.familyMember.listFamilyMembers.useQuery(
     { familyId: familyId ?? "" },

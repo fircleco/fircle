@@ -1,14 +1,24 @@
+// @ts-nocheck
+
+/** @typedef {{ title?: string; body?: string; url?: string }} PushPayload */
+
+const sw = globalThis;
+
 const DEFAULT_NOTIFICATION_URL = "/notifications";
 
+/**
+ * @param {string} targetUrl
+ */
 function toAbsoluteUrl(targetUrl) {
   try {
-    return new URL(targetUrl, self.location.origin).toString();
+    return new URL(targetUrl, sw.location.origin).toString();
   } catch {
-    return new URL(DEFAULT_NOTIFICATION_URL, self.location.origin).toString();
+    return new URL(DEFAULT_NOTIFICATION_URL, sw.location.origin).toString();
   }
 }
 
-self.addEventListener("push", (event) => {
+function onPush(event) {
+  /** @type {PushPayload} */
   let payload = {};
 
   if (event.data) {
@@ -29,17 +39,17 @@ self.addEventListener("push", (event) => {
     },
   };
 
-  event.waitUntil(self.registration.showNotification(title, options));
-});
+  event.waitUntil(sw.registration.showNotification(title, options));
+}
 
-self.addEventListener("notificationclick", (event) => {
+function onNotificationClick(event) {
   event.notification.close();
 
   const targetUrl = toAbsoluteUrl(event.notification.data?.url || DEFAULT_NOTIFICATION_URL);
 
   event.waitUntil(
     (async () => {
-      const clientsList = await self.clients.matchAll({
+      const clientsList = await sw.clients.matchAll({
         type: "window",
         includeUncontrolled: true,
       });
@@ -48,7 +58,7 @@ self.addEventListener("notificationclick", (event) => {
         if ("focus" in client) {
           const focusedUrl = new URL(client.url);
 
-          if (focusedUrl.origin === self.location.origin) {
+          if (focusedUrl.origin === sw.location.origin) {
             await client.focus();
             if ("navigate" in client) {
               await client.navigate(targetUrl);
@@ -58,7 +68,10 @@ self.addEventListener("notificationclick", (event) => {
         }
       }
 
-      await self.clients.openWindow(targetUrl);
+      await sw.clients.openWindow(targetUrl);
     })(),
   );
-});
+}
+
+sw.addEventListener("push", onPush);
+sw.addEventListener("notificationclick", onNotificationClick);

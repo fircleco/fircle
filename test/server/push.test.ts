@@ -1,11 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+type EnvMock = {
+  NEXT_PUBLIC_VAPID_PUBLIC_KEY: string | undefined;
+  VAPID_PRIVATE_KEY: string | undefined;
+  VAPID_SUBJECT: string | undefined;
+};
+
 const { envMock, sendNotificationMock, setVapidDetailsMock } = vi.hoisted(() => ({
   envMock: {
     NEXT_PUBLIC_VAPID_PUBLIC_KEY: "public-key",
     VAPID_PRIVATE_KEY: "private-key",
     VAPID_SUBJECT: "mailto:test@example.com",
-  },
+  } as EnvMock,
   sendNotificationMock: vi.fn(),
   setVapidDetailsMock: vi.fn(),
 }));
