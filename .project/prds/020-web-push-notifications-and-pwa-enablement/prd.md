@@ -1,6 +1,6 @@
 ---
 title: "Web Push Notifications and PWA Enablement"
-status: in-progress
+status: completed
 references:
   - type: doc
     url: .project/brief.md
