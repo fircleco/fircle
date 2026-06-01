@@ -106,23 +106,23 @@ Out of scope for this PRD:
 
 #### Tasks
 
-- [ ] Add `web-push` dependency in [package.json](package.json).
-- [ ] Create server push module (for example under [src/server/notifications](src/server/notifications)) to:
-  - [ ] initialize VAPID settings once,
-  - [ ] send JSON payloads with title/body/url metadata,
-  - [ ] map/send errors to typed outcomes.
-- [ ] Extend [src/server/notifications.ts](src/server/notifications.ts) to create PUSH delivery-log rows alongside IN_APP where applicable.
-- [ ] Apply interaction-level preference filtering before push send attempts:
-  - [ ] if push is disabled for a notification interaction type, mark PUSH delivery as `SKIPPED` with reason metadata,
-  - [ ] if enabled, proceed with send and normal status transitions.
-- [ ] Implement immediate dispatch entrypoint invoked after notification rows are created in producer flows:
-  - [ ] [src/server/api/routers/post.ts](src/server/api/routers/post.ts)
-  - [ ] [src/server/api/routers/tag.ts](src/server/api/routers/tag.ts)
-  - [ ] [src/server/api/routers/invite.ts](src/server/api/routers/invite.ts)
-- [ ] Update delivery-log transitions in DB:
-  - [ ] `QUEUED` -> `SENT` on success,
-  - [ ] `QUEUED` -> `FAILED` on transient error,
-  - [ ] `QUEUED` -> `SKIPPED`/cleanup on terminal invalid subscription errors.
+- [x] Add `web-push` dependency in [package.json](package.json).
+- [x] Create server push module (for example under [src/server/notifications](src/server/notifications)) to:
+  - [x] initialize VAPID settings once,
+  - [x] send JSON payloads with title/body/url metadata,
+  - [x] map/send errors to typed outcomes.
+- [x] Extend [src/server/notifications.ts](src/server/notifications.ts) to create PUSH delivery-log rows alongside IN_APP where applicable.
+- [x] Apply interaction-level preference filtering before push send attempts:
+  - [x] if push is disabled for a notification interaction type, mark PUSH delivery as `SKIPPED` with reason metadata,
+  - [x] if enabled, proceed with send and normal status transitions.
+- [x] Implement immediate dispatch entrypoint invoked after notification rows are created in producer flows:
+  - [x] [src/server/api/routers/post.ts](src/server/api/routers/post.ts)
+  - [x] [src/server/api/routers/tag.ts](src/server/api/routers/tag.ts)
+  - [x] [src/server/api/routers/invite.ts](src/server/api/routers/invite.ts)
+- [x] Update delivery-log transitions in DB:
+  - [x] `QUEUED` -> `SENT` on success,
+  - [x] `QUEUED` -> `FAILED` on transient error,
+  - [x] `QUEUED` -> `SKIPPED`/cleanup on terminal invalid subscription errors.
 
 ### Phase 4: Subscription Management API and Notifications Settings UX
 

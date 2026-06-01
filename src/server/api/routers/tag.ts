@@ -3,7 +3,11 @@ import { z } from "zod";
 import type { PrismaClient } from "../../../../generated/prisma";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
-import { createNotifications, getClaimedMemberIds } from "~/server/notifications";
+import {
+  createNotifications,
+  dispatchPushForNotifications,
+  getClaimedMemberIds,
+} from "~/server/notifications";
 
 const coordinateSchema = z.number().min(0).max(100);
 
@@ -427,14 +431,14 @@ export const tagRouter = createTRPCRouter({
         });
       }
 
-      await ctx.db.$transaction(async (tx) => {
+      const createdNotifications = await ctx.db.$transaction(async (tx) => {
         const claimedRecipientIds = await getClaimedMemberIds(tx, input.familyId, [created.taggedMemberId]);
         const recipientMemberId = claimedRecipientIds.find((id) => id !== membership.id);
         if (!recipientMemberId) {
-          return;
+          return [];
         }
 
-        await createNotifications(tx, [
+        return createNotifications(tx, [
           {
             familyId: input.familyId,
             recipientMemberId,
@@ -448,6 +452,8 @@ export const tagRouter = createTRPCRouter({
           },
         ]);
       });
+
+      void dispatchPushForNotifications(createdNotifications);
 
       return mapTagResponse(created);
     }),
@@ -539,14 +545,14 @@ export const tagRouter = createTRPCRouter({
         });
       }
 
-      await ctx.db.$transaction(async (tx) => {
+      const createdNotifications = await ctx.db.$transaction(async (tx) => {
         const claimedRecipientIds = await getClaimedMemberIds(tx, input.familyId, [updated.taggedMemberId]);
         const recipientMemberId = claimedRecipientIds.find((id) => id !== membership.id);
         if (!recipientMemberId) {
-          return;
+          return [];
         }
 
-        await createNotifications(tx, [
+        return createNotifications(tx, [
           {
             familyId: input.familyId,
             recipientMemberId,
@@ -560,6 +566,8 @@ export const tagRouter = createTRPCRouter({
           },
         ]);
       });
+
+      void dispatchPushForNotifications(createdNotifications);
 
       return mapTagResponse(updated);
     }),
@@ -641,14 +649,14 @@ export const tagRouter = createTRPCRouter({
         });
       }
 
-      await ctx.db.$transaction(async (tx) => {
+      const createdNotifications = await ctx.db.$transaction(async (tx) => {
         const claimedRecipientIds = await getClaimedMemberIds(tx, input.familyId, [created.taggedMemberId]);
         const recipientMemberId = claimedRecipientIds.find((id) => id !== membership.id);
         if (!recipientMemberId) {
-          return;
+          return [];
         }
 
-        await createNotifications(tx, [
+        return createNotifications(tx, [
           {
             familyId: input.familyId,
             recipientMemberId,
@@ -662,6 +670,8 @@ export const tagRouter = createTRPCRouter({
           },
         ]);
       });
+
+      void dispatchPushForNotifications(createdNotifications);
 
       return mapTagResponse(created);
     }),
@@ -748,14 +758,14 @@ export const tagRouter = createTRPCRouter({
         });
       }
 
-      await ctx.db.$transaction(async (tx) => {
+      const createdNotifications = await ctx.db.$transaction(async (tx) => {
         const claimedRecipientIds = await getClaimedMemberIds(tx, input.familyId, [updated.taggedMemberId]);
         const recipientMemberId = claimedRecipientIds.find((id) => id !== membership.id);
         if (!recipientMemberId) {
-          return;
+          return [];
         }
 
-        await createNotifications(tx, [
+        return createNotifications(tx, [
           {
             familyId: input.familyId,
             recipientMemberId,
@@ -769,6 +779,8 @@ export const tagRouter = createTRPCRouter({
           },
         ]);
       });
+
+      void dispatchPushForNotifications(createdNotifications);
 
       return mapTagResponse(updated);
     }),

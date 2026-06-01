@@ -3,7 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { getStorageProvider } from "~/server/storage";
 import { checkRateLimit } from "~/lib/rate-limit";
 import type { db as appDb } from "~/server/db";
-import { createNotifications, getClaimedMemberIds } from "~/server/notifications";
+import { createNotifications, getClaimedMemberIds, dispatchPushForNotifications } from "~/server/notifications";
 
 import {
   createTRPCRouter,
@@ -13,6 +13,8 @@ import {
 const MAX_MEDIA_PER_POST = 10;
 const MAX_REPLY_PREVIEW_PER_PARENT = 3;
 const MAX_MENTIONS_PER_ENTITY = 20;
+
+type CreatedNotifications = Awaited<ReturnType<typeof createNotifications>>;
 
 const mentionInputSchema = z.object({
   memberId: z.string().cuid(),
@@ -823,7 +825,9 @@ export const postRouter = createTRPCRouter({
         mentions: input.mentions,
       });
 
-      return ctx.db.$transaction(async (tx) => {
+      const { result, createdNotifications } = await ctx.db.$transaction(async (tx) => {
+        let createdNotifications: CreatedNotifications = [];
+
         const post = await tx.post.create({
           data: {
             caption: input.caption,
@@ -883,7 +887,7 @@ export const postRouter = createTRPCRouter({
             }));
 
           if (mentionSeeds.length > 0) {
-            await createNotifications(tx, mentionSeeds);
+            createdNotifications = await createNotifications(tx, mentionSeeds);
           }
         }
 
@@ -899,8 +903,14 @@ export const postRouter = createTRPCRouter({
           });
         }
 
-        return mapPostResponse(createdPost);
+        return {
+          result: mapPostResponse(createdPost),
+          createdNotifications,
+        };
       });
+
+      void dispatchPushForNotifications(createdNotifications);
+      return result;
     }),
 
   getById: protectedProcedure
@@ -1221,8 +1231,12 @@ export const postRouter = createTRPCRouter({
         parentCommentAuthorMemberId = parent.authorMemberId;
       }
 
-      const createdComment = input.mentions.length > 0
-        ? await ctx.db.$transaction(async (tx) => {
+      let createdComment: CommentRecordBase;
+
+      if (input.mentions.length > 0) {
+        const transactionResult = await ctx.db.$transaction(async (tx) => {
+          let createdNotifications: CreatedNotifications = [];
+
             const comment = await tx.comment.create({
               data: {
                 postId: post.id,
@@ -1306,7 +1320,7 @@ export const postRouter = createTRPCRouter({
             }
 
             if (notificationSeeds.length > 0) {
-              await createNotifications(tx, notificationSeeds);
+              createdNotifications = await createNotifications(tx, notificationSeeds);
             }
 
             const created = await tx.comment.findUnique({
@@ -1323,9 +1337,16 @@ export const postRouter = createTRPCRouter({
               });
             }
 
-            return created;
-          })
-        : await ctx.db.comment.create({
+            return {
+              created,
+              createdNotifications,
+            };
+          });
+
+        void dispatchPushForNotifications(transactionResult.createdNotifications);
+        createdComment = transactionResult.created;
+      } else {
+        createdComment = await ctx.db.comment.create({
             data: {
               postId: post.id,
               authorMemberId: membership.id,
@@ -1334,24 +1355,25 @@ export const postRouter = createTRPCRouter({
             },
             select: commentResponseSelect(membership.id),
           });
+      }
 
       if (input.mentions.length === 0) {
-        await ctx.db.$transaction(async (tx) => {
+        const createdNotifications = await ctx.db.$transaction(async (tx) => {
           const engagementRecipientId = parentCommentId
             ? parentCommentAuthorMemberId
             : post.authorMemberId;
 
           if (!engagementRecipientId || engagementRecipientId === membership.id) {
-            return;
+            return [] as CreatedNotifications;
           }
 
           const claimedRecipientIds = await getClaimedMemberIds(tx, input.familyId, [engagementRecipientId]);
           const recipientMemberId = claimedRecipientIds[0];
           if (!recipientMemberId) {
-            return;
+            return [] as CreatedNotifications;
           }
 
-          await createNotifications(tx, [
+          return createNotifications(tx, [
             {
               familyId: input.familyId,
               recipientMemberId,
@@ -1367,6 +1389,8 @@ export const postRouter = createTRPCRouter({
             },
           ]);
         });
+
+        void dispatchPushForNotifications(createdNotifications);
       }
 
       return mapCommentResponse(createdComment);
@@ -1541,7 +1565,9 @@ export const postRouter = createTRPCRouter({
         });
       }
 
-      const updatedComment = await ctx.db.$transaction(async (tx) => {
+      const { updatedComment, createdNotifications } = await ctx.db.$transaction(async (tx) => {
+        let createdNotifications: CreatedNotifications = [];
+
         await tx.comment.update({
           where: {
             id: comment.id,
@@ -1591,7 +1617,7 @@ export const postRouter = createTRPCRouter({
             }));
 
           if (mentionSeeds.length > 0) {
-            await createNotifications(tx, mentionSeeds);
+            createdNotifications = await createNotifications(tx, mentionSeeds);
           }
         }
 
@@ -1609,8 +1635,13 @@ export const postRouter = createTRPCRouter({
           });
         }
 
-        return updated;
+        return {
+          updatedComment: updated,
+          createdNotifications,
+        };
       });
+
+      void dispatchPushForNotifications(createdNotifications);
 
       return mapCommentResponse(updatedComment);
     }),
@@ -1698,7 +1729,9 @@ export const postRouter = createTRPCRouter({
         });
       }
 
-      const result = await ctx.db.$transaction(async (tx) => {
+      const { result, createdNotifications } = await ctx.db.$transaction(async (tx) => {
+        let createdNotifications: CreatedNotifications = [];
+
         const existingLike = await tx.commentLike.findUnique({
           where: {
             commentId_memberIdWhoLiked: {
@@ -1731,7 +1764,7 @@ export const postRouter = createTRPCRouter({
             const claimedRecipientIds = await getClaimedMemberIds(tx, input.familyId, [comment.authorMemberId]);
             const recipientMemberId = claimedRecipientIds[0];
             if (recipientMemberId) {
-              await createNotifications(tx, [
+              createdNotifications = await createNotifications(tx, [
                 {
                   familyId: input.familyId,
                   recipientMemberId,
@@ -1755,11 +1788,16 @@ export const postRouter = createTRPCRouter({
         });
 
         return {
-          commentId: comment.id,
-          likedByCurrentUser,
-          likeCount,
+          result: {
+            commentId: comment.id,
+            likedByCurrentUser,
+            likeCount,
+          },
+          createdNotifications,
         };
       });
+
+      void dispatchPushForNotifications(createdNotifications);
 
       return result;
     }),
@@ -1797,7 +1835,9 @@ export const postRouter = createTRPCRouter({
         });
       }
 
-      const result = await ctx.db.$transaction(async (tx) => {
+      const { result, createdNotifications } = await ctx.db.$transaction(async (tx) => {
+        let createdNotifications: CreatedNotifications = [];
+
         const existingLike = await tx.postLike.findUnique({
           where: {
             postId_memberIdWhoLiked: {
@@ -1830,7 +1870,7 @@ export const postRouter = createTRPCRouter({
             const claimedRecipientIds = await getClaimedMemberIds(tx, input.familyId, [post.authorMemberId]);
             const recipientMemberId = claimedRecipientIds[0];
             if (recipientMemberId) {
-              await createNotifications(tx, [
+              createdNotifications = await createNotifications(tx, [
                 {
                   familyId: input.familyId,
                   recipientMemberId,
@@ -1854,11 +1894,16 @@ export const postRouter = createTRPCRouter({
         });
 
         return {
-          postId: post.id,
-          likedByCurrentUser,
-          reactionCount,
+          result: {
+            postId: post.id,
+            likedByCurrentUser,
+            reactionCount,
+          },
+          createdNotifications,
         };
       });
+
+      void dispatchPushForNotifications(createdNotifications);
 
       return result;
     }),

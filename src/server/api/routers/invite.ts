@@ -30,7 +30,11 @@ import {
   getEmailProvider,
   resolveAppBaseUrlFromHeaders,
 } from "~/server/email"
-import { createNotifications, getClaimedAdminMemberIds } from "~/server/notifications"
+import {
+  createNotifications,
+  dispatchPushForNotifications,
+  getClaimedAdminMemberIds,
+} from "~/server/notifications"
 
 const internalMediaUrlSchema = z
   .string()
@@ -217,9 +221,12 @@ export const inviteRouter = createTRPCRouter({
         id: string
         email: string | null
       }
+      let createdNotificationsFromAcceptInvite: Awaited<ReturnType<typeof createNotifications>> = []
 
       try {
-        result = await ctx.db.$transaction(async (tx: Prisma.TransactionClient) => {
+        const transactionResult = await ctx.db.$transaction(async (tx: Prisma.TransactionClient) => {
+          let createdNotifications: Awaited<ReturnType<typeof createNotifications>> = []
+
           // Create user
           const user = await tx.user.create({
             data: {
@@ -269,7 +276,7 @@ export const inviteRouter = createTRPCRouter({
 
           const adminRecipientIds = await getClaimedAdminMemberIds(tx, invite.familyId)
           if (adminRecipientIds.length > 0) {
-            await createNotifications(
+            createdNotifications = await createNotifications(
               tx,
               adminRecipientIds.map((recipientMemberId) => ({
                 familyId: invite.familyId,
@@ -285,8 +292,14 @@ export const inviteRouter = createTRPCRouter({
             )
           }
 
-          return user
+          return {
+            user,
+            createdNotifications,
+          }
         })
+
+        result = transactionResult.user
+        createdNotificationsFromAcceptInvite = transactionResult.createdNotifications
       } catch (error: unknown) {
         if (error instanceof TRPCError) {
           throw error
@@ -333,6 +346,8 @@ export const inviteRouter = createTRPCRouter({
           message: "An unexpected error occurred. Please try again.",
         })
       }
+
+      void dispatchPushForNotifications(createdNotificationsFromAcceptInvite)
 
       console.log(
         `[invite:claimed] code=${invite.code} userId=${result.id} familyId=${invite.familyId} at=${new Date().toISOString()}`,
@@ -533,13 +548,13 @@ export const inviteRouter = createTRPCRouter({
         },
       })
 
-      await ctx.db.$transaction(async (tx) => {
+      const createdNotifications = await ctx.db.$transaction(async (tx) => {
         const adminRecipientIds = await getClaimedAdminMemberIds(tx, input.familyId, [membership.id])
         if (adminRecipientIds.length === 0) {
-          return
+          return []
         }
 
-        await createNotifications(
+        return createNotifications(
           tx,
           adminRecipientIds.map((recipientMemberId) => ({
             familyId: input.familyId,
@@ -554,6 +569,8 @@ export const inviteRouter = createTRPCRouter({
           })),
         )
       })
+
+      void dispatchPushForNotifications(createdNotifications)
 
       console.log(
         `[invite:created] id=${invite.id} code=${invite.code} type=${invite.type} familyId=${invite.familyId} createdBy=${ctx.session.user.id} at=${new Date().toISOString()}`,
@@ -726,13 +743,13 @@ export const inviteRouter = createTRPCRouter({
         },
       })
 
-      await ctx.db.$transaction(async (tx) => {
+      const createdNotifications = await ctx.db.$transaction(async (tx) => {
         const adminRecipientIds = await getClaimedAdminMemberIds(tx, invite.familyId, [membership.id])
         if (adminRecipientIds.length === 0) {
-          return
+          return []
         }
 
-        await createNotifications(
+        return createNotifications(
           tx,
           adminRecipientIds.map((recipientMemberId) => ({
             familyId: invite.familyId,
@@ -747,6 +764,8 @@ export const inviteRouter = createTRPCRouter({
           })),
         )
       })
+
+      void dispatchPushForNotifications(createdNotifications)
 
       console.log(
         `[invite:revoked] id=${revoked.id} familyId=${invite.familyId} revokedBy=${ctx.session.user.id} at=${new Date().toISOString()}`,
