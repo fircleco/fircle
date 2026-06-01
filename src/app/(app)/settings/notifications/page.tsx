@@ -94,6 +94,11 @@ function FamilyNotificationSettings({ familyId }: { familyId: string }) {
   const isLoading = pushStateQuery.isLoading || preferencesQuery.isLoading;
   const preferences: PushPreferenceItem[] = preferencesQuery.data?.preferences ?? [];
   const subscriptions = pushStateQuery.data?.subscriptions ?? [];
+  const normalizedActionError = actionError?.toLowerCase() ?? "";
+  const showBraveTroubleshootingHint =
+    normalizedActionError.includes("push service") ||
+    normalizedActionError.includes("registration failed") ||
+    normalizedActionError.includes("blocked by the browser");
 
   const isSubscribing = subscribePushMutation.isPending;
   const isUnsubscribing = unsubscribePushMutation.isPending;
@@ -116,11 +121,8 @@ function FamilyNotificationSettings({ familyId }: { familyId: string }) {
     }
 
     if (!pushStateQuery.data?.isPushConfigured) {
-      const missingConfiguration = pushStateQuery.data?.missingConfiguration ?? [];
       setActionError(
-        missingConfiguration.length > 0
-          ? `Push notifications are not configured on the server. Missing: ${missingConfiguration.join(", ")}. Add them to .env and restart the dev server.`
-          : "Push notifications are not configured on the server.",
+        "Push notifications are not configured on the server. Add VAPID env values to .env and restart the dev server.",
       );
       return;
     }
@@ -217,9 +219,7 @@ function FamilyNotificationSettings({ familyId }: { familyId: string }) {
             <AlertCircle className="size-5" aria-hidden="true" />
             <AlertTitle>Server push configuration missing</AlertTitle>
             <AlertDescription>
-              {pushStateQuery.data.missingConfiguration.length > 0
-                ? `Add ${pushStateQuery.data.missingConfiguration.join(", ")} to .env and restart the dev server before enabling push.`
-                : "Configure VAPID env values on the server before enabling push."}
+              Configure VAPID env values on the server and restart the dev server before enabling push.
             </AlertDescription>
           </Alert>
         ) : null}
@@ -259,7 +259,15 @@ function FamilyNotificationSettings({ familyId }: { familyId: string }) {
           <Alert>
             <AlertCircle className="size-5" aria-hidden="true" />
             <AlertTitle>Action failed</AlertTitle>
-            <AlertDescription>{actionError}</AlertDescription>
+            <AlertDescription>
+              <p>{actionError}</p>
+              {showBraveTroubleshootingHint ? (
+                <p className="mt-2 text-xs">
+                  Brave users: enable <span className="font-medium">Use Google services for push messaging</span>
+                  in browser settings, then retry.
+                </p>
+              ) : null}
+            </AlertDescription>
           </Alert>
         ) : null}
 

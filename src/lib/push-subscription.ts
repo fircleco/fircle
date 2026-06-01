@@ -27,6 +27,87 @@ export function getNotificationPermissionState(): NotificationPermission | "unsu
   return Notification.permission
 }
 
+function isLikelyElectronBrowser() {
+  if (typeof navigator === "undefined") {
+    return false
+  }
+
+  return /\bElectron\/\d+/i.test(navigator.userAgent)
+}
+
+async function ensureServiceWorkerReady() {
+  const existingRegistration = await navigator.serviceWorker.getRegistration("/")
+
+  if (!existingRegistration) {
+    await navigator.serviceWorker.register("/sw.js")
+  }
+
+  return navigator.serviceWorker.ready
+}
+
+function shouldRetrySubscription(error: unknown) {
+  if (!(error instanceof Error)) {
+    return false
+  }
+
+  const normalized = error.message.toLowerCase()
+
+  return (
+    error.name === "AbortError" ||
+    normalized.includes("registration failed") ||
+    normalized.includes("push service error")
+  )
+}
+
+async function recoverServiceWorkerRegistration() {
+  const registrations = await navigator.serviceWorker.getRegistrations()
+
+  await Promise.all(registrations.map((registration) => registration.unregister()))
+
+  await navigator.serviceWorker.register("/sw.js")
+
+  return navigator.serviceWorker.ready
+}
+
+function mapSubscribeError(error: unknown) {
+  if (!(error instanceof Error)) {
+    return new Error("Push subscription failed due to an unknown browser error")
+  }
+
+  const browserMessage = error.message.trim()
+  const normalized = browserMessage.toLowerCase()
+
+  if (
+    error.name === "NotAllowedError" ||
+    normalized.includes("permission denied") ||
+    normalized.includes("push service error")
+  ) {
+    if (isLikelyElectronBrowser()) {
+      return new Error(
+        "Browser blocked push subscription in this environment. VS Code's integrated browser (Electron) has limited Push API support and may behave like incognito mode. Open the app in regular Chrome or Edge and try again.",
+      )
+    }
+
+    if (normalized.includes("push service error")) {
+      return new Error(
+        "Browser push subscription failed at the push service. Confirm you are using a regular browser profile, allow push messaging for this browser, and verify network/policy rules are not blocking push endpoints (FCM). If needed, clear site data for localhost and retry.",
+      )
+    }
+
+    return new Error(
+      `Browser push subscription was blocked by the browser: ${browserMessage || "permission denied"}`,
+    )
+  }
+
+  if (error.name === "NotSupportedError") {
+    return new Error(
+      "Push subscription is not supported in this browser context. Ensure the app runs on HTTPS (or localhost) in a full browser profile.",
+    )
+  }
+
+  return new Error(browserMessage || "Failed to subscribe to push notifications")
+}
+
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4)
   const normalized = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/")
@@ -64,17 +145,35 @@ export async function subscribeBrowserPush(vapidPublicKey: string) {
     throw new Error("Browser push is not supported")
   }
 
-  const registration = await navigator.serviceWorker.ready
-  let subscription = await registration.pushManager.getSubscription()
+  const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey)
 
-  if (!subscription) {
-    subscription = await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
-    })
+  try {
+    const registration = await ensureServiceWorkerReady()
+    let subscription = await registration.pushManager.getSubscription()
+
+    if (!subscription) {
+      try {
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey,
+        })
+      } catch (subscribeError) {
+        if (!shouldRetrySubscription(subscribeError)) {
+          throw subscribeError
+        }
+
+        const recoveredRegistration = await recoverServiceWorkerRegistration()
+        subscription = await recoveredRegistration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey,
+        })
+      }
+    }
+
+    return toPayload(subscription)
+  } catch (error) {
+    throw mapSubscribeError(error)
   }
-
-  return toPayload(subscription)
 }
 
 export async function getCurrentBrowserPushSubscription() {
@@ -82,7 +181,7 @@ export async function getCurrentBrowserPushSubscription() {
     return null
   }
 
-  const registration = await navigator.serviceWorker.ready
+  const registration = await ensureServiceWorkerReady()
   const subscription = await registration.pushManager.getSubscription()
 
   return subscription ? toPayload(subscription) : null
@@ -93,7 +192,7 @@ export async function unsubscribeBrowserPush(targetEndpoint?: string) {
     return false
   }
 
-  const registration = await navigator.serviceWorker.ready
+  const registration = await ensureServiceWorkerReady()
   const subscription = await registration.pushManager.getSubscription()
 
   if (!subscription) {
