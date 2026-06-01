@@ -3,6 +3,7 @@ import { z } from "zod"
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc"
 import type { PrismaClient } from "../../../../generated/prisma";
+import { env } from "~/env";
 
 const notificationListInputSchema = z.object({
   familyId: z.string().cuid(),
@@ -21,6 +22,81 @@ const markAsReadInputSchema = z.object({
 const markAllAsReadInputSchema = z.object({
   familyId: z.string().cuid(),
 })
+
+const pushEventTypeValues = [
+  "MEDIA_TAG_CREATED",
+  "MEDIA_TAG_UPDATED",
+  "POST_MENTION_CREATED",
+  "COMMENT_MENTION_CREATED",
+  "POST_COMMENT_CREATED",
+  "COMMENT_REPLIED",
+  "POST_LIKED",
+  "COMMENT_LIKED",
+  "INVITE_CREATED",
+  "INVITE_STATUS_CHANGED",
+  "SYSTEM_EVENT",
+] as const
+
+const pushEventTypeSchema = z.enum(pushEventTypeValues)
+
+const pushSubscriptionPayloadSchema = z.object({
+  endpoint: z.string().url().max(4096),
+  expirationTime: z.number().nullable().optional(),
+  keys: z.object({
+    p256dh: z.string().min(1),
+    auth: z.string().min(1),
+  }),
+})
+
+const getPushSubscriptionStateInputSchema = z.object({
+  familyId: z.string().cuid(),
+})
+
+const subscribePushInputSchema = z.object({
+  familyId: z.string().cuid(),
+  subscriptionPayload: pushSubscriptionPayloadSchema,
+})
+
+const unsubscribePushInputSchema = z.object({
+  familyId: z.string().cuid(),
+  endpoint: z.string().url().max(4096),
+})
+
+const getPushInteractionPreferencesInputSchema = z.object({
+  familyId: z.string().cuid(),
+})
+
+const updatePushInteractionPreferencesInputSchema = z.object({
+  familyId: z.string().cuid(),
+  preferences: z
+    .array(
+      z.object({
+        eventType: pushEventTypeSchema,
+        isEnabled: z.boolean(),
+      }),
+    )
+    .min(1)
+    .max(pushEventTypeValues.length),
+})
+
+type PushEventType = (typeof pushEventTypeValues)[number]
+
+const pushInteractionMetadata: Record<PushEventType, {
+  category: NotificationListRow["category"]
+  label: string
+}> = {
+  MEDIA_TAG_CREATED: { category: "TAG", label: "Media tag created" },
+  MEDIA_TAG_UPDATED: { category: "TAG", label: "Media tag updated" },
+  POST_MENTION_CREATED: { category: "MENTION", label: "Post mentions" },
+  COMMENT_MENTION_CREATED: { category: "MENTION", label: "Comment mentions" },
+  POST_COMMENT_CREATED: { category: "ENGAGEMENT", label: "Comments on your posts" },
+  COMMENT_REPLIED: { category: "ENGAGEMENT", label: "Replies to your comments" },
+  POST_LIKED: { category: "ENGAGEMENT", label: "Likes on your posts" },
+  COMMENT_LIKED: { category: "ENGAGEMENT", label: "Likes on your comments" },
+  INVITE_CREATED: { category: "INVITE", label: "Invite created" },
+  INVITE_STATUS_CHANGED: { category: "INVITE", label: "Invite status changed" },
+  SYSTEM_EVENT: { category: "SYSTEM", label: "System events" },
+}
 
 type NotificationListRow = {
   id: string
@@ -277,6 +353,193 @@ const notificationSelect = {
 } as const
 
 export const notificationRouter = createTRPCRouter({
+  getPushSubscriptionState: protectedProcedure
+    .input(getPushSubscriptionStateInputSchema)
+    .query(async ({ ctx, input }) => {
+      const membership = await requireFamilyMembership(
+        input.familyId,
+        ctx.session.user.id,
+        ctx.db,
+      )
+
+      const subscriptions = await ctx.db.pushSubscription.findMany({
+        where: {
+          familyId: input.familyId,
+          memberId: membership.id,
+        },
+        orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
+        select: {
+          id: true,
+          endpoint: true,
+          userAgent: true,
+          createdAt: true,
+          updatedAt: true,
+          lastUsedAt: true,
+        },
+      })
+
+      return {
+        isPushConfigured: Boolean(
+          env.VAPID_PRIVATE_KEY &&
+            env.VAPID_SUBJECT &&
+            env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+        ),
+        hasActiveSubscription: subscriptions.length > 0,
+        subscriptions,
+      }
+    }),
+
+  subscribePush: protectedProcedure
+    .input(subscribePushInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const membership = await requireFamilyMembership(
+        input.familyId,
+        ctx.session.user.id,
+        ctx.db,
+      )
+
+      const subscription = await ctx.db.pushSubscription.upsert({
+        where: {
+          endpoint: input.subscriptionPayload.endpoint,
+        },
+        create: {
+          familyId: input.familyId,
+          memberId: membership.id,
+          endpoint: input.subscriptionPayload.endpoint,
+          p256dh: input.subscriptionPayload.keys.p256dh,
+          auth: input.subscriptionPayload.keys.auth,
+          userAgent: ctx.headers.get("user-agent") ?? null,
+        },
+        update: {
+          familyId: input.familyId,
+          memberId: membership.id,
+          p256dh: input.subscriptionPayload.keys.p256dh,
+          auth: input.subscriptionPayload.keys.auth,
+          userAgent: ctx.headers.get("user-agent") ?? null,
+        },
+        select: {
+          id: true,
+          endpoint: true,
+          updatedAt: true,
+        },
+      })
+
+      return {
+        subscription,
+      }
+    }),
+
+  unsubscribePush: protectedProcedure
+    .input(unsubscribePushInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const membership = await requireFamilyMembership(
+        input.familyId,
+        ctx.session.user.id,
+        ctx.db,
+      )
+
+      const result = await ctx.db.pushSubscription.deleteMany({
+        where: {
+          familyId: input.familyId,
+          memberId: membership.id,
+          endpoint: input.endpoint,
+        },
+      })
+
+      return {
+        removedCount: result.count,
+      }
+    }),
+
+  getPushInteractionPreferences: protectedProcedure
+    .input(getPushInteractionPreferencesInputSchema)
+    .query(async ({ ctx, input }) => {
+      const membership = await requireFamilyMembership(
+        input.familyId,
+        ctx.session.user.id,
+        ctx.db,
+      )
+
+      const existingPreferences = await ctx.db.notificationPreference.findMany({
+        where: {
+          familyId: input.familyId,
+          memberId: membership.id,
+          channel: "PUSH",
+          eventType: { in: [...pushEventTypeValues] },
+        },
+        select: {
+          eventType: true,
+          isEnabled: true,
+        },
+      })
+
+      const enabledByEventType = new Map(
+        existingPreferences.map((preference) => [
+          preference.eventType as PushEventType,
+          preference.isEnabled,
+        ]),
+      )
+
+      return {
+        preferences: pushEventTypeValues.map((eventType) => ({
+          eventType,
+          category: pushInteractionMetadata[eventType].category,
+          label: pushInteractionMetadata[eventType].label,
+          isEnabled: enabledByEventType.get(eventType) ?? true,
+        })),
+      }
+    }),
+
+  updatePushInteractionPreferences: protectedProcedure
+    .input(updatePushInteractionPreferencesInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const membership = await requireFamilyMembership(
+        input.familyId,
+        ctx.session.user.id,
+        ctx.db,
+      )
+
+      const latestByEventType = new Map<PushEventType, boolean>()
+      for (const preference of input.preferences) {
+        latestByEventType.set(preference.eventType, preference.isEnabled)
+      }
+
+      const updates = [...latestByEventType.entries()].map(([eventType, isEnabled]) =>
+        ctx.db.notificationPreference.upsert({
+          where: {
+            familyId_memberId_channel_eventType: {
+              familyId: input.familyId,
+              memberId: membership.id,
+              channel: "PUSH",
+              eventType,
+            },
+          },
+          create: {
+            familyId: input.familyId,
+            memberId: membership.id,
+            channel: "PUSH",
+            category: pushInteractionMetadata[eventType].category,
+            eventType,
+            isEnabled,
+          },
+          update: {
+            category: pushInteractionMetadata[eventType].category,
+            isEnabled,
+          },
+          select: {
+            eventType: true,
+            isEnabled: true,
+          },
+        }),
+      )
+
+      const updated = await ctx.db.$transaction(updates)
+
+      return {
+        updatedCount: updated.length,
+      }
+    }),
+
   getUnreadCount: protectedProcedure
     .input(unreadCountInputSchema)
     .query(async ({ ctx, input }) => {

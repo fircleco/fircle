@@ -130,21 +130,21 @@ Out of scope for this PRD:
 
 #### Tasks
 
-- [ ] Add protected tRPC procedures in [src/server/api/routers/notification.ts](src/server/api/routers/notification.ts) (or dedicated push router) for:
-  - [ ] `getPushSubscriptionState(familyId)`
-  - [ ] `subscribePush(familyId, subscriptionPayload)`
-  - [ ] `unsubscribePush(familyId, endpoint)`
-  - [ ] `getPushInteractionPreferences(familyId)`
-  - [ ] `updatePushInteractionPreferences(familyId, preferences)`
-- [ ] Register any new router surface in [src/server/api/root.ts](src/server/api/root.ts).
-- [ ] Add dedicated notifications settings page UI in [src/app/(app)/settings/notifications/page.tsx](src/app/(app)/settings/notifications/page.tsx):
-  - [ ] capability checks (`Notification`, `serviceWorker`, `PushManager`),
-  - [ ] permission status display,
-  - [ ] enable/disable subscription actions,
-  - [ ] interaction-level preference controls (mentions, tags, comments, likes, and any additional supported interactions),
-  - [ ] success and recovery messaging for denied permissions.
-- [ ] Add notifications settings route entry in [src/app/(app)/settings/layout.tsx](src/app/(app)/settings/layout.tsx) so the page is discoverable in settings navigation.
-- [ ] Add client helper/hook for PushManager registration and VAPID key usage under [src/lib](src/lib) or [src/components/notifications](src/components/notifications).
+- [x] Add protected tRPC procedures in [src/server/api/routers/notification.ts](src/server/api/routers/notification.ts) (or dedicated push router) for:
+  - [x] `getPushSubscriptionState(familyId)`
+  - [x] `subscribePush(familyId, subscriptionPayload)`
+  - [x] `unsubscribePush(familyId, endpoint)`
+  - [x] `getPushInteractionPreferences(familyId)`
+  - [x] `updatePushInteractionPreferences(familyId, preferences)`
+- [x] Register any new router surface in [src/server/api/root.ts](src/server/api/root.ts).
+- [x] Add dedicated notifications settings page UI in [src/app/(app)/settings/notifications/page.tsx](src/app/(app)/settings/notifications/page.tsx):
+  - [x] capability checks (`Notification`, `serviceWorker`, `PushManager`),
+  - [x] permission status display,
+  - [x] enable/disable subscription actions,
+  - [x] interaction-level preference controls (mentions, tags, comments, likes, and any additional supported interactions),
+  - [x] success and recovery messaging for denied permissions.
+- [x] Add notifications settings route entry in [src/app/(app)/settings/layout.tsx](src/app/(app)/settings/layout.tsx) so the page is discoverable in settings navigation.
+- [x] Add client helper/hook for PushManager registration and VAPID key usage under [src/lib](src/lib) or [src/components/notifications](src/components/notifications).
 
 ### Phase 5: PWA Minimum Viable Installability for Push UX
 

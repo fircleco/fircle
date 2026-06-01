@@ -12,6 +12,7 @@ import { api } from "~/trpc/react";
 
 const settingsNav = [
   { href: "/settings", label: "Account", adminOnly: false },
+  { href: "/settings/notifications", label: "Notifications", adminOnly: false },
   { href: "/settings/family", label: "Family Settings", adminOnly: true },
   { href: "/settings/invites", label: "Invites", adminOnly: true },
   { href: "/settings/roles", label: "Roles", adminOnly: true },
