@@ -11,6 +11,9 @@ references:
   - type: prd
     url: .project/prds/018-transactional-email-adapter-and-zeptomail-invite-claim/prd.md
     description: "Channel delivery architecture direction and graceful failure handling conventions"
+  - type: pr
+    url: https://github.com/babblebey/fircle/pull/32
+    description: "Implementation pull request - feat: Web Push and PWA Foundation"
 ---
 
 > **Instructions for AI Agents:**

@@ -59,7 +59,7 @@ Open-source MVP focused on becoming functional quickly for one family instance, 
 ### Active Focus (Phase 2)
 - [x] Notifications platform foundation
 - [x] Transactional email notifications
-- [ ] Push notifications (web push)
+- [x] Push notifications (web push)
 - [ ] PWA enablement for reliable install and push UX
 
 ## Roadmap
