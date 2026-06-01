@@ -184,17 +184,17 @@ Out of scope for this PRD:
 
 ## Acceptance Criteria
 
-- [ ] Push subscription records are persisted with member/family ownership and can be removed cleanly.
-- [ ] Authenticated users can enable and disable browser push from a dedicated notifications settings page.
-- [ ] Authenticated users can configure interaction-level push preferences (mentions, tags, comments, likes, and supported event types) from notifications settings.
-- [ ] Notification-producing flows attempt push delivery immediately after notification creation.
-- [ ] Push delivery is suppressed for interaction types the member has disabled and logged as skipped.
-- [ ] Push payloads render user-visible notifications with meaningful title/body content.
-- [ ] Clicking push notifications opens or focuses the app and navigates to the appropriate destination context.
-- [ ] Delivery logs reflect push attempt outcomes with clear status transitions.
-- [ ] Invalid/expired subscriptions are cleaned up automatically after terminal provider errors.
+- [x] Push subscription records are persisted with member/family ownership and can be removed cleanly.
+- [x] Authenticated users can enable and disable browser push from a dedicated notifications settings page.
+- [x] Authenticated users can configure interaction-level push preferences (mentions, tags, comments, likes, and supported event types) from notifications settings.
+- [x] Notification-producing flows attempt push delivery immediately after notification creation.
+- [x] Push delivery is suppressed for interaction types the member has disabled and logged as skipped.
+- [x] Push payloads render user-visible notifications with meaningful title/body content.
+- [x] Clicking push notifications opens or focuses the app and navigates to the appropriate destination context.
+- [x] Delivery logs reflect push attempt outcomes with clear status transitions.
+- [x] Invalid/expired subscriptions are cleaned up automatically after terminal provider errors.
 - [ ] PWA manifest and service worker registration are present and working in supported browsers.
-- [ ] Existing in-app notification list/unread badge behavior remains functional.
+- [x] Existing in-app notification list/unread badge behavior remains functional.
 - [ ] Lint/typecheck/targeted tests for modified areas pass.
 
 ## Further Considerations
