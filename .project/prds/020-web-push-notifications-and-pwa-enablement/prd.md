@@ -202,3 +202,72 @@ Out of scope for this PRD:
 - Add a background retry worker in a follow-up PRD for guaranteed delivery semantics under transient failures.
 - Expand from current-member-first rollout to all eligible claimed recipients once operational confidence is established.
 - Expand settings UX in a follow-up to support cross-channel preferences (push/email/in-app) in one unified notification preferences screen.
+
+## Follow-up: Full PWA Maturity Scope
+
+The current PRD intentionally targets minimum installable PWA requirements needed for reliable web push UX. The items below define the follow-up scope required to reach full PWA maturity.
+
+### Full PWA Objectives
+
+- Deliver resilient offline-first behavior for core read surfaces and graceful offline handling for write flows.
+- Provide predictable service worker update lifecycle with explicit user-facing refresh controls.
+- Add install and runtime telemetry so product decisions are based on actual adoption and reliability data.
+- Set quality bars (performance, accessibility, and PWA audits) and enforce them in CI.
+
+### Follow-up Workstreams
+
+#### Workstream 1: Offline Runtime Strategy
+
+- Define caching policy by surface:
+  - App shell and static assets (precache).
+  - Route-level/document caching for key read pages.
+  - API/runtime caching rules by endpoint criticality.
+  - Media caching limits and eviction behavior.
+- Add offline fallback experiences:
+  - Route fallback page for offline navigation failures.
+  - Component-level empty/degraded states for failed fetches.
+  - Retry affordances when connectivity returns.
+- Add data freshness controls (stale-while-revalidate, max-age, cache invalidation hooks).
+
+#### Workstream 2: Background Sync and Write Resilience
+
+- Introduce queued write handling for selected actions when offline (outbox pattern).
+- Implement sync/retry orchestration when connectivity resumes.
+- Prevent duplicate writes through idempotency keys and client/server reconciliation.
+
+#### Workstream 3: Service Worker Lifecycle and Safety
+
+- Add explicit update lifecycle UX:
+  - Detect waiting service worker.
+  - Prompt user to refresh for latest version.
+  - Safe activation flow to avoid abrupt data-loss moments.
+- Add rollback/kill-switch strategy for service worker incidents.
+- Add version tagging and structured runtime logs for diagnostics.
+
+#### Workstream 4: Installability and Manifest Polish
+
+- Expand manifest quality:
+  - maskable icons,
+  - screenshots,
+  - shortcuts,
+  - richer metadata for platform install prompts.
+- Add in-app install guidance UX for platforms with weaker native prompts.
+- Validate install flow behavior across desktop, Android, and iOS home-screen contexts.
+
+#### Workstream 5: Performance, Accessibility, and Observability
+
+- Establish Lighthouse thresholds for PWA/performance/accessibility and run in CI.
+- Track PWA funnel and reliability metrics:
+  - install prompt shown/accepted,
+  - push permission conversion,
+  - push delivery/open click-through,
+  - service worker error rates and update success.
+- Add alerting/monitoring on service worker and push delivery regressions.
+
+### Exit Criteria for Full PWA Follow-up
+
+- Core read paths remain usable with meaningful offline fallback behavior.
+- Selected critical writes are recoverable after temporary offline periods.
+- Service worker updates are transparent, user-safe, and operationally observable.
+- Install experience is polished and validated on target platforms.
+- CI enforces defined performance/accessibility/PWA quality bars.
