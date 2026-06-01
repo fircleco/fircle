@@ -167,15 +167,15 @@ Out of scope for this PRD:
 
 #### Tasks
 
-- [ ] Extend router tests in [test/server/api/routers/notification.test.ts](test/server/api/routers/notification.test.ts) for subscribe/unsubscribe and membership scoping.
-- [ ] Extend router tests in [test/server/api/routers/notification.test.ts](test/server/api/routers/notification.test.ts) for interaction preference read/update behavior and authorization boundaries.
-- [ ] Add or extend producer tests to verify push dispatch hooks and delivery-log behavior:
-  - [ ] [test/server/api/routers/post.test.ts](test/server/api/routers/post.test.ts)
-  - [ ] [test/server/api/routers/tag.test.ts](test/server/api/routers/tag.test.ts)
-  - [ ] [test/server/api/routers/invite.test.ts](test/server/api/routers/invite.test.ts)
-- [ ] Add filtering tests confirming disabled interaction types produce `SKIPPED` push logs and do not call push send.
-- [ ] Add unit coverage for push provider error mapping and invalid endpoint cleanup.
-- [ ] Run `pnpm check` and relevant targeted test suites.
+- [x] Extend router tests in [test/server/api/routers/notification.test.ts](test/server/api/routers/notification.test.ts) for subscribe/unsubscribe and membership scoping.
+- [x] Extend router tests in [test/server/api/routers/notification.test.ts](test/server/api/routers/notification.test.ts) for interaction preference read/update behavior and authorization boundaries.
+- [x] Add or extend producer tests to verify push dispatch hooks and delivery-log behavior:
+  - [x] [test/server/api/routers/post.test.ts](test/server/api/routers/post.test.ts)
+  - [x] [test/server/api/routers/tag.test.ts](test/server/api/routers/tag.test.ts)
+  - [x] [test/server/api/routers/invite.test.ts](test/server/api/routers/invite.test.ts)
+- [x] Add filtering tests confirming disabled interaction types produce `SKIPPED` push logs and do not call push send.
+- [x] Add unit coverage for push provider error mapping and invalid endpoint cleanup.
+- [x] Run `pnpm check` and relevant targeted test suites.
 - [ ] Execute manual QA scenarios:
   - [ ] permission states (`default`, `granted`, `denied`),
   - [ ] subscribe/unsubscribe lifecycle,

@@ -9,7 +9,8 @@ vi.mock("~/server/db", () => ({
 }));
 
 vi.mock("~/server/notifications", () => ({
-  createNotifications: vi.fn().mockResolvedValue(undefined),
+  createNotifications: vi.fn().mockResolvedValue([]),
+  dispatchPushForNotifications: vi.fn().mockResolvedValue(undefined),
   getClaimedAdminMemberIds: vi.fn().mockResolvedValue(["clh0000000000000000000302"]),
   getClaimedMemberIds: vi.fn().mockResolvedValue([]),
 }));
@@ -31,7 +32,13 @@ import {
   getEmailProvider,
   resolveAppBaseUrlFromHeaders,
 } from "~/server/email";
-import { createNotifications, getClaimedAdminMemberIds } from "~/server/notifications";
+import {
+  createNotifications,
+  dispatchPushForNotifications,
+  getClaimedAdminMemberIds,
+} from "~/server/notifications";
+
+const dispatchPushForNotificationsMock = vi.mocked(dispatchPushForNotifications);
 
 function createCaller(db: unknown, userId = "user-1") {
   return inviteRouter.createCaller({
@@ -106,6 +113,7 @@ describe("inviteRouter notification producers", () => {
         }),
       ],
     );
+    expect(dispatchPushForNotificationsMock).toHaveBeenCalledWith([]);
   });
 
   it("sends invite-created email for EMAIL_BOUND invites when provider is configured", async () => {

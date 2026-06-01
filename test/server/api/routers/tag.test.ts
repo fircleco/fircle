@@ -9,7 +9,8 @@ vi.mock("~/server/db", () => ({
 }));
 
 vi.mock("~/server/notifications", () => ({
-  createNotifications: vi.fn().mockResolvedValue(undefined),
+  createNotifications: vi.fn().mockResolvedValue([]),
+  dispatchPushForNotifications: vi.fn().mockResolvedValue(undefined),
   getClaimedMemberIds: vi
     .fn()
     .mockImplementation(async (_tx: unknown, _familyId: string, memberIds: string[]) => memberIds),
@@ -17,9 +18,10 @@ vi.mock("~/server/notifications", () => ({
 }));
 
 import { tagRouter } from "~/server/api/routers/tag";
-import { createNotifications } from "~/server/notifications";
+import { createNotifications, dispatchPushForNotifications } from "~/server/notifications";
 
 const createNotificationsMock = vi.mocked(createNotifications);
+const dispatchPushForNotificationsMock = vi.mocked(dispatchPushForNotifications);
 
 function createCaller(db: unknown, userId = "user-1") {
   return tagRouter.createCaller({
@@ -212,6 +214,7 @@ describe("tagRouter", () => {
         }),
       ],
     );
+    expect(dispatchPushForNotificationsMock).toHaveBeenCalledWith([]);
   });
 
   it("allows a family admin to create a video tag on another member's post", async () => {

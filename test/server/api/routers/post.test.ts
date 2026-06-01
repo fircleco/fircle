@@ -18,7 +18,8 @@ vi.mock("~/server/storage", () => ({
 }));
 
 vi.mock("~/server/notifications", () => ({
-  createNotifications: vi.fn().mockResolvedValue(undefined),
+  createNotifications: vi.fn().mockResolvedValue([]),
+  dispatchPushForNotifications: vi.fn().mockResolvedValue(undefined),
   getClaimedMemberIds: vi
     .fn()
     .mockImplementation(async (_tx: unknown, _familyId: string, memberIds: string[]) => memberIds),
@@ -26,9 +27,10 @@ vi.mock("~/server/notifications", () => ({
 }));
 
 import { createPostInputSchema, postRouter } from "~/server/api/routers/post";
-import { createNotifications } from "~/server/notifications";
+import { createNotifications, dispatchPushForNotifications } from "~/server/notifications";
 
 const createNotificationsMock = vi.mocked(createNotifications);
+const dispatchPushForNotificationsMock = vi.mocked(dispatchPushForNotifications);
 
 describe("createPostInputSchema", () => {
   it("rejects text posts with media", () => {
@@ -418,6 +420,7 @@ describe("postRouter.create", () => {
         }),
       ]),
     );
+    expect(dispatchPushForNotificationsMock).toHaveBeenCalledWith([]);
   });
 
   it("rejects post mentions for members outside the family", async () => {
