@@ -106,8 +106,8 @@ Out of scope for this PRD:
 
 #### Tasks
 
-- [ ] Add/update automated tests for service worker-adjacent routing logic where practical (payload URL mapping and fallback behavior).
-- [ ] Run `pnpm check` and targeted test suites for modified areas.
+- [x] Add/update automated tests for service worker-adjacent routing logic where practical (payload URL mapping and fallback behavior).
+- [x] Run `pnpm check` and targeted test suites for modified areas.
 - [ ] Perform manual Android validation on Chrome:
   - [ ] install from browser,
   - [ ] verify launcher icon quality and app launch behavior,
@@ -118,19 +118,19 @@ Out of scope for this PRD:
   - [ ] installed icon/title rendering is acceptable,
   - [ ] app launches in expected standalone/fullscreen shell behavior,
   - [ ] core navigation remains functional after install.
-- [ ] Update [README.md](README.md) with WebAPK-only verification/troubleshooting notes and known caveats.
+- [x] Update [README.md](README.md) with WebAPK-only verification/troubleshooting notes and known caveats.
 
 ## Acceptance Criteria
 
-- [ ] Manifest contains a stable `id` and WebAPK-relevant metadata (maskable icon entries, screenshots, shortcuts) with valid asset references.
-- [ ] Required image assets for maskable icons and screenshots exist and load correctly from manifest URLs.
+- [x] Manifest contains a stable `id` and WebAPK-relevant metadata (maskable icon entries, screenshots, shortcuts) with valid asset references.
+- [x] Required image assets for maskable icons and screenshots exist and load correctly from manifest URLs.
 - [ ] Installed Android experience shows expected app identity and launcher quality (no generic/broken icon behavior).
 - [ ] iOS Safari Add-to-Home-Screen baseline behavior is documented and manually validated (icon/title/shell launch behavior acceptable).
-- [ ] Service worker click routing opens/focuses the app and navigates to valid in-app targets from push notifications.
-- [ ] Minimal offline navigation fallback works for top-level app navigation after an initial online load.
-- [ ] Existing push subscription and notification delivery flows remain functional after changes.
-- [ ] README documents WebAPK validation steps, including Android device checks and `about://webapks` inspection.
-- [ ] Lint/typecheck/tests for touched areas pass.
+- [x] Service worker click routing opens/focuses the app and navigates to valid in-app targets from push notifications.
+- [x] Minimal offline navigation fallback works for top-level app navigation after an initial online load.
+- [x] Existing push subscription and notification delivery flows remain functional after changes.
+- [x] README documents WebAPK validation steps, including Android device checks and `about://webapks` inspection.
+- [x] Lint/typecheck/tests for touched areas pass.
 
 ## Further Considerations
 

@@ -150,6 +150,41 @@ pnpm dev
 
 Open http://localhost:3000.
 
+## PWA and WebAPK Verification
+
+Fircle uses a WebAPK-first PWA approach for Android Chrome installs, with iOS Safari Add to Home Screen baseline support.
+
+### Local verification checklist
+
+1. Start the app with `pnpm dev` and open `http://localhost:3000`.
+2. Open DevTools > Application:
+	- verify `manifest.json` is detected,
+	- verify service worker `/sw.js` is active and controlling the page,
+	- verify app icons and screenshots resolve.
+3. In notification settings, enable push and verify browser permission flow and subscription success.
+4. Trigger a notification-producing event and verify push click-through routing opens expected in-app context.
+
+### Android (WebAPK) validation
+
+1. Open Fircle in Chrome on Android.
+2. Install from browser menu (or install prompt).
+3. Verify launcher icon quality and app launch behavior.
+4. Validate push click-through while app is installed.
+5. Inspect `about://webapks` in Chrome for generated WebAPK details.
+
+### iOS baseline validation
+
+1. Open Fircle in Safari on iOS.
+2. Use Share > Add to Home Screen.
+3. Verify icon/title rendering and standalone launch behavior.
+4. Verify core navigation remains functional after install.
+
+### Troubleshooting notes
+
+- If push subscription fails in VS Code integrated browser, test in regular Chrome or Edge.
+- If service worker updates do not apply, reload once after registration update.
+- If install visuals look stale, clear site data and reinstall.
+
 ## Available Scripts
 
 - `pnpm dev` - Start development server

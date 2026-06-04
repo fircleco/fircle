@@ -188,6 +188,16 @@ function onNotificationClick(event) {
   );
 }
 
+if (typeof process !== "undefined" && process.env?.NODE_ENV === "test") {
+  sw.__fircleSwTestExports = {
+    DEFAULT_NOTIFICATION_URL,
+    NAVIGATION_FALLBACK_URL,
+    getPayloadTargetUrl,
+    toAbsoluteUrl,
+    onFetch,
+  };
+}
+
 sw.addEventListener("install", onInstall);
 sw.addEventListener("activate", onActivate);
 sw.addEventListener("message", onMessage);
