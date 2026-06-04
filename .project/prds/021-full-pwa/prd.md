@@ -112,7 +112,7 @@ Out of scope for this PRD:
 - [ ] Perform manual Android validation on Chrome:
   - [x] install from browser,
   - [x] verify launcher icon quality and app launch behavior,
-  - [ ] verify push click-through in installed context,
+  - [x] verify push click-through in installed context,
   - [x] verify WebAPK listing/details via `about://webapks`.
 - [x] Perform manual iOS baseline validation on Safari:
   - [x] Add to Home Screen flow is available and usable,
