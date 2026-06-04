@@ -1,6 +1,6 @@
 ---
 title: "Full PWA: WebAPK-First Installability with iOS Baseline Readiness"
-status: draft
+status: in-progress
 references:
   - type: doc
     url: .project/brief.md
@@ -70,11 +70,11 @@ Out of scope for this PRD:
 
 #### Tasks
 
-- [ ] Update [public/manifest.json](public/manifest.json) to include a stable `id` and preserve consistent `start_url`/`scope` semantics.
-- [ ] Add/confirm `display_override` ordering and orientation/category metadata for install prompt quality.
-- [ ] Expand icon entries for Android install quality, including explicit maskable purpose metadata.
-- [ ] Add screenshots metadata entries (narrow and wide) for richer install surfaces.
-- [ ] Add app `shortcuts` entries for high-value actions (for example notifications and new post composer entry points).
+- [x] Update [public/manifest.json](public/manifest.json) to include a stable `id` and preserve consistent `start_url`/`scope` semantics.
+- [x] Add/confirm `display_override` ordering and orientation/category metadata for install prompt quality.
+- [x] Expand icon entries for Android install quality, including explicit maskable purpose metadata.
+- [x] Add screenshots metadata entries (narrow and wide) for richer install surfaces.
+- [x] Add app `shortcuts` entries for high-value actions (for example notifications and new post composer entry points).
 
 ### Phase 2: Assets for Android Launcher and Prompt Quality
 

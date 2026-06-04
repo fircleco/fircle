@@ -2,13 +2,44 @@
   "id": "/",
   "name": "Fircle",
   "short_name": "Fircle",
+  "description": "Family-first social network focused on private sharing and memory preservation.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui", "browser"],
+  "orientation": "portrait-primary",
+  "categories": ["social", "lifestyle"],
   "background_color": "#0f172a",
   "theme_color": "#0f172a",
   "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Notifications",
+      "short_name": "Alerts",
+      "description": "View recent family activity and mentions",
+      "url": "/notifications",
+      "icons": [
+        {
+          "src": "/icon.png",
+          "sizes": "512x512",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Push Settings",
+      "short_name": "Push",
+      "description": "Manage browser push notification preferences",
+      "url": "/settings/notifications",
+      "icons": [
+        {
+          "src": "/icon.png",
+          "sizes": "512x512",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
   "icons": [
     {
       "src": "/icon.png",
@@ -17,9 +48,29 @@
       "purpose": "any"
     },
     {
+      "src": "/icon-maskable.png",
+      "sizes": "1028x1028",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
       "src": "/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/app-home-narrow.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "/screenshots/app-home-wide.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide"
     }
   ]
 }
