@@ -94,11 +94,11 @@ Out of scope for this PRD:
 
 #### Tasks
 
-- [ ] Update [src/app/layout.tsx](src/app/layout.tsx) with explicit App Router `viewport` export and mobile-web-app metadata needed for predictable install behavior on Android and iOS.
-- [ ] Ensure [src/components/pwa/pwa-registration.tsx](src/components/pwa/pwa-registration.tsx) registration behavior aligns with service worker update expectations.
-- [ ] Harden [public/sw.js](public/sw.js) push payload parsing so both legacy and current payload URL shapes route correctly.
-- [ ] Add minimal navigation offline fallback logic in [public/sw.js](public/sw.js) for installed-app baseline resilience.
-- [ ] Ensure notification click handling safely focuses existing client windows and navigates to same-origin targets.
+- [x] Update [src/app/layout.tsx](src/app/layout.tsx) with explicit App Router `viewport` export and mobile-web-app metadata needed for predictable install behavior on Android and iOS.
+- [x] Ensure [src/components/pwa/pwa-registration.tsx](src/components/pwa/pwa-registration.tsx) registration behavior aligns with service worker update expectations.
+- [x] Harden [public/sw.js](public/sw.js) push payload parsing so both legacy and current payload URL shapes route correctly.
+- [x] Add minimal navigation offline fallback logic in [public/sw.js](public/sw.js) for installed-app baseline resilience.
+- [x] Ensure notification click handling safely focuses existing client windows and navigates to same-origin targets.
 
 ### Phase 4: QA, Documentation, and Release Guardrails
 
