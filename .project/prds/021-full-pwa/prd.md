@@ -82,11 +82,11 @@ Out of scope for this PRD:
 
 #### Tasks
 
-- [ ] Add maskable-ready icon asset(s) under [public](public) and wire them in manifest.
-- [ ] Add screenshot assets under [public](public) matching manifest `screenshots` metadata.
-- [ ] Add/validate iOS home-screen icon asset(s) under [public](public) and wire metadata references from app layout.
-- [ ] Validate icon and badge paths used by push notifications to avoid broken image references in installed context.
-- [ ] Confirm favicon/icon consistency so Android launcher, splash, and notification visuals are coherent.
+- [x] Add maskable-ready icon asset(s) under [public](public) and wire them in manifest.
+- [x] Add screenshot assets under [public](public) matching manifest `screenshots` metadata.
+- [x] Add/validate iOS home-screen icon asset(s) under [public](public) and wire metadata references from app layout.
+- [x] Validate icon and badge paths used by push notifications to avoid broken image references in installed context.
+- [x] Confirm favicon/icon consistency so Android launcher, splash, and notification visuals are coherent.
 
 ### Phase 3: App Metadata and Service Worker Hardening
 
