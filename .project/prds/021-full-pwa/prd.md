@@ -109,22 +109,22 @@ Out of scope for this PRD:
 - [x] Add/update automated tests for service worker-adjacent routing logic where practical (payload URL mapping and fallback behavior).
 - [x] Run `pnpm check` and targeted test suites for modified areas.
 - [ ] Perform manual Android validation on Chrome:
-  - [ ] install from browser,
-  - [ ] verify launcher icon quality and app launch behavior,
+  - [x] install from browser,
+  - [x] verify launcher icon quality and app launch behavior,
   - [ ] verify push click-through in installed context,
-  - [ ] verify WebAPK listing/details via `about://webapks`.
-- [ ] Perform manual iOS baseline validation on Safari:
-  - [ ] Add to Home Screen flow is available and usable,
-  - [ ] installed icon/title rendering is acceptable,
-  - [ ] app launches in expected standalone/fullscreen shell behavior,
-  - [ ] core navigation remains functional after install.
+  - [x] verify WebAPK listing/details via `about://webapks`.
+- [x] Perform manual iOS baseline validation on Safari:
+  - [x] Add to Home Screen flow is available and usable,
+  - [x] installed icon/title rendering is acceptable,
+  - [x] app launches in expected standalone/fullscreen shell behavior,
+  - [x] core navigation remains functional after install.
 - [x] Update [README.md](README.md) with WebAPK-only verification/troubleshooting notes and known caveats.
 
 ## Acceptance Criteria
 
 - [x] Manifest contains a stable `id` and WebAPK-relevant metadata (maskable icon entries, screenshots, shortcuts) with valid asset references.
 - [x] Required image assets for maskable icons and screenshots exist and load correctly from manifest URLs.
-- [ ] Installed Android experience shows expected app identity and launcher quality (no generic/broken icon behavior).
+- [x] Installed Android experience shows expected app identity and launcher quality (no generic/broken icon behavior).
 - [ ] iOS Safari Add-to-Home-Screen baseline behavior is documented and manually validated (icon/title/shell launch behavior acceptable).
 - [x] Service worker click routing opens/focuses the app and navigates to valid in-app targets from push notifications.
 - [x] Minimal offline navigation fallback works for top-level app navigation after an initial online load.
