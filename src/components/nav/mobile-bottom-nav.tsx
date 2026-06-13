@@ -64,8 +64,8 @@ export function MobileBottomNav({ currentUser }: MobileBottomNavProps) {
   const profileImage = memberQuery.data?.image ?? currentUser?.image ?? undefined;
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background md:hidden">
-      <ul className="mx-auto flex h-14 max-w-screen-sm items-center justify-around px-2 pb-[max(env(safe-area-inset-bottom),0px)]">
+    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background px-safe md:hidden">
+      <ul className="mx-auto flex h-[calc(3.5rem+var(--safe-area-inset-bottom))] max-w-screen-sm items-center justify-around px-2 pb-safe">
         {items.map((item) => {
           const active = item.action === "composer" ? false : isActivePath(pathname, item.href);
           const Icon = item.icon;

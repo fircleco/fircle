@@ -24,11 +24,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <GlobalComposerProvider>
       <MembershipGuard>
         <PushPermissionRequest />
-        <div className="flex min-h-dvh">
+        <div className="flex min-h-dvh bg-background">
           <DesktopSidebar />
           <div className="flex min-w-0 flex-1 flex-col md:pl-72">
             <MobileHeader />
-            <main className="flex-1 overflow-y-auto pb-16 md:pb-0">{children}</main>
+            <main className="flex-1 overflow-y-auto pb-[calc(4rem+var(--safe-area-inset-bottom))] md:pb-0">
+              {children}
+            </main>
             <MobileBottomNav currentUser={{ name: session.user.name, image: session.user.image }} />
           </div>
         </div>

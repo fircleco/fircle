@@ -35,6 +35,7 @@ In scope for this PRD:
 - Improve manifest completeness for Android install quality (stable app identity, icon metadata, screenshots, shortcuts).
 - Add/adjust assets required for polished launcher/splash/notification visuals.
 - Harden app metadata and service worker behavior for reliable installed-app launch, navigation fallback, and push click-through routing.
+- Add safe-area-aware mobile shell spacing so iPhone notch and home-indicator regions do not overlap app chrome in browser or installed contexts.
 - Add QA and docs for Android WebAPK verification workflow.
 - Add iOS baseline installability checks and metadata guidance (Safari Add to Home Screen behavior, icon readiness, and mobile-web-app metadata sanity).
 - Request notification permission proactively at login so users are opted in early without needing to visit settings.
@@ -53,6 +54,7 @@ Out of scope for this PRD:
 - **Minimum offline reliability, not offline-first**: Add safe navigation fallback behavior only, avoiding broad runtime caching complexity in this phase.
 - **Android-first install polish**: Prioritize maskable icons, screenshot metadata, and shortcut entries that improve Android install prompt and launcher quality.
 - **WebAPK-first, iOS-compatible baseline**: Prioritize Android WebAPK quality while ensuring iOS Add-to-Home-Screen flows are not degraded and have explicit metadata support.
+- **Shell-level safe areas over per-screen patches**: Handle iOS safe-area insets in the shared mobile app shell so the header, main content, bottom navigation, and slide-out menu all respect notch and home-indicator boundaries consistently.
 - **No TWA coupling**: Keep this PRD independent from Play Store concerns so delivery remains fast and low-risk.
 
 ### User Stories
@@ -62,6 +64,7 @@ Out of scope for this PRD:
 - **As a** family member, **I want** push notification taps from the installed app context to open relevant content consistently, **so that** I can respond quickly without broken navigation.
 - **As a** maintainer, **I want** a repeatable WebAPK verification checklist, **so that** Android install regressions are caught before release.
 - **As an** iOS user, **I want** home-screen install to launch cleanly with correct app visuals and shell behavior, **so that** the app remains dependable on Safari even without WebAPK.
+- **As an** iPhone user, **I want** the app header and bottom navigation to stay clear of the notch and home indicator, **so that** installed and in-browser usage feels native instead of cramped or broken.
 
 ## Implementation Plan
 
@@ -96,6 +99,7 @@ Out of scope for this PRD:
 #### Tasks
 
 - [x] Update [src/app/layout.tsx](src/app/layout.tsx) with explicit App Router `viewport` export and mobile-web-app metadata needed for predictable install behavior on Android and iOS.
+- [x] Add shared safe-area inset handling in the mobile app shell so [src/app/(app)/layout.tsx](src/app/(app)/layout.tsx), [src/components/nav/mobile-header.tsx](src/components/nav/mobile-header.tsx), and [src/components/nav/mobile-bottom-nav.tsx](src/components/nav/mobile-bottom-nav.tsx) reserve notch and home-indicator space consistently.
 - [x] Ensure [src/components/pwa/pwa-registration.tsx](src/components/pwa/pwa-registration.tsx) registration behavior aligns with service worker update expectations.
 - [x] Harden [public/sw.js](public/sw.js) push payload parsing so both legacy and current payload URL shapes route correctly.
 - [x] Add minimal navigation offline fallback logic in [public/sw.js](public/sw.js) for installed-app baseline resilience.
@@ -109,7 +113,7 @@ Out of scope for this PRD:
 
 - [x] Add/update automated tests for service worker-adjacent routing logic where practical (payload URL mapping and fallback behavior).
 - [x] Run `pnpm check` and targeted test suites for modified areas.
-- [ ] Perform manual Android validation on Chrome:
+- [x] Perform manual Android validation on Chrome:
   - [x] install from browser,
   - [x] verify launcher icon quality and app launch behavior,
   - [x] verify push click-through in installed context,
@@ -118,6 +122,7 @@ Out of scope for this PRD:
   - [x] Add to Home Screen flow is available and usable,
   - [x] installed icon/title rendering is acceptable,
   - [x] app launches in expected standalone/fullscreen shell behavior,
+  - [x] top and bottom app chrome respect safe areas on notched iPhone devices,
   - [x] core navigation remains functional after install.
 - [x] Update [README.md](README.md) with WebAPK-only verification/troubleshooting notes and known caveats.
 
@@ -138,7 +143,8 @@ Out of scope for this PRD:
 - [x] Manifest contains a stable `id` and WebAPK-relevant metadata (maskable icon entries, screenshots, shortcuts) with valid asset references.
 - [x] Required image assets for maskable icons and screenshots exist and load correctly from manifest URLs.
 - [x] Installed Android experience shows expected app identity and launcher quality (no generic/broken icon behavior).
-- [ ] iOS Safari Add-to-Home-Screen baseline behavior is documented and manually validated (icon/title/shell launch behavior acceptable).
+- [x] iOS Safari Add-to-Home-Screen baseline behavior is documented and manually validated (icon/title/shell launch behavior acceptable).
+- [x] Shared mobile shell respects iPhone safe areas so the header, navigation, and drawer content do not overlap the notch or home indicator.
 - [x] Service worker click routing opens/focuses the app and navigates to valid in-app targets from push notifications.
 - [x] Minimal offline navigation fallback works for top-level app navigation after an initial online load.
 - [x] Existing push subscription and notification delivery flows remain functional after changes.
