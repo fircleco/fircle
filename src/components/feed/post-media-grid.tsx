@@ -1,6 +1,7 @@
 import Image from "next/image";
 
 import { PlayCircle } from "~/components/ui/icons";
+import { getVideoThumbnailSrc } from "~/lib/video-thumbnail";
 
 type PostMediaGridItem = {
   id: string;
@@ -69,6 +70,7 @@ export function PostMediaGrid({ items, onItemClick }: PostMediaGridProps) {
         const tileRadiusClass = getTileRadiusClass(visibleItems.length, index);
         const isVideo = item.type === "video";
         const isOverflowTile = overflowCount > 0 && index === visibleItems.length - 1;
+        const videoThumbnailSrc = isVideo ? getVideoThumbnailSrc(item.url) : item.url;
         const overlayTitle = item.alt && item.alt !== item.caption ? item.alt : "";
         const mediaAriaLabel = item.alt ?? item.caption ?? "Post media";
         const hasOverlayText = Boolean(overlayTitle ?? item.caption);
@@ -84,7 +86,7 @@ export function PostMediaGrid({ items, onItemClick }: PostMediaGridProps) {
             <div className={`relative ${tileAspectClass}`}>
               {isVideo ? (
                 <video
-                  src={item.url}
+                  src={videoThumbnailSrc}
                   muted
                   playsInline
                   preload="metadata"

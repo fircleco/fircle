@@ -1,4 +1,5 @@
 import { PlayCircle } from "~/components/ui/icons";
+import { getVideoThumbnailSrc } from "~/lib/video-thumbnail";
 
 type PostVideoCardProps = {
   title?: string;
@@ -9,6 +10,7 @@ type PostVideoCardProps = {
 };
 
 export function PostVideoCard({ title, caption, url, durationLabel, onClick }: PostVideoCardProps) {
+  const videoThumbnailSrc = getVideoThumbnailSrc(url);
   const overlayTitle = title && title !== caption ? title : undefined;
   const ariaLabel = title ?? caption ?? "Post video";
   const hasOverlayText = Boolean(overlayTitle ?? caption);
@@ -20,7 +22,7 @@ export function PostVideoCard({ title, caption, url, durationLabel, onClick }: P
     >
       <div className="relative aspect-video">
         <video
-          src={url}
+          src={videoThumbnailSrc}
           muted
           playsInline
           preload="metadata"

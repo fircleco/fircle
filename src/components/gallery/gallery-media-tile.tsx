@@ -4,6 +4,7 @@ import Image from "next/image";
 
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { PlayCircle } from "~/components/ui/icons";
+import { getVideoThumbnailSrc } from "~/lib/video-thumbnail";
 import { cn } from "~/lib/utils";
 
 import type { FamilyGalleryItem } from "./gallery-types";
@@ -34,6 +35,7 @@ export function GalleryMediaTile({
 }: GalleryMediaTileProps) {
   const media = item.mediaItem;
   const isVideo = media.type === "video";
+  const videoThumbnailSrc = isVideo ? getVideoThumbnailSrc(media.url) : media.url;
   const caption = media.caption?.trim();
   const authorName = item.post.author.name;
   const authorAvatarUrl = item.post.author.avatarUrl;
@@ -53,7 +55,7 @@ export function GalleryMediaTile({
       <div className="relative h-full w-full">
         {isVideo ? (
           <video
-            src={media.url}
+            src={videoThumbnailSrc}
             muted
             playsInline
             preload="metadata"

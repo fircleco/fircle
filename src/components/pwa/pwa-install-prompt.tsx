@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 
 import { Button } from "~/components/ui/button";
-import { ArrowRight, House, X } from "~/components/ui/icons";
+import { ArrowRight, X } from "~/components/ui/icons";
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -105,8 +106,15 @@ export function PwaInstallPrompt() {
     <div className="pointer-events-none fixed inset-x-0 bottom-4 z-50 flex justify-center px-4">
       <div className="pointer-events-auto w-full max-w-md rounded-2xl border bg-card p-4 shadow-2xl">
         <div className="flex items-start gap-3">
-          <div className="rounded-xl border bg-muted/40 p-2">
-            <House className="size-4 text-foreground" aria-hidden="true" />
+          <div className="rounded-xl border bg-muted/40 p-1">
+            <Image
+              src="/icon.png"
+              alt="Fircle logo"
+              width={30}
+              height={30}
+              className="rounded-xl"
+              priority
+            />
           </div>
 
           <div className="min-w-0 flex-1 space-y-1">

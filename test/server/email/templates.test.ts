@@ -18,6 +18,7 @@ describe("buildInviteCreatedTemplate", () => {
     expect(result.actionUrl).toBe("https://fircle.example.com/auth/invite/INVITE_CODE_123");
     expect(result.text).toContain("This link expires on Tue, 01 Jan 2030 00:00:00 GMT.");
     expect(result.html).toContain("Accept invite");
+    expect(result.html).toContain("https://fircle.example.com/icon.png");
   });
 
   it("escapes html-sensitive dynamic content", () => {
@@ -47,5 +48,6 @@ describe("buildClaimLinkCreatedTemplate", () => {
     expect(result.actionUrl).toBe("https://fircle.example.com/auth/claim/token%2Fwith%20space");
     expect(result.text).toContain("This link expires on Mon, 03 Feb 2031 04:05:06 GMT.");
     expect(result.html).toContain("Claim profile");
+    expect(result.html).toContain("https://fircle.example.com/icon.png");
   });
 });

@@ -1,6 +1,7 @@
 import Image from "next/image";
 
 import { PlayCircle } from "~/components/ui/icons";
+import { getVideoThumbnailSrc } from "~/lib/video-thumbnail";
 
 type MixedMediaItem = {
   id: string;
@@ -33,6 +34,7 @@ export function PostMixedMediaStack({ items, onItemClick }: PostMixedMediaStackP
       {visibleItems.map((item, index) => {
         const horizontalOffset = index * stackOffset;
         const isTopCard = index === visibleItems.length - 1;
+        const videoThumbnailSrc = item.type === "video" ? getVideoThumbnailSrc(item.url) : item.url;
         const overlayTitle = item.alt && item.alt !== item.caption ? item.alt : "";
         const mediaAriaLabel = item.alt ?? item.caption ?? "Post media";
         const hasOverlayText = Boolean(overlayTitle ?? item.caption);
@@ -53,7 +55,7 @@ export function PostMixedMediaStack({ items, onItemClick }: PostMixedMediaStackP
             <div className="relative h-full">
               {item.type === "video" ? (
                 <video
-                  src={item.url}
+                  src={videoThumbnailSrc}
                   muted
                   playsInline
                   preload="metadata"

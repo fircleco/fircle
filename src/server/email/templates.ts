@@ -30,6 +30,7 @@ export function buildInviteCreatedTemplate(
   const familyName = sanitizeText(input.familyName);
   const recipientName = sanitizeText(input.recipientName);
   const actionUrl = buildInviteUrl(input.appBaseUrl, input.inviteCode);
+  const logoUrl = new URL("/icon.svg", input.appBaseUrl).toString();
   const expiryText = formatExpiryText(input.expiresAt);
   const intro = recipientName
     ? `Hi ${recipientName}, you've been invited to join ${familyName} on Fircle.`
@@ -48,6 +49,7 @@ export function buildInviteCreatedTemplate(
     intro,
     ctaLabel: "Accept invite",
     actionUrl,
+    logoUrl,
     expiryText,
     footer: "If you were not expecting this email, you can ignore it.",
   });
@@ -67,6 +69,7 @@ export function buildClaimLinkCreatedTemplate(
   const memberName = sanitizeText(input.memberName);
   const recipientName = sanitizeText(input.recipientName);
   const actionUrl = buildClaimUrl(input.appBaseUrl, input.claimToken);
+  const logoUrl = new URL("/icon.svg", input.appBaseUrl).toString();
   const expiryText = formatExpiryText(input.expiresAt);
   const intro = recipientName
     ? `Hi ${recipientName}, claim your ${memberName} profile in ${familyName} on Fircle.`
@@ -85,6 +88,7 @@ export function buildClaimLinkCreatedTemplate(
     intro,
     ctaLabel: "Claim profile",
     actionUrl,
+    logoUrl,
     expiryText,
     footer: "If you were not expecting this email, you can ignore it.",
   });
@@ -119,6 +123,7 @@ function renderHtmlTemplate(input: {
   intro: string;
   ctaLabel: string;
   actionUrl: string;
+  logoUrl: string;
   expiryText: string;
   footer: string;
 }): string {
@@ -126,6 +131,7 @@ function renderHtmlTemplate(input: {
   const intro = escapeHtml(input.intro);
   const ctaLabel = escapeHtml(input.ctaLabel);
   const actionUrl = escapeHtml(input.actionUrl);
+  const logoUrl = escapeHtml(input.logoUrl);
   const introParts = splitIntro(intro);
   const expiryText = input.expiryText
     ? `<p style="margin: 14px 0 0; font-size: 12px; line-height: 1.6; color: #111111;">${escapeHtml(input.expiryText)}</p>`
@@ -149,7 +155,7 @@ function renderHtmlTemplate(input: {
                 <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
                   <tr>
                     <td style="padding: 14px 16px;">
-                      <p style="margin: 0; color: #ffffff; font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11px; letter-spacing: 0.09em; text-transform: uppercase; font-weight: 700;">Fircle</p>
+                      <img src="${logoUrl}" width="50" alt="Fircle" style="display: block; width: 50px; height: auto; max-width: 100%; border: 0; outline: none; text-decoration: none;" />
                     </td>
                   </tr>
                 </table>
