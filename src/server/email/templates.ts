@@ -69,7 +69,7 @@ export function buildClaimLinkCreatedTemplate(
   const memberName = sanitizeText(input.memberName);
   const recipientName = sanitizeText(input.recipientName);
   const actionUrl = buildClaimUrl(input.appBaseUrl, input.claimToken);
-  const logoUrl = new URL("/icon.png", input.appBaseUrl).toString();
+  const logoUrl = new URL("/icon.svg", input.appBaseUrl).toString();
   const expiryText = formatExpiryText(input.expiresAt);
   const intro = recipientName
     ? `Hi ${recipientName}, claim your ${memberName} profile in ${familyName} on Fircle.`
