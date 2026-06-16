@@ -53,11 +53,19 @@ const updateFamilyIdentityInputSchema = z.object({
 
 export const inviteRouter = createTRPCRouter({
   getBootstrapStatus: publicProcedure.query(async ({ ctx }) => {
+    if (!env.SELF_HOSTED) {
+      return {
+        selfHosted: false,
+        requiresSetup: false,
+      }
+    }
+
     const existingFamily = await ctx.db.family.findFirst({
       select: { id: true },
     })
 
     return {
+      selfHosted: true,
       requiresSetup: !existingFamily,
     }
   }),

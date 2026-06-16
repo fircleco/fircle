@@ -1,16 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { AlertCircle } from "~/components/ui/icons";
+import { AlertCircle, Loader } from "~/components/ui/icons";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { ThemeToggle } from "~/components/theme-toggle";
 import { beginNavigationProgress } from "~/components/nav/navigation-progress";
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import { api } from "~/trpc/react";
 
 function getFormString(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -31,10 +32,27 @@ export default function SignInPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const router = useRouter();
+  const bootstrapStatus = api.invite.getBootstrapStatus.useQuery(undefined, {
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
   const searchParams = useSearchParams();
   const callbackUrl = sanitizeCallbackUrl(searchParams.get("callbackUrl"));
   const errorType = searchParams.get("error");
   const claimSuccess = searchParams.get("claimed") === "1";
+
+  const shouldRedirectToSetup =
+    bootstrapStatus.data?.selfHosted === true &&
+    bootstrapStatus.data?.requiresSetup === true;
+
+  useEffect(() => {
+    if (!shouldRedirectToSetup) {
+      return;
+    }
+
+    beginNavigationProgress();
+    router.replace("/auth/setup");
+  }, [router, shouldRedirectToSetup]);
 
   const errorMessageByType: Record<string, string> = {
     invalid: "Invalid email or password. Please try again.",
@@ -44,6 +62,19 @@ export default function SignInPage() {
   };
 
   const errorMessage = formError ?? (errorType ? errorMessageByType[errorType] : null);
+
+  if (shouldRedirectToSetup || bootstrapStatus.isLoading) {
+    return (
+      <main className="relative isolate w-full max-w-md">
+        <section className="w-full rounded-4xl border border-border/80 bg-card/90 p-7 shadow-2xl shadow-black/10 backdrop-blur sm:p-9">
+          <p className="flex items-center gap-2 text-muted-foreground text-sm">
+            <Loader className="size-4 animate-spin" />
+            {shouldRedirectToSetup ? "Redirecting to setup..." : "Checking setup status..."}
+          </p>
+        </section>
+      </main>
+    );
+  }
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

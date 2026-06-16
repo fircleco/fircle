@@ -13,6 +13,28 @@ const hasAnyPushEnv = Boolean(
 
 const requiresPushEnv = isProduction || hasAnyPushEnv;
 
+const selfHostedFlagSchema = z.preprocess((value) => {
+  if (value === undefined) {
+    return true;
+  }
+
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === "true" || normalized === "1") {
+      return true;
+    }
+    if (normalized === "false" || normalized === "0") {
+      return false;
+    }
+  }
+
+  return value;
+}, z.boolean());
+
 export const env = createEnv({
   /**
    * Specify your server-side environment variables schema here. This way you can ensure the app
@@ -24,6 +46,7 @@ export const env = createEnv({
         ? z.string()
         : z.string().optional(),
     DATABASE_URL: z.string().url(),
+    SELF_HOSTED: selfHostedFlagSchema,
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
@@ -99,6 +122,7 @@ export const env = createEnv({
   runtimeEnv: {
     AUTH_SECRET: process.env.AUTH_SECRET,
     DATABASE_URL: process.env.DATABASE_URL,
+    SELF_HOSTED: process.env.SELF_HOSTED,
     NODE_ENV: process.env.NODE_ENV,
     STORAGE_DRIVER: process.env.STORAGE_DRIVER,
     R2_ACCOUNT_ID: process.env.R2_ACCOUNT_ID,

@@ -66,12 +66,12 @@ This PRD introduces a self-host-aware bootstrap flow:
 
 #### Tasks
 
-- [ ] Add `SELF_HOSTED` parsing with safe boolean semantics and default `true` in [src/env.js](src/env.js).
-- [ ] Update unauthenticated redirect logic in [src/app/(app)/layout.tsx](src/app/(app)/layout.tsx):
+- [x] Add `SELF_HOSTED` parsing with safe boolean semantics and default `true` in [src/env.js](src/env.js).
+- [x] Update unauthenticated redirect logic in [src/app/(app)/layout.tsx](src/app/(app)/layout.tsx):
   - `SELF_HOSTED=true` and no family -> `/auth/setup`
   - otherwise -> `/auth/signin?callbackUrl=...`
-- [ ] Add direct signin guard in [src/app/auth/signin/page.tsx](src/app/auth/signin/page.tsx) to reroute first-run self-host installs to setup.
-- [ ] Ensure `SELF_HOSTED=false` bypasses bootstrap redirect checks.
+- [x] Add direct signin guard in [src/app/auth/signin/page.tsx](src/app/auth/signin/page.tsx) to reroute first-run self-host installs to setup.
+- [x] Ensure `SELF_HOSTED=false` bypasses bootstrap redirect checks.
 
 ### Phase 3: Setup Router Extraction (Invite Router Decoupling)
 
