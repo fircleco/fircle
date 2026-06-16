@@ -153,19 +153,12 @@ export default function FirstFamilySetupPage() {
             </p>
           </header>
 
-          {statusQuery.isLoading ? (
+          {/* {statusQuery.isLoading ? (
             <p className="flex items-center gap-2 text-muted-foreground text-sm">
               <Loader className="size-4 animate-spin" />
               Checking setup status...
             </p>
-          ) : null}
-
-          {readinessQuery.isLoading ? (
-            <p className="flex items-center gap-2 text-muted-foreground text-sm">
-              <Loader className="size-4 animate-spin" />
-              Running environment readiness checks...
-            </p>
-          ) : null}
+          ) : null} */}
 
           {!readinessQuery.isLoading && !isSelfHosted ? (
             <Alert>
@@ -240,6 +233,12 @@ export default function FirstFamilySetupPage() {
                   <p className="text-muted-foreground text-xs">
                     Setup can continue only when there are no blocking readiness issues.
                   </p>
+                  {readinessQuery.isLoading ? (
+                    <p className="flex items-center gap-2 mt-4 text-muted-foreground text-xs">
+                      <Loader className="size-4 animate-spin" />
+                      Running environment readiness checks...
+                    </p>
+                  ) : null}
                 </div>
 
                 {isSelfHosted && setupChecks.length > 0 ? (
