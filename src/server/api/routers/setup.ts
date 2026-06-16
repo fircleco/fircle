@@ -1,6 +1,9 @@
 import bcrypt from "bcryptjs"
+import * as webpush from "web-push"
 
 import { TRPCError } from "@trpc/server"
+import { HeadBucketCommand, S3Client } from "@aws-sdk/client-s3"
+import { PrismaClient } from "../../../../generated/prisma"
 
 import { env } from "~/env"
 import { getMemberSlugBase, resolveUniqueMemberSlug } from "~/lib/member-slug"
@@ -8,7 +11,6 @@ import { firstFamilySetupInputSchema } from "~/lib/setup-schemas"
 import { checkRateLimit, getClientIp } from "~/lib/rate-limit"
 import { getConfiguredEmailDriver } from "~/server/email/provider"
 import { isPushConfigured } from "~/server/push"
-import { createStorageProvider } from "~/server/storage/provider"
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc"
 
 type SetupCheckStatus = "ok" | "warning" | "blocking"
@@ -40,7 +42,7 @@ export const setupRouter = createTRPCRouter({
     }
   }),
 
-  getSetupReadiness: publicProcedure.query(async ({ ctx }) => {
+  getSetupReadiness: publicProcedure.query(async () => {
     if (!env.SELF_HOSTED) {
       return {
         selfHosted: false,
@@ -53,8 +55,18 @@ export const setupRouter = createTRPCRouter({
     const checks: SetupReadinessCheck[] = []
 
     // 1) Database readiness
+    const readinessDbProbe = new PrismaClient({
+      datasources: {
+        db: {
+          url: env.DATABASE_URL,
+        },
+      },
+      log: ["error"],
+    })
+
     try {
-      await ctx.db.$queryRawUnsafe("SELECT 1")
+      await readinessDbProbe.$connect()
+      await readinessDbProbe.$queryRawUnsafe("SELECT 1")
       checks.push({
         key: "database",
         label: "Database",
@@ -69,6 +81,8 @@ export const setupRouter = createTRPCRouter({
         message: "Database connection failed.",
         remediation: "Verify DATABASE_URL and ensure the database server is reachable.",
       })
+    } finally {
+      await readinessDbProbe.$disconnect().catch(() => undefined)
     }
 
     // 2) Auth secret readiness
@@ -92,40 +106,43 @@ export const setupRouter = createTRPCRouter({
       })
     }
 
-    // 3) Storage readiness (R2 signing probe)
+    // 3) Storage readiness (R2 credential + bucket access probe)
     try {
-      const provider = createStorageProvider()
-      await provider.signUpload({
-        objectKey: "setup-readiness/probe.txt",
-        mimeType: "text/plain",
-        sizeBytes: 1,
+      const storageProbeClient = new S3Client({
+        region: "auto",
+        endpoint: `https://${env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+        forcePathStyle: true,
+        credentials: {
+          accessKeyId: env.R2_ACCESS_KEY_ID,
+          secretAccessKey: env.R2_SECRET_ACCESS_KEY,
+        },
       })
+
+      await storageProbeClient.send(
+        new HeadBucketCommand({
+          Bucket: env.R2_BUCKET,
+        }),
+      )
 
       checks.push({
         key: "storage",
         label: "Object storage",
         status: "ok",
-        message: "Storage provider initialized and upload signing works.",
+        message: "Object storage credentials are valid and bucket is reachable.",
       })
-    } catch {
+    } catch (error) {
+      const probeMessage = error instanceof Error ? ` (${error.message})` : ""
       checks.push({
         key: "storage",
         label: "Object storage",
         status: "blocking",
-        message: "Storage provider is not ready.",
+        message: `Storage provider is not ready.${probeMessage}`,
         remediation: "Verify STORAGE_DRIVER and R2_* environment variables.",
       })
     }
 
-    // 4) Push/VAPID readiness
-    if (isPushConfigured()) {
-      checks.push({
-        key: "push",
-        label: "Web Push (VAPID)",
-        status: "ok",
-        message: "VAPID keys are configured.",
-      })
-    } else {
+    // 4) Push/VAPID readiness (presence + syntax validation)
+    if (!isPushConfigured()) {
       const isBlocking = env.NODE_ENV === "production"
       checks.push({
         key: "push",
@@ -137,6 +154,40 @@ export const setupRouter = createTRPCRouter({
         remediation:
           "Set NEXT_PUBLIC_VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, and VAPID_SUBJECT.",
       })
+    } else {
+      try {
+        const subject = env.VAPID_SUBJECT
+        const publicKey = env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+        const privateKey = env.VAPID_PRIVATE_KEY
+
+        if (!subject || !publicKey || !privateKey) {
+          throw new Error("VAPID keys are missing.")
+        }
+
+        webpush.setVapidDetails(
+          subject,
+          publicKey,
+          privateKey,
+        )
+
+        checks.push({
+          key: "push",
+          label: "Web Push (VAPID)",
+          status: "ok",
+          message: "VAPID subject and keys are configured with valid format.",
+        })
+      } catch (error) {
+        const isBlocking = env.NODE_ENV === "production"
+        const detail = error instanceof Error ? ` (${error.message})` : ""
+        checks.push({
+          key: "push",
+          label: "Web Push (VAPID)",
+          status: isBlocking ? "blocking" : "warning",
+          message: `VAPID configuration is invalid.${detail}`,
+          remediation:
+            "Regenerate and set NEXT_PUBLIC_VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, and VAPID_SUBJECT.",
+        })
+      }
     }
 
     // 5) Email readiness (optional unless configured)
