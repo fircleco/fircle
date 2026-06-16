@@ -280,13 +280,6 @@ export const setupRouter = createTRPCRouter({
               ? "Verify EMAIL_DRIVER, ZEPTOMAIL_API_KEY, ZEPTOMAIL_ACCOUNT_ID, and ZEPTOMAIL_API_BASE_URL."
               : undefined,
         })
-      } else {
-        checks.push({
-          key: "email",
-          label: "Transactional email",
-          status: "ok",
-          message: `${configuredDriver} provider configuration is valid.`,
-        })
       }
     } catch {
       checks.push({

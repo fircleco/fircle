@@ -69,7 +69,7 @@ export default function FirstFamilySetupPage() {
   );
 
   const setupChecks: ReadinessCheck[] = readinessQuery.data?.checks ?? [];
-  const hasSetupStateError = Boolean(statusQuery.error || readinessQuery.error);
+  const hasSetupStateError = Boolean(statusQuery.error ?? readinessQuery.error);
   const hasBlockingChecks = setupChecks.some((check) => check.status === "blocking");
   const isSelfHosted = readinessQuery.data?.selfHosted !== false;
   const submitDisabled =

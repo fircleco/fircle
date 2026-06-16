@@ -8,6 +8,7 @@ import { MobileBottomNav } from "~/components/nav/mobile-bottom-nav";
 import { MobileHeader } from "~/components/nav/mobile-header";
 import { PushPermissionRequest } from "~/components/pwa/push-permission-request";
 import { env } from "~/env";
+import { resolveUnauthenticatedAppRedirect } from "~/lib/bootstrap-routing";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 
@@ -17,19 +18,21 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const callbackUrl = requestHeaders.get("x-current-path") ?? "/";
 
   if (!session?.user) {
-    if (env.SELF_HOSTED) {
-      const existingFamily = await db.family.findFirst({
-        select: { id: true },
-      });
+    const hasExistingFamily = env.SELF_HOSTED
+      ? Boolean(
+          await db.family.findFirst({
+            select: { id: true },
+          }),
+        )
+      : true;
 
-      if (!existingFamily) {
-        redirect("/auth/setup");
-      }
-    }
-
-    const next = new URLSearchParams();
-    next.set("callbackUrl", callbackUrl);
-    redirect(`/auth/signin?${next.toString()}`);
+    redirect(
+      resolveUnauthenticatedAppRedirect({
+        callbackUrl,
+        isSelfHosted: env.SELF_HOSTED,
+        hasExistingFamily,
+      }),
+    );
   }
 
   return (

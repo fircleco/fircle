@@ -160,6 +160,17 @@ For a fresh self-hosted instance with no family data yet:
 
 This setup route is only available before the first family is created.
 
+### Setup readiness troubleshooting
+
+The setup wizard runs active readiness probes before allowing first-family bootstrap:
+
+- Database: fresh Prisma connect + `SELECT 1`
+- Object storage: R2 `HeadBucket` with configured credentials
+- Web push: VAPID presence and runtime key compatibility validation
+- Transactional email: ZeptoMail auth probe when `EMAIL_DRIVER=zeptomail`
+
+If you change `.env` values while the dev server is running, restart `pnpm dev` before re-checking readiness so updated environment values are applied.
+
 ## PWA and WebAPK Verification
 
 Fircle uses a WebAPK-first PWA approach for Android Chrome installs, with iOS Safari Add to Home Screen baseline support.
