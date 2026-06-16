@@ -38,6 +38,7 @@ This PRD introduces a self-host-aware bootstrap flow:
 - **Setup domain separation**: Move bootstrap/setup endpoints from `inviteRouter` into a dedicated setup router (for example `setupRouter`) to avoid mixing concerns.
 - **Structured readiness responses**: Setup diagnostics return normalized check results (`ok`, `warning`, `blocking`) and remediation hints instead of raw infrastructure exceptions.
 - **One-time bootstrap integrity**: First-family creation remains single-use and conflict-protected after the first family exists.
+- **Active readiness probes over config-only checks**: Critical dependencies are validated through real runtime probes (fresh DB connect/query, R2 bucket access, VAPID key compatibility, transactional email auth handshake) to avoid false positives from stale processes or env-only presence checks.
 
 ### User Stories
 
@@ -95,11 +96,11 @@ This PRD introduces a self-host-aware bootstrap flow:
 #### Tasks
 
 - [x] Add `getSetupReadiness` query in setup router with structured results for:
-  - Database connectivity and query viability
+  - Database connectivity and query viability via fresh Prisma client connect + `SELECT 1`
   - Required env presence (`AUTH_SECRET`, storage keys, etc.)
-  - R2 storage provider instantiation/connectivity probe
-  - VAPID configuration sanity (presence and subject format)
-  - Optional email provider validity when configured
+  - R2 storage credentials and bucket reachability probe (`HeadBucket`)
+  - VAPID configuration sanity (presence + runtime key/subject compatibility validation)
+  - Optional transactional email provider credential validation when configured (ZeptoMail auth probe)
 - [x] Add remediation text per failure in API response.
 - [x] Update [src/app/auth/setup/page.tsx](src/app/auth/setup/page.tsx) to render readiness checklist and disable submit on blocking failures.
 - [x] Ensure readiness checks are self-host-only (return not-applicable or bypass when `SELF_HOSTED=false`).
@@ -114,6 +115,7 @@ This PRD introduces a self-host-aware bootstrap flow:
 - [ ] Verify fresh self-host flow manually:
   - open app root -> redirected to setup
   - failed readiness prevents submit
+  - invalid DB/storage/VAPID/email credentials surface actionable blocking or warning states
   - successful setup creates family/owner and signs in
 - [ ] Verify post-bootstrap behavior:
   - setup route indicates already configured
@@ -124,8 +126,9 @@ This PRD introduces a self-host-aware bootstrap flow:
 ## Acceptance Criteria
 
 - [ ] Fresh self-hosted instances no longer dead-end on sign-in; they are redirected to setup automatically.
-- [ ] Setup page provides clear readiness status for DB, storage, VAPID, and required keys.
+- [ ] Setup page provides clear readiness status for DB, storage, VAPID, email provider, and required keys.
 - [ ] Setup submission is blocked when any readiness check is `blocking`.
+- [ ] Readiness checks use active runtime probes and do not rely on env presence only for DB/storage/VAPID/email validity.
 - [ ] Setup/bootstrap concerns are removed from invite router and hosted in a dedicated setup router.
 - [ ] Existing invite functionality remains intact after router extraction.
 - [ ] `SELF_HOSTED=false` deployments do not run self-host bootstrap redirect behavior.
