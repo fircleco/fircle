@@ -11,6 +11,9 @@ references:
   - type: prd
     url: .project/prds/020-web-push-notifications-and-pwa-enablement/prd.md
     description: "Push/VAPID behavior and environment requirements relevant to setup readiness checks"
+  - type: pr
+    url: https://github.com/fircle-app/fircle/pull/35
+    description: "Implementation pull request - feat(self-hosting): implement family bootstrap setup"
 ---
 
 > **Instructions for AI Agents:**
