@@ -14,10 +14,33 @@ import { Input } from "~/components/ui/input";
 import { Logo } from "~/components/ui/logo";
 import { api } from "~/trpc/react";
 
-function getFormString(formData: FormData, key: string) {
-  const value = formData.get(key);
-  return typeof value === "string" ? value : "";
-}
+type SetupStep = 1 | 2 | 3;
+
+type ReadinessCheck = {
+  key: string;
+  label: string;
+  status: "ok" | "warning" | "blocking";
+  message: string;
+  remediation?: string;
+};
+
+const stepMeta: Array<{ step: SetupStep; title: string; description: string }> = [
+  {
+    step: 1,
+    title: "Environment check",
+    description: "Confirm this server is ready for first-time setup.",
+  },
+  {
+    step: 2,
+    title: "Family details",
+    description: "Name your family instance.",
+  },
+  {
+    step: 3,
+    title: "Owner account",
+    description: "Create the first owner login.",
+  },
+];
 
 export default function FirstFamilySetupPage() {
   const router = useRouter();
@@ -31,7 +54,13 @@ export default function FirstFamilySetupPage() {
   });
   const setupMutation = api.setup.bootstrapFirstFamily.useMutation();
 
+  const [step, setStep] = useState<SetupStep>(1);
   const [formError, setFormError] = useState<string | null>(null);
+  const [familyName, setFamilyName] = useState("");
+  const [ownerName, setOwnerName] = useState("");
+  const [ownerNickname, setOwnerNickname] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const isLoading = statusQuery.isLoading || setupMutation.isPending;
 
   const alreadyConfigured = useMemo(
@@ -39,7 +68,7 @@ export default function FirstFamilySetupPage() {
     [statusQuery.data],
   );
 
-  const setupChecks = readinessQuery.data?.checks ?? [];
+  const setupChecks: ReadinessCheck[] = readinessQuery.data?.checks ?? [];
   const hasBlockingChecks = setupChecks.some((check) => check.status === "blocking");
   const isSelfHosted = readinessQuery.data?.selfHosted !== false;
   const submitDisabled =
@@ -49,33 +78,42 @@ export default function FirstFamilySetupPage() {
     !isSelfHosted ||
     hasBlockingChecks;
 
+  const canContinueFromStep1 =
+    !statusQuery.isLoading && !readinessQuery.isLoading && !alreadyConfigured && isSelfHosted && !hasBlockingChecks;
+
+  const canContinueFromStep2 = familyName.trim().length > 0;
+  const canSubmit =
+    !submitDisabled &&
+    familyName.trim().length > 0 &&
+    ownerName.trim().length > 0 &&
+    email.trim().length > 0 &&
+    password.length >= 8;
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (isLoading || alreadyConfigured || !isSelfHosted || hasBlockingChecks) {
+    if (!canSubmit) {
       return;
     }
 
-    const formData = new FormData(event.currentTarget);
-    const familyName = getFormString(formData, "familyName").trim();
-    const ownerName = getFormString(formData, "ownerName").trim();
-    const ownerNickname = getFormString(formData, "ownerNickname").trim();
-    const email = getFormString(formData, "email").trim().toLowerCase();
-    const password = getFormString(formData, "password");
+    const normalizedFamilyName = familyName.trim();
+    const normalizedOwnerName = ownerName.trim();
+    const normalizedOwnerNickname = ownerNickname.trim();
+    const normalizedEmail = email.trim().toLowerCase();
 
     setFormError(null);
 
     try {
       await setupMutation.mutateAsync({
-        familyName,
-        ownerName,
-        ownerNickname: ownerNickname.length > 0 ? ownerNickname : undefined,
-        email,
+        familyName: normalizedFamilyName,
+        ownerName: normalizedOwnerName,
+        ownerNickname: normalizedOwnerNickname.length > 0 ? normalizedOwnerNickname : undefined,
+        email: normalizedEmail,
         password,
       });
 
       const result = await signIn("credentials", {
-        email,
+        email: normalizedEmail,
         password,
         redirect: false,
         callbackUrl: "/",
@@ -139,41 +177,6 @@ export default function FirstFamilySetupPage() {
             </Alert>
           ) : null}
 
-          {isSelfHosted && setupChecks.length > 0 ? (
-            <section className="space-y-3 rounded-2xl border border-border/80 bg-muted/40 p-4">
-              <h2 className="font-medium text-sm">Environment readiness</h2>
-              <ul className="space-y-2">
-                {setupChecks.map((check) => (
-                  <li key={check.key} className="rounded-xl border border-border/70 bg-card/80 p-3">
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="font-medium text-sm">{check.label}</p>
-                      <span
-                        className={
-                          check.status === "ok"
-                            ? "text-emerald-600 text-xs font-medium"
-                            : check.status === "warning"
-                              ? "text-amber-600 text-xs font-medium"
-                              : "text-destructive text-xs font-medium"
-                        }
-                      >
-                        {check.status.toUpperCase()}
-                      </span>
-                    </div>
-                    <p className="mt-1 text-muted-foreground text-xs">{check.message}</p>
-                    {check.remediation ? (
-                      <p className="mt-1 text-xs">Fix: {check.remediation}</p>
-                    ) : null}
-                  </li>
-                ))}
-              </ul>
-              {hasBlockingChecks ? (
-                <p className="text-destructive text-xs">
-                  Resolve blocking checks before completing setup.
-                </p>
-              ) : null}
-            </section>
-          ) : null}
-
           {alreadyConfigured ? (
             <Alert>
               <AlertCircle className="size-5" aria-hidden="true" />
@@ -192,84 +195,218 @@ export default function FirstFamilySetupPage() {
             </Alert>
           ) : null}
 
+          <section className="space-y-3 rounded-2xl border border-border/80 bg-muted/40 p-4">
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Setup progress</p>
+            <ol className="space-y-2">
+              {stepMeta.map((item) => {
+                const isCurrent = step === item.step;
+                const isDone = step > item.step;
+
+                return (
+                  <li key={item.step} className="flex items-start gap-3">
+                    <span
+                      className={
+                        isDone
+                          ? "mt-0.5 inline-flex size-6 items-center justify-center rounded-full bg-emerald-600 text-white text-xs font-semibold"
+                          : isCurrent
+                            ? "mt-0.5 inline-flex size-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-semibold"
+                            : "mt-0.5 inline-flex size-6 items-center justify-center rounded-full border border-border text-xs font-semibold text-muted-foreground"
+                      }
+                    >
+                      {item.step}
+                    </span>
+                    <div>
+                      <p className={isCurrent ? "font-medium text-sm" : "font-medium text-muted-foreground text-sm"}>
+                        {item.title}
+                      </p>
+                      <p className="text-muted-foreground text-xs">{item.description}</p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+          </section>
+
           <form action="#" className="space-y-4" onSubmit={handleSubmit}>
-            <div className="space-y-2">
-              <label htmlFor="familyName" className="text-sm font-medium">
-                Family name
-              </label>
-              <Input
-                id="familyName"
-                name="familyName"
-                type="text"
-                autoComplete="organization"
-                placeholder="The Shittabey Family"
-                required
-                disabled={isLoading || alreadyConfigured}
-              />
-            </div>
+            <input type="hidden" name="familyName" value={familyName} readOnly />
+            <input type="hidden" name="ownerName" value={ownerName} readOnly />
+            <input type="hidden" name="ownerNickname" value={ownerNickname} readOnly />
+            <input type="hidden" name="email" value={email} readOnly />
 
-            <div className="space-y-2">
-              <label htmlFor="ownerName" className="text-sm font-medium">
-                Owner full name
-              </label>
-              <Input
-                id="ownerName"
-                name="ownerName"
-                type="text"
-                autoComplete="name"
-                placeholder="Emma Shittabey"
-                required
-                disabled={isLoading || alreadyConfigured}
-              />
-            </div>
+            {step === 1 ? (
+              <section className="space-y-4 rounded-2xl border border-border/80 bg-card/70 p-4">
+                <div>
+                  <h2 className="font-medium text-sm">Step 1: Environment check</h2>
+                  <p className="text-muted-foreground text-xs">
+                    Setup can continue only when there are no blocking readiness issues.
+                  </p>
+                </div>
 
-            <div className="space-y-2">
-              <label htmlFor="ownerNickname" className="text-sm font-medium">
-                Profile nickname (optional)
-              </label>
-              <Input
-                id="ownerNickname"
-                name="ownerNickname"
-                type="text"
-                placeholder="Em"
-                disabled={isLoading || alreadyConfigured}
-              />
-            </div>
+                {isSelfHosted && setupChecks.length > 0 ? (
+                  <div className="space-y-3">
+                    <ul className="space-y-2">
+                      {setupChecks.map((check) => (
+                        <li key={check.key} className="rounded-lg border border-border/70 bg-card/80 p-2">
+                          <div className="flex items-center justify-between gap-3">
+                            <p className="font-medium text-xs">{check.label}</p>
+                            <span
+                              className={
+                                check.status === "ok"
+                                  ? "text-emerald-600 text-xs font-medium"
+                                  : check.status === "warning"
+                                    ? "text-amber-600 text-xs font-medium"
+                                    : "text-destructive text-xs font-medium"
+                              }
+                            >
+                              {check.status.toUpperCase()}
+                            </span>
+                          </div>
+                          <p className="mt-1 text-muted-foreground text-xs">{check.message}</p>
+                          {check.remediation ? (
+                            <p className="mt-1 text-xs">Fix: {check.remediation}</p>
+                          ) : null}
+                        </li>
+                      ))}
+                    </ul>
+                    {hasBlockingChecks ? (
+                      <p className="text-destructive text-xs">
+                        Resolve blocking checks before continuing.
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
+              </section>
+            ) : null}
 
-            <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium">
-                Owner email
-              </label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                placeholder="you@family.com"
-                required
-                disabled={isLoading || alreadyConfigured}
-              />
-            </div>
+            {step === 2 ? (
+              <section className="space-y-4 rounded-2xl border border-border/80 bg-card/70 p-4">
+                <h2 className="font-medium text-sm">Step 2: Family details</h2>
+                <div className="space-y-2">
+                  <label htmlFor="familyName" className="text-sm font-medium">
+                    Family name
+                  </label>
+                  <Input
+                    id="familyName"
+                    name="familyName"
+                    type="text"
+                    autoComplete="organization"
+                    placeholder="The Shittabey Family"
+                    required
+                    value={familyName}
+                    onChange={(event) => setFamilyName(event.target.value)}
+                    disabled={isLoading || alreadyConfigured}
+                  />
+                </div>
+              </section>
+            ) : null}
 
-            <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium">
-                Password
-              </label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="new-password"
-                minLength={8}
-                placeholder="At least 8 characters"
-                required
-                disabled={isLoading || alreadyConfigured}
-              />
-            </div>
+            {step === 3 ? (
+              <section className="space-y-4 rounded-2xl border border-border/80 bg-card/70 p-4">
+                <h2 className="font-medium text-sm">Step 3: Owner account</h2>
+                <div className="space-y-2">
+                  <label htmlFor="ownerName" className="text-sm font-medium">
+                    Owner full name
+                  </label>
+                  <Input
+                    id="ownerName"
+                    name="ownerName"
+                    type="text"
+                    autoComplete="name"
+                    placeholder="Emma Shittabey"
+                    required
+                    value={ownerName}
+                    onChange={(event) => setOwnerName(event.target.value)}
+                    disabled={isLoading || alreadyConfigured}
+                  />
+                </div>
 
-            <Button type="submit" size="lg" className="w-full" disabled={submitDisabled}>
-              {setupMutation.isPending ? "Setting up..." : "Complete setup"}
-            </Button>
+                <div className="space-y-2">
+                  <label htmlFor="ownerNickname" className="text-sm font-medium">
+                    Profile nickname (optional)
+                  </label>
+                  <Input
+                    id="ownerNickname"
+                    name="ownerNickname"
+                    type="text"
+                    placeholder="Em"
+                    value={ownerNickname}
+                    onChange={(event) => setOwnerNickname(event.target.value)}
+                    disabled={isLoading || alreadyConfigured}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="email" className="text-sm font-medium">
+                    Owner email
+                  </label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    placeholder="you@family.com"
+                    required
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    disabled={isLoading || alreadyConfigured}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="password" className="text-sm font-medium">
+                    Password
+                  </label>
+                  <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    autoComplete="new-password"
+                    minLength={8}
+                    placeholder="At least 8 characters"
+                    required
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    disabled={isLoading || alreadyConfigured}
+                  />
+                </div>
+              </section>
+            ) : null}
+
+            <div className="flex items-center gap-2">
+              {step > 1 ? (
+                <Button type="button" variant="outline" onClick={() => setStep((step - 1) as SetupStep)}>
+                  Back
+                </Button>
+              ) : null}
+
+              {step === 1 ? (
+                <Button
+                  type="button"
+                  className="ml-auto"
+                  onClick={() => setStep(2)}
+                  disabled={!canContinueFromStep1}
+                >
+                  Continue
+                </Button>
+              ) : null}
+
+              {step === 2 ? (
+                <Button
+                  type="button"
+                  className="ml-auto"
+                  onClick={() => setStep(3)}
+                  disabled={!canContinueFromStep2 || submitDisabled}
+                >
+                  Continue
+                </Button>
+              ) : null}
+
+              {step === 3 ? (
+                <Button type="submit" size="lg" className="ml-auto" disabled={!canSubmit}>
+                  {setupMutation.isPending ? "Setting up..." : "Complete setup"}
+                </Button>
+              ) : null}
+            </div>
           </form>
 
           <p className="text-center text-sm text-muted-foreground sm:text-left">
