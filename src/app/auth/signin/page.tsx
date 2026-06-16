@@ -64,18 +64,18 @@ export default function SignInPage() {
 
   const errorMessage = formError ?? (errorType ? errorMessageByType[errorType] : null);
 
-  if (shouldRedirectToSetup || bootstrapStatus.isLoading) {
-    return (
-      <main className="relative isolate w-full max-w-md">
-        <section className="w-full rounded-4xl border border-border/80 bg-card/90 p-7 shadow-2xl shadow-black/10 backdrop-blur sm:p-9">
-          <p className="flex items-center gap-2 text-muted-foreground text-sm">
-            <Loader className="size-4 animate-spin" />
-            {shouldRedirectToSetup ? "Redirecting to setup..." : "Checking setup status..."}
-          </p>
-        </section>
-      </main>
-    );
-  }
+  // if (shouldRedirectToSetup || bootstrapStatus.isLoading) {
+  //   return (
+  //     <main className="relative isolate w-full max-w-md">
+  //       <section className="w-full rounded-4xl border border-border/80 bg-card/90 p-7 shadow-2xl shadow-black/10 backdrop-blur sm:p-9">
+  //         <p className="flex items-center gap-2 text-muted-foreground text-sm">
+  //           <Loader className="size-4 animate-spin" />
+  //           {shouldRedirectToSetup ? "Redirecting to setup..." : "Checking setup status..."}
+  //         </p>
+  //       </section>
+  //     </main>
+  //   );
+  // }
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
