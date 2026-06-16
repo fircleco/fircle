@@ -44,6 +44,7 @@ export default function SignInPage() {
   const shouldRedirectToSetup =
     bootstrapStatus.data?.selfHosted === true &&
     bootstrapStatus.data?.requiresSetup === true;
+  const hasBootstrapStatusError = Boolean(bootstrapStatus.error);
 
   useEffect(() => {
     if (!shouldRedirectToSetup) {
@@ -136,6 +137,17 @@ export default function SignInPage() {
             </Alert>
           ) : null}
 
+          {hasBootstrapStatusError ? (
+            <Alert variant="destructive">
+              <AlertCircle className="size-5" aria-hidden="true" />
+              <AlertTitle>Service unavailable</AlertTitle>
+              <AlertDescription>
+                Could not check setup status because the database is unavailable. Verify DATABASE_URL and database
+                connectivity, then refresh this page.
+              </AlertDescription>
+            </Alert>
+          ) : null}
+
           {claimSuccess ? (
             <Alert>
               <AlertCircle className="size-5" aria-hidden="true" />
@@ -175,7 +187,7 @@ export default function SignInPage() {
               />
             </div>
 
-            <Button type="submit" size="lg" className="w-full" disabled={isLoading}>
+            <Button type="submit" size="lg" className="w-full" disabled={isLoading || hasBootstrapStatusError}>
               {isLoading ? "Signing in..." : "Sign In"}
             </Button>
 

@@ -69,17 +69,24 @@ export default function FirstFamilySetupPage() {
   );
 
   const setupChecks: ReadinessCheck[] = readinessQuery.data?.checks ?? [];
+  const hasSetupStateError = Boolean(statusQuery.error || readinessQuery.error);
   const hasBlockingChecks = setupChecks.some((check) => check.status === "blocking");
   const isSelfHosted = readinessQuery.data?.selfHosted !== false;
   const submitDisabled =
     isLoading ||
     alreadyConfigured ||
     readinessQuery.isLoading ||
+    hasSetupStateError ||
     !isSelfHosted ||
     hasBlockingChecks;
 
   const canContinueFromStep1 =
-    !statusQuery.isLoading && !readinessQuery.isLoading && !alreadyConfigured && isSelfHosted && !hasBlockingChecks;
+    !statusQuery.isLoading &&
+    !readinessQuery.isLoading &&
+    !hasSetupStateError &&
+    !alreadyConfigured &&
+    isSelfHosted &&
+    !hasBlockingChecks;
 
   const canContinueFromStep2 = familyName.trim().length > 0;
   const canSubmit =
@@ -176,6 +183,28 @@ export default function FirstFamilySetupPage() {
               <AlertTitle>Instance already configured</AlertTitle>
               <AlertDescription>
                 Initial setup has already been completed. You can sign in with your existing account.
+              </AlertDescription>
+            </Alert>
+          ) : null}
+
+          {statusQuery.error ? (
+            <Alert variant="destructive">
+              <AlertCircle className="size-5" aria-hidden="true" />
+              <AlertTitle>Setup status unavailable</AlertTitle>
+              <AlertDescription>
+                Could not verify setup status because the server database is unavailable. Check DATABASE_URL and
+                database connectivity, then refresh.
+              </AlertDescription>
+            </Alert>
+          ) : null}
+
+          {readinessQuery.error ? (
+            <Alert variant="destructive">
+              <AlertCircle className="size-5" aria-hidden="true" />
+              <AlertTitle>Readiness check failed</AlertTitle>
+              <AlertDescription>
+                Environment readiness checks could not run due to a server error. Fix database connectivity and try
+                again.
               </AlertDescription>
             </Alert>
           ) : null}
