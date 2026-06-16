@@ -51,10 +51,19 @@ export const inviteRevokeInputSchema = z.object({
   inviteId: z.string().cuid(),
 })
 
+export const firstFamilySetupInputSchema = z.object({
+  familyName: z.string().trim().min(1).max(120),
+  ownerName: z.string().trim().min(1).max(120),
+  ownerNickname: z.string().trim().min(1).max(60).optional(),
+  email: z.string().email().transform(normalizeEmail),
+  password: z.string().min(8).max(72),
+})
+
 export type InviteLookupInput = z.infer<typeof inviteLookupInputSchema>
 export type InviteAcceptInput = z.infer<typeof inviteAcceptInputSchema>
 export type InviteCreateInput = z.infer<typeof inviteCreateInputSchema>
 export type InviteRevokeInput = z.infer<typeof inviteRevokeInputSchema>
+export type FirstFamilySetupInput = z.infer<typeof firstFamilySetupInputSchema>
 
 // ─── Claim schemas ────────────────────────────────────────────────────────────
 

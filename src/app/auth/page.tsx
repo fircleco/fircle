@@ -35,6 +35,9 @@ export default function AuthLandingPage() {
             <Button asChild size="lg" className="w-full sm:flex-1">
               <Link href="/auth/signin">Sign In</Link>
             </Button>
+            <Button asChild size="lg" variant="outline" className="w-full sm:flex-1">
+              <Link href="/auth/setup">First-time setup</Link>
+            </Button>
           </div>
         </div>
       </section>

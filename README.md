@@ -150,6 +150,16 @@ pnpm dev
 
 Open http://localhost:3000.
 
+### 6. First-time instance setup (single-family)
+
+For a fresh self-hosted instance with no family data yet:
+
+1. Open `/auth/setup` in your browser.
+2. Enter your family name, owner name, owner email, and password.
+3. Submit once to create the first family and owner account.
+
+This setup route is only available before the first family is created.
+
 ## PWA and WebAPK Verification
 
 Fircle uses a WebAPK-first PWA approach for Android Chrome installs, with iOS Safari Add to Home Screen baseline support.
