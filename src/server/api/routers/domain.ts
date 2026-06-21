@@ -2,6 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { randomBytes } from "node:crypto";
 import { z } from "zod";
 
+import { verifyDomainOwnership } from "~/server/domain-verification";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { db } from "~/server/db";
 
@@ -301,6 +302,11 @@ export const domainRouter = createTRPCRouter({
           type: "TXT",
           value: `fircle-verification=${domain.verificationToken}`,
         },
+        httpChallenge: {
+          method: "GET",
+          url: `https://${domain.domain}/.well-known/fircle-verification`,
+          expectedBody: domain.verificationToken,
+        },
       };
     }),
 
@@ -315,7 +321,7 @@ export const domainRouter = createTRPCRouter({
         familyId: z.string().cuid(),
         domainId: z.string().cuid(),
         verificationMethod: z.enum(["dns", "http"]),
-        token: z.string().min(1),
+        token: z.string().min(1).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -352,11 +358,29 @@ export const domainRouter = createTRPCRouter({
         });
       }
 
-      // Verify token matches
-      if (input.token !== domain.verificationToken) {
+      const verificationResult = await verifyDomainOwnership({
+        domain: domain.domain,
+        token: domain.verificationToken,
+        method: input.verificationMethod,
+      });
+
+      if (verificationResult.status !== "verified") {
+        const errorMessageByStatus: Record<string, string> = {
+          pending:
+            "Verification proof not found yet. Please check your DNS or HTTP challenge setup and try again.",
+          "invalid-proof":
+            "Verification proof is present but does not match the expected token. Please update your DNS or HTTP challenge.",
+          unreachable:
+            "Verification target could not be reached. Please check domain connectivity and try again.",
+          timeout:
+            "Verification timed out while checking proof. Please retry shortly.",
+        };
+
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "Verification token is invalid. Please check your DNS record or HTTP endpoint.",
+          message:
+            errorMessageByStatus[verificationResult.status] ??
+            "Verification failed. Please check your DNS record or HTTP endpoint.",
         });
       }
 

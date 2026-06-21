@@ -70,11 +70,11 @@ The goal is to preserve current domain management UX while removing trust in use
 
 #### Tasks
 
-- [ ] Refactor `verifyDomain` in `src/server/api/routers/domain.ts` to call server-side DNS/HTTP verification helpers.
-- [ ] Remove client-trusted token equality as verification proof.
-- [ ] Preserve owner-only authorization and same-family ownership checks.
-- [ ] Ensure `verifiedAt` is written only after successful proof.
-- [ ] Keep `getVerificationToken` for challenge instructions and align response shape with DNS/HTTP guidance used by UI.
+- [x] Refactor `verifyDomain` in `src/server/api/routers/domain.ts` to call server-side DNS/HTTP verification helpers.
+- [x] Remove client-trusted token equality as verification proof.
+- [x] Preserve owner-only authorization and same-family ownership checks.
+- [x] Ensure `verifiedAt` is written only after successful proof.
+- [x] Keep `getVerificationToken` for challenge instructions and align response shape with DNS/HTTP guidance used by UI.
 
 ### Phase 3: Security and Runtime Controls
 
