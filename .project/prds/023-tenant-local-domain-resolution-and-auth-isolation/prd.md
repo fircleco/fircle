@@ -13,7 +13,7 @@ references:
     description: "Invite lifecycle and acceptance flow that must become tenant-local"
   - type: pr
     url: https://github.com/fircle-app/fircle/pull/36
-    description: "Implementation pull request - feat: tenant-local domain resolution"
+    description: "Implementation pull request - feat: tenant-local domain resolution and auth isolation"
 ---
 
 > **Instructions for AI Agents:**
