@@ -130,4 +130,29 @@ describe("resolveTenantFromHeaders", () => {
       host,
     });
   });
+
+  it("blocks unverified mapped domains in production", async () => {
+    const host = "family.example.com";
+
+    mockEnv.NODE_ENV = "production";
+    mockDb.domain.findMany.mockResolvedValue([
+      {
+        id: "domain-4",
+        familyId: "family-4",
+        domain: host,
+        isPrimary: true,
+        verifiedAt: null,
+        family: { id: "family-4", name: "Kim Family", slug: "kim" },
+      },
+    ]);
+
+    const headers = new Headers({ host });
+    const result = await resolveTenantFromHeaders(headers);
+
+    expect(result).toEqual({
+      state: "not-found",
+      host,
+    });
+    expect(mockDb.domain.findFirst).not.toHaveBeenCalled();
+  });
 });

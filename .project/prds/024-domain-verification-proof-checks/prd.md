@@ -1,6 +1,6 @@
 ---
 title: "Domain Verification Proof Checks and Server-Side Ownership Validation"
-status: in-progress
+status: completed
 references:
   - type: doc
     url: .project/brief.md
@@ -106,21 +106,21 @@ The goal is to preserve current domain management UX while removing trust in use
 
 #### Tasks
 
-- [ ] Add router tests in `test/server/api/routers/domain.test.ts` for auth constraints and DNS/HTTP success/failure paths.
-- [ ] Add helper/service tests for domain target validation, timeout behavior, and parser correctness.
-- [ ] Confirm production resolver behavior in `test/lib/tenant-resolution.test.ts` still blocks unverified domains.
-- [ ] Update `README.md` with exact DNS and HTTP verification contracts, propagation expectations, and troubleshooting notes.
-- [ ] Run `pnpm typecheck`, `pnpm lint`, and targeted Vitest suites for touched verification and resolver areas.
+- [x] Add router tests in `test/server/api/routers/domain.test.ts` for auth constraints and DNS/HTTP success/failure paths.
+- [x] Add helper/service tests for domain target validation, timeout behavior, and parser correctness.
+- [x] Confirm production resolver behavior in `test/lib/tenant-resolution.test.ts` still blocks unverified domains.
+- [x] Update `README.md` with exact DNS and HTTP verification contracts, propagation expectations, and troubleshooting notes.
+- [x] Run `pnpm typecheck`, `pnpm lint`, and targeted Vitest suites for touched verification and resolver areas.
 
 ## Acceptance Criteria
 
-- [ ] Domain verification no longer succeeds based solely on client-submitted token echoes.
-- [ ] DNS method verifies ownership by querying TXT records and matching stored challenge token.
-- [ ] HTTP method verifies ownership by checking the documented well-known challenge endpoint.
-- [ ] `verifiedAt` is set only after server-side proof success.
-- [ ] Verification failures return actionable categories (for example pending propagation, invalid proof, unreachable target, timeout).
-- [ ] Unsafe verification targets are rejected according to production security policy.
-- [ ] Domain settings UI reflects server-driven verification flow and provides clear retry/error states.
-- [ ] Automated tests cover DNS/HTTP happy paths, failure paths, authorization boundaries, and resolver gating behavior.
-- [ ] README includes operator instructions for both DNS TXT and HTTP token verification setup.
-- [ ] Typecheck, lint, and targeted tests pass for touched files.
+- [x] Domain verification no longer succeeds based solely on client-submitted token echoes.
+- [x] DNS method verifies ownership by querying TXT records and matching stored challenge token.
+- [x] HTTP method verifies ownership by checking the documented well-known challenge endpoint.
+- [x] `verifiedAt` is set only after server-side proof success.
+- [x] Verification failures return actionable categories (for example pending propagation, invalid proof, unreachable target, timeout).
+- [x] Unsafe verification targets are rejected according to production security policy.
+- [x] Domain settings UI reflects server-driven verification flow and provides clear retry/error states.
+- [x] Automated tests cover DNS/HTTP happy paths, failure paths, authorization boundaries, and resolver gating behavior.
+- [x] README includes operator instructions for both DNS TXT and HTTP token verification setup.
+- [x] Typecheck, lint, and targeted tests pass for touched files.

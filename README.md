@@ -185,12 +185,40 @@ There is no subdomain parsing fallback and no singleton-instance fallback.
 
 ### Custom-domain verification setup
 
-When adding a custom domain from Settings > Domain, Fircle generates a verification token.
+When adding a custom domain from Settings > Domain, Fircle generates a stored verification token and exposes two supported proof methods. The server performs the proof check itself when you run verification; verification does not succeed from copying the token back into the app.
+
+#### DNS TXT contract
+
 Create a DNS TXT record using the values shown in the UI:
 
 - Name: `_fircle-verification.<your-domain>`
 - Type: `TXT`
 - Value: `fircle-verification=<verification-token>`
+
+The backend verifies ownership by querying `_fircle-verification.<your-domain>` and looking for an exact TXT value match.
+
+#### HTTP well-known contract
+
+Serve the raw verification token at this endpoint:
+
+- Method: `GET`
+- URL: `https://<your-domain>/.well-known/fircle-verification`
+- Response: plain-text body containing exactly `<verification-token>`
+
+The backend follows the HTTPS well-known URL above and compares the trimmed response body to the stored token.
+
+#### Propagation and retry expectations
+
+- DNS changes can take time to propagate depending on your DNS provider and TTL.
+- HTTP checks depend on the public domain already routing to the app or proxy that serves the well-known file.
+- Verification performs bounded retries and returns actionable states for pending propagation, invalid proof, unreachable targets, or timeouts.
+
+#### Troubleshooting
+
+- `Verification proof not found yet`: the TXT record is not visible yet, or the HTTP endpoint still returns `404`.
+- `Verification proof is present but does not match`: the record or HTTP body is reachable but the token value is wrong.
+- `Verification target could not be reached`: DNS lookup or HTTPS fetch failed for network or upstream availability reasons.
+- `Verification timed out`: the verification check exceeded the configured timeout window; retry after the target becomes responsive.
 
 In production mode, unverified domains are not allowed to resolve tenant data.
 
