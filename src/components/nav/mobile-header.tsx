@@ -71,7 +71,7 @@ export function MobileHeader() {
   const unreadLabel = formatUnreadBadgeCount(unreadCount);
 
   return (
-    <header className="sticky top-0 z-30 flex h-[calc(3.5rem+var(--safe-area-inset-top))] w-full items-center border-b border-border bg-background/80 px-3 px-safe pt-safe backdrop-blur-sm md:hidden">
+    <header className="sticky top-0 z-30 flex h-[calc(3.5rem+var(--safe-area-inset-top))] w-full items-center border-b border-border bg-background/80 px-3 pt-safe backdrop-blur-sm md:hidden">
       <div className="flex w-full items-center justify-between">
         <Sheet>
           <SheetTrigger asChild>
@@ -87,14 +87,14 @@ export function MobileHeader() {
           </SheetTrigger>
 
           <SheetContent side="left" showCloseButton={false} className="w-[84vw] max-w-sm p-0">
-            <SheetHeader className="border-b px-5 px-safe py-3 pt-[calc(0.75rem+var(--safe-area-inset-top))]">
+            <SheetHeader className="border-b px-5 py-3 pt-[calc(0.75rem+var(--safe-area-inset-top))]">
               <SheetTitle className="inline-flex items-center gap-2 text-foreground">
                 <Logo className="h-6 w-auto shrink-0" aria-hidden="true" />
                 <span className="font-semibold text-xl leading-none tracking-tight">Fircle</span>
               </SheetTitle>
             </SheetHeader>
             
-            <nav className="px-2 px-safe py-3" aria-label="Mobile menu">
+            <nav className="px-2 py-3" aria-label="Mobile menu">
               <ul className="flex flex-col gap-1">
                 {menuItems.map((item) => {
                   const Icon = item.icon;
@@ -122,7 +122,7 @@ export function MobileHeader() {
               </ul>
             </nav>
 
-            <SheetFooter className="border-t px-2 px-safe py-3 pb-[calc(0.75rem+var(--safe-area-inset-bottom))]">
+            <SheetFooter className="border-t px-2 py-3 pb-[calc(0.75rem+var(--safe-area-inset-bottom))]">
               <ThemeToggle
                 title="Toggle theme"
                 className="w-fit justify-start gap-3 rounded-xl px-3"
