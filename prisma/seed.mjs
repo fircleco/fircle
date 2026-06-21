@@ -47,6 +47,18 @@ const duplicateEmailUser = {
   email: "existing-user@example.com",
 };
 
+const familySeedSlug = "shittabey-family";
+const seedHostDomains = [
+  {
+    domain: "localhost",
+    isPrimary: true,
+  },
+  {
+    domain: `${familySeedSlug}.fircle.app`,
+    isPrimary: false,
+  },
+];
+
 const inviteFixtures = [
   {
     code: "abc123xyz",
@@ -187,15 +199,34 @@ async function upsertUser(email, hashedPassword) {
 async function main() {
   const hashedPassword = await bcrypt.hash(SEED_PASSWORD, 12);
 
-  let family = await db.family.findFirst({
-    where: { name: "The Shittabey Family" },
+  const family = await db.family.upsert({
+    where: { slug: familySeedSlug },
+    update: {
+      name: "The Shittabey Family",
+      description: "A close-knit family sharing memories, photos, and updates.",
+    },
+    create: {
+      name: "The Shittabey Family",
+      slug: familySeedSlug,
+      description: "A close-knit family sharing memories, photos, and updates.",
+    },
   });
 
-  if (!family) {
-    family = await db.family.create({
-      data: {
-        name: "The Shittabey Family",
-        description: "A close-knit family sharing memories, photos, and updates.",
+  const verifiedAt = new Date();
+
+  for (const hostDomain of seedHostDomains) {
+    await db.domain.upsert({
+      where: { domain: hostDomain.domain },
+      update: {
+        familyId: family.id,
+        isPrimary: hostDomain.isPrimary,
+        verifiedAt,
+      },
+      create: {
+        familyId: family.id,
+        domain: hostDomain.domain,
+        isPrimary: hostDomain.isPrimary,
+        verifiedAt,
       },
     });
   }

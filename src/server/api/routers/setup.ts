@@ -89,6 +89,56 @@ async function probeZeptoMailCredentials(): Promise<{
   }
 }
 
+function normalizeRequestHost(headers: Headers): string | null {
+  const forwardedHost = headers.get("x-forwarded-host") ?? headers.get("host")
+  if (!forwardedHost) {
+    return null
+  }
+
+  const rawHost = forwardedHost.split(",")[0]?.trim()
+  if (!rawHost) {
+    return null
+  }
+
+  try {
+    const normalized = new URL(`http://${rawHost}`).hostname.toLowerCase()
+    return normalized.replace(/\.$/, "")
+  } catch {
+    return null
+  }
+}
+
+function slugifyFamilyText(value: string): string {
+  const normalized = value
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+
+  return normalized.length > 0 ? normalized : "family"
+}
+
+async function resolveUniqueFamilySlug(tx: Pick<PrismaClient, "family">, baseSlug: string): Promise<string> {
+  let attempt = 0
+
+  while (attempt < 1000) {
+    const candidate = attempt === 0 ? baseSlug : `${baseSlug}-${attempt + 1}`
+    const existingFamily = await tx.family.findUnique({
+      where: { slug: candidate },
+      select: { id: true },
+    })
+
+    if (!existingFamily) {
+      return candidate
+    }
+
+    attempt += 1
+  }
+
+  throw new Error("Could not resolve a unique family slug")
+}
+
 export const setupRouter = createTRPCRouter({
   getBootstrapStatus: publicProcedure.query(async ({ ctx }) => {
     if (!env.SELF_HOSTED) {
@@ -346,9 +396,15 @@ export const setupRouter = createTRPCRouter({
       const hashedPassword = await bcrypt.hash(input.password, 12)
 
       const created = await ctx.db.$transaction(async (tx) => {
+        const familySlug = await resolveUniqueFamilySlug(
+          tx,
+          slugifyFamilyText(input.familyName),
+        )
+
         const family = await tx.family.create({
           data: {
             name: input.familyName,
+            slug: familySlug,
           },
           select: {
             id: true,
@@ -384,6 +440,31 @@ export const setupRouter = createTRPCRouter({
           },
           select: {
             id: true,
+          },
+        })
+
+        const installationHost = normalizeRequestHost(ctx.headers)
+        if (!installationHost) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Unable to determine the installation host for this setup.",
+          })
+        }
+
+        await tx.domain.upsert({
+          where: {
+            domain: installationHost,
+          },
+          update: {
+            familyId: family.id,
+            isPrimary: true,
+            verifiedAt: new Date(),
+          },
+          create: {
+            familyId: family.id,
+            domain: installationHost,
+            isPrimary: true,
+            verifiedAt: new Date(),
           },
         })
 

@@ -1,6 +1,6 @@
 ---
 title: "Tenant-Local Domain Resolution and Auth Isolation"
-status: draft
+status: in-progress
 references:
   - type: doc
     url: .project/brief.md
@@ -64,24 +64,24 @@ Implications of this model:
 
 #### Tasks
 
-- [ ] Add `slug` to `Family` in [prisma/schema.prisma](prisma/schema.prisma) with global uniqueness.
-- [ ] Add `Domain` model in [prisma/schema.prisma](prisma/schema.prisma) with fields:
+- [x] Add `slug` to `Family` in [prisma/schema.prisma](prisma/schema.prisma) with global uniqueness.
+- [x] Add `Domain` model in [prisma/schema.prisma](prisma/schema.prisma) with fields:
   - `id`, `familyId`, `domain`, `isPrimary`, `verifiedAt`, `createdAt`, `updatedAt`.
-- [ ] Add uniqueness/index constraints:
+- [x] Add uniqueness/index constraints:
   - unique domain globally,
   - index by `familyId`,
   - optional unique primary per family.
-- [ ] Create migration/backfill strategy for existing deployments:
+- [x] Create migration/backfill strategy for existing deployments:
   - backfill deterministic unique family slugs,
   - write current serving host(s) into `Domain` rows,
   - persist deterministic primary-domain assignment per family,
   - enforce uniqueness constraints safely.
-- [ ] Update seed data in [prisma/seed.mjs](prisma/seed.mjs) to create tenant-valid fixtures:
+- [x] Update seed data in [prisma/seed.mjs](prisma/seed.mjs) to create tenant-valid fixtures:
   - families include deterministic unique `slug` values,
   - initial `Domain` rows are created and mapped to seeded families,
   - at least one seeded example covers root-domain/self-host resolution behavior.
-- [ ] Update bootstrap/setup flow in [src/server/api/routers/setup.ts](src/server/api/routers/setup.ts) to create initial `Domain` row for the installation host.
-- [ ] For cloud-hosted families, auto-generate default domain row from slug pattern (`<family.slug>.fircle.app`) during provisioning.
+- [x] Update bootstrap/setup flow in [src/server/api/routers/setup.ts](src/server/api/routers/setup.ts) to create initial `Domain` row for the installation host.
+- [x] For cloud-hosted families, auto-generate default domain row from slug pattern (`<family.slug>.fircle.app`) during provisioning.
 
 ### Phase 2: Hostname Resolution Layer
 
