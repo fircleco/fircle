@@ -3,10 +3,20 @@
 import { useState } from "react";
 import { format } from "date-fns";
 
+import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "~/components/ui/dialog";
 import { DomainVerification } from "~/components/settings/domain-verification";
 import { AlertCircle, CheckCircle2, Delete } from "~/components/ui/icons";
 import { api } from "~/trpc/react";
+import { Skeleton } from "~/components/ui/skeleton";
 
 interface DomainListProps {
   familyId: string;
@@ -21,6 +31,31 @@ export function DomainList({ familyId, onUpdate }: DomainListProps) {
   const domainsQuery = api.domain.listDomains.useQuery({ familyId });
   const setPrimaryMutation = api.domain.setPrimaryDomain.useMutation();
   const removeDomainMutation = api.domain.removeDomain.useMutation();
+
+  if (domainsQuery.isLoading) {
+    return (
+      <div className="space-y-3">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <div key={index} className="flex items-start justify-between rounded-lg border p-4">
+            <div className="flex-1 space-y-3">
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-4 w-40 rounded-full" />
+                <Skeleton className="h-5 w-20 rounded-full" />
+                <Skeleton className="h-5 w-28 rounded-full" />
+              </div>
+              <Skeleton className="h-3 w-32 rounded-full" />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-8 w-20 rounded-md" />
+              <Skeleton className="h-8 w-20 rounded-md" />
+              <Skeleton className="h-8 w-8 rounded-md" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   const handleSetPrimary = async (domainId: string) => {
     try {
@@ -51,10 +86,6 @@ export function DomainList({ familyId, onUpdate }: DomainListProps) {
     }
   };
 
-  if (domainsQuery.isLoading) {
-    return <div className="text-sm text-muted-foreground">Loading domains...</div>;
-  }
-
   if (domainsQuery.isError) {
     return (
       <div className="rounded-lg border border-destructive bg-destructive/5 p-4 text-sm text-destructive">
@@ -84,20 +115,20 @@ export function DomainList({ familyId, onUpdate }: DomainListProps) {
             <div className="flex items-center gap-2">
               <h4 className="font-medium">{domain.domain}</h4>
               {domain.isPrimary && (
-                <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700">
+                <Badge variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-50">
                   Primary
-                </span>
+                </Badge>
               )}
               {domain.verifiedAt ? (
-                <span className="inline-flex items-center gap-1 text-xs text-green-700">
+                <Badge variant="outline" className="gap-1 border-green-700 bg-green-700 text-white">
                   <CheckCircle2 className="size-3" />
                   Verified
-                </span>
+                </Badge>
               ) : (
-                <span className="inline-flex items-center gap-1 text-xs text-amber-700">
+                <Badge variant="outline" className="gap-1 border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-50">
                   <AlertCircle className="size-3" />
                   Pending verification
-                </span>
+                </Badge>
               )}
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
@@ -157,33 +188,38 @@ export function DomainList({ familyId, onUpdate }: DomainListProps) {
         </div>
       ))}
 
-      {deleteConfirm && domainToDelete && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-sm mx-auto">
-            <h3 className="font-semibold text-base mb-2">Remove Domain</h3>
-            <p className="text-sm text-muted-foreground mb-6">
+      <Dialog
+        open={deleteConfirm && Boolean(domainToDelete)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeleteConfirm(false);
+            setDomainToDelete(null);
+          }
+        }}
+      >
+        <DialogContent className="max-w-sm" showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>Remove Domain</DialogTitle>
+            <DialogDescription>
               Are you sure you want to remove this domain? This action cannot be undone.
-            </p>
-            <div className="flex justify-end gap-2">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setDeleteConfirm(false);
-                  setDomainToDelete(null);
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={handleRemoveDomain}
-              >
-                Remove
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setDeleteConfirm(false);
+                setDomainToDelete(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleRemoveDomain}>
+              Remove
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
