@@ -94,11 +94,11 @@ The goal is to preserve current domain management UX while removing trust in use
 
 #### Tasks
 
-- [ ] Update `src/components/settings/domain-verification.tsx` so method selection triggers server proof checks instead of token trust submission.
-- [ ] Keep copy actions and challenge instructions for DNS and HTTP setup.
-- [ ] Add user-facing states for in-progress verification, success, retryable pending propagation, and terminal errors.
-- [ ] Ensure `src/components/settings/domain-list.tsx` and `src/app/(app)/settings/domain/page.tsx` refresh and invalidate queries consistently after verification attempts.
-- [ ] Confirm non-owner behavior remains forbidden and unchanged.
+- [x] Update `src/components/settings/domain-verification.tsx` so method selection triggers server proof checks instead of token trust submission.
+- [x] Keep copy actions and challenge instructions for DNS and HTTP setup.
+- [x] Add user-facing states for in-progress verification, success, retryable pending propagation, and terminal errors.
+- [x] Ensure `src/components/settings/domain-list.tsx` and `src/app/(app)/settings/domain/page.tsx` refresh and invalidate queries consistently after verification attempts.
+- [x] Confirm non-owner behavior remains forbidden and unchanged.
 
 ### Phase 5: Validation, Tests, and Documentation
 

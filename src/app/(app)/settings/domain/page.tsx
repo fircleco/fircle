@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 
 import { DomainList } from "~/components/settings/domain-list";
 import { AddDomainForm } from "~/components/settings/add-domain-form";
@@ -19,7 +18,7 @@ import { api } from "~/trpc/react";
 
 export default function DomainSettingsPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const queryClient = useQueryClient();
+  const utils = api.useUtils();
 
   const managementContext = api.invite.getManagementContext.useQuery(undefined, {
     retry: false,
@@ -31,17 +30,13 @@ export default function DomainSettingsPage() {
   const handleDomainAdded = () => {
     setIsAddDialogOpen(false);
     if (familyId) {
-      void queryClient.invalidateQueries({
-        queryKey: [["domain", "listDomains"]],
-      });
+      void utils.domain.listDomains.invalidate({ familyId });
     }
   };
 
   const handleDomainUpdated = () => {
     if (familyId) {
-      void queryClient.invalidateQueries({
-        queryKey: [["domain", "listDomains"]],
-      });
+      void utils.domain.listDomains.invalidate({ familyId });
     }
   };
 
