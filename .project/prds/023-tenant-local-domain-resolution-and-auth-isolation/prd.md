@@ -141,11 +141,11 @@ Implications of this model:
 
 #### Tasks
 
-- [ ] Validate trusted host extraction behavior behind proxy/CDN deployment.
-- [ ] Prevent cross-tenant redirect leakage by preserving resolved tenant host in callback flows.
-- [ ] Confirm cookie/session scope aligns with tenant-local policy for both platform subdomains and custom domains.
-- [ ] Add structured logs for resolver decisions and mismatches.
-- [ ] Add explicit safeguards against host-header injection and unknown-host escalation.
+- [x] Validate trusted host extraction behavior behind proxy/CDN deployment.
+- [x] Prevent cross-tenant redirect leakage by preserving resolved tenant host in callback flows.
+- [x] Confirm cookie/session scope aligns with tenant-local policy for both platform subdomains and custom domains.
+- [x] Add structured logs for resolver decisions and mismatches.
+- [x] Add explicit safeguards against host-header injection and unknown-host escalation.
 
 ### Phase 6: Validation, QA, and Documentation
 

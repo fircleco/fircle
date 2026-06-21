@@ -40,6 +40,11 @@ const signInSchema = z.object({
  * @see https://next-auth.js.org/configuration/options
  */
 export const authConfig = {
+  // Required for multi-tenant and proxy/CDN deployments:
+  // NextAuth uses the incoming host to derive baseUrl for callbacks and cookies.
+  // Without this, the app will reject requests from non-NEXTAUTH_URL hosts.
+  trustHost: true,
+
   providers: [
     Credentials({
       credentials: {
@@ -74,6 +79,22 @@ export const authConfig = {
     }),
   ],
   session: { strategy: "jwt" },
+
+  // Cookie domain is intentionally absent so each tenant host gets its own
+  // host-scoped cookie. Without this, subdomains under fircle.app could share
+  // a session-token cookie if a domain attribute were set (cross-tenant bleed).
+  cookies: {
+    sessionToken: {
+      options: {
+        httpOnly: true,
+        sameSite: "lax" as const,
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        // domain: intentionally not set — browser scopes cookie to exact host
+      },
+    },
+  },
+
   callbacks: {
     session: ({ session, token }) => ({
       ...session,
@@ -82,5 +103,18 @@ export const authConfig = {
         id: token.sub!,
       },
     }),
+
+    // Prevent cross-tenant redirect leakage: only allow relative URLs or
+    // URLs whose origin exactly matches the resolved tenant host (baseUrl).
+    // trustHost: true ensures baseUrl is derived from the real incoming host.
+    redirect: ({ url, baseUrl }) => {
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      try {
+        if (new URL(url).origin === new URL(baseUrl).origin) return url;
+      } catch {
+        // Malformed URL — fall through to baseUrl
+      }
+      return baseUrl;
+    },
   },
 } satisfies NextAuthConfig;

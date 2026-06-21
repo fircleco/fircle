@@ -7,6 +7,23 @@ import { normalizeRequestHost } from "~/lib/request-host";
 
 export type TenantResolutionState = "resolved" | "not-found" | "ambiguous" | "bootstrap-required";
 
+/** Emits a structured JSON log line for each resolution decision. */
+function logResolution(
+  state: string,
+  host: string | null,
+  extra?: Record<string, unknown>,
+) {
+  console.log(
+    JSON.stringify({
+      ts: new Date().toISOString(),
+      ctx: "tenant-resolution",
+      state,
+      host,
+      ...extra,
+    }),
+  );
+}
+
 export type TenantResolutionResult =
   | {
       state: "resolved";
@@ -46,6 +63,7 @@ export async function resolveTenantFromHeaders(headers: Headers): Promise<Tenant
   });
 
   if (!existingFamily && env.SELF_HOSTED) {
+    logResolution("bootstrap-required", host);
     return {
       state: "bootstrap-required",
       host,
@@ -53,6 +71,7 @@ export async function resolveTenantFromHeaders(headers: Headers): Promise<Tenant
   }
 
   if (!host) {
+    logResolution("not-found", null, { reason: "no-host" });
     return {
       state: "not-found",
       host,
@@ -80,6 +99,7 @@ export async function resolveTenantFromHeaders(headers: Headers): Promise<Tenant
   });
 
   if (matches.length > 1) {
+    logResolution("ambiguous", host, { matchCount: matches.length });
     return {
       state: "ambiguous",
       host,
@@ -88,6 +108,7 @@ export async function resolveTenantFromHeaders(headers: Headers): Promise<Tenant
 
   const match = matches[0];
   if (!match) {
+    logResolution("not-found", host, { reason: "no-domain-record" });
     return {
       state: "not-found",
       host,
@@ -95,6 +116,7 @@ export async function resolveTenantFromHeaders(headers: Headers): Promise<Tenant
   }
 
   if (env.NODE_ENV === "production" && !match.verifiedAt) {
+    logResolution("not-found", host, { reason: "unverified-domain", domainId: match.id });
     return {
       state: "not-found",
       host,
@@ -111,10 +133,19 @@ export async function resolveTenantFromHeaders(headers: Headers): Promise<Tenant
     },
   });
 
+  const canonicalHost = primaryDomain?.domain ?? match.domain;
+
+  logResolution("resolved", host, {
+    familyId: match.familyId,
+    familySlug: match.family.slug,
+    canonicalHost,
+    redirect: canonicalHost !== host,
+  });
+
   return {
     state: "resolved",
     host,
-    canonicalHost: primaryDomain?.domain ?? match.domain,
+    canonicalHost,
     domain: {
       id: match.id,
       familyId: match.familyId,
