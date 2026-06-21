@@ -76,6 +76,10 @@ Implications of this model:
   - write current serving host(s) into `Domain` rows,
   - persist deterministic primary-domain assignment per family,
   - enforce uniqueness constraints safely.
+- [ ] Update seed data in [prisma/seed.mjs](prisma/seed.mjs) to create tenant-valid fixtures:
+  - families include deterministic unique `slug` values,
+  - initial `Domain` rows are created and mapped to seeded families,
+  - at least one seeded example covers root-domain/self-host resolution behavior.
 - [ ] Update bootstrap/setup flow in [src/server/api/routers/setup.ts](src/server/api/routers/setup.ts) to create initial `Domain` row for the installation host.
 - [ ] For cloud-hosted families, auto-generate default domain row from slug pattern (`<family.slug>.fircle.app`) during provisioning.
 
@@ -170,6 +174,7 @@ Implications of this model:
 
 - [ ] `Family.slug` exists, is globally unique, and is backfilled safely for existing families.
 - [ ] `Domain` model exists with globally unique `domain` values mapped to `familyId`.
+- [ ] Seed fixtures are updated to include tenant-valid `Family.slug` and mapped `Domain` rows.
 - [ ] Hostname resolution supports mapped domains for:
   - `family-slug.fircle.app` style hosts,
   - verified custom domains,
