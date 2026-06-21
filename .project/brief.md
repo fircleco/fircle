@@ -87,7 +87,7 @@ Open-source MVP focused on becoming functional quickly for one family instance, 
 - Tag notification refinements for claimed members
 - Basic moderation and content controls for family admins
 
-### Phase 4 - Multi-tenancy and Hosting 
+### Phase 4 - Multi-tenancy and Hosting [In Progress]
 - Multi-tenancy model for isolated family instances
 - Tenant-aware auth, routing, and data boundaries
 - Self-hosting and deployment guidance per family instance
