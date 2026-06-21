@@ -11,6 +11,7 @@ WITH normalized AS (
   FROM (
     SELECT
       "id",
+      "createdAt",
       COALESCE(
         NULLIF(
         regexp_replace(
