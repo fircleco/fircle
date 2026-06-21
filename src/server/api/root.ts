@@ -1,3 +1,4 @@
+import { domainRouter } from "~/server/api/routers/domain";
 import { familyMemberRouter } from "~/server/api/routers/family-member";
 import { inviteRouter } from "~/server/api/routers/invite";
 import { mediaRouter } from "~/server/api/routers/media";
@@ -13,6 +14,7 @@ import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
  * All routers added in /api/routers should be manually added here.
  */
 export const appRouter = createTRPCRouter({
+  domain: domainRouter,
   familyMember: familyMemberRouter,
   invite: inviteRouter,
   media: mediaRouter,

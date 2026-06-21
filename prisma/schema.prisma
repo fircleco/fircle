@@ -99,13 +99,14 @@ model Family {
 }
 
 model Domain {
-  id         String   @id @default(cuid())
-  familyId   String
-  domain     String   @unique
-  isPrimary  Boolean  @default(false)
-  verifiedAt DateTime?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id                  String   @id @default(cuid())
+  familyId            String
+  domain              String   @unique
+  isPrimary           Boolean  @default(false)
+  verificationToken   String   @default("")
+  verifiedAt          DateTime?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
   family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
 

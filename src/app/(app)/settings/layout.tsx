@@ -16,9 +16,11 @@ const settingsNav = [
   { href: "/settings/family", label: "Family Settings", adminOnly: true },
   { href: "/settings/invites", label: "Invites", adminOnly: true },
   { href: "/settings/roles", label: "Roles", adminOnly: true },
+  { href: "/settings/domain", label: "Domain", ownerOnly: true },
 ];
 
 const adminOnlySettingsPaths = ["/settings/family", "/settings/invites", "/settings/roles"];
+const ownerOnlySettingsPaths = ["/settings/domain"];
 
 function isActivePath(pathname: string, href: string) {
   if (href === "/settings") {
@@ -40,12 +42,18 @@ export default function SettingsLayout({
   });
 
   const selectedFamilyId = managementContext.data?.family?.id ?? null;
+  const isOwner = managementContext.data?.role === "OWNER";
   const canManageSettings =
     managementContext.data?.role === "OWNER" || managementContext.data?.role === "ADMIN";
+  
   const currentPathIsAdminOnly = adminOnlySettingsPaths.some((restrictedPath) =>
     restrictedPath === "/settings"
       ? pathname === "/settings"
       : pathname === restrictedPath || pathname.startsWith(`${restrictedPath}/`),
+  );
+  
+  const currentPathIsOwnerOnly = ownerOnlySettingsPaths.some((restrictedPath) =>
+    pathname === restrictedPath || pathname.startsWith(`${restrictedPath}/`),
   );
 
   useEffect(() => {
@@ -58,15 +66,31 @@ export default function SettingsLayout({
       beginNavigationProgress();
       router.replace("/settings");
     }
+    
+    if (
+      !managementContext.isLoading &&
+      selectedFamilyId &&
+      !isOwner &&
+      currentPathIsOwnerOnly
+    ) {
+      beginNavigationProgress();
+      router.replace("/settings");
+    }
   }, [
     canManageSettings,
     currentPathIsAdminOnly,
+    currentPathIsOwnerOnly,
+    isOwner,
     managementContext.isLoading,
     router,
     selectedFamilyId,
   ]);
 
-  const visibleSettingsNav = settingsNav.filter((item) => !item.adminOnly || canManageSettings);
+  const visibleSettingsNav = settingsNav.filter((item) => {
+    if (item.adminOnly && !canManageSettings) return false;
+    if ("ownerOnly" in item && item.ownerOnly && !isOwner) return false;
+    return true;
+  });
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">

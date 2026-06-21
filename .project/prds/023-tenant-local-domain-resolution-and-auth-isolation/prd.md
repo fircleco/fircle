@@ -122,18 +122,18 @@ Implications of this model:
 
 #### Tasks
 
-- [ ] Add dedicated domain router at [src/server/api/routers/domain.ts](src/server/api/routers/domain.ts) and register it in [src/server/api/root.ts](src/server/api/root.ts).
-- [ ] Implement domain management endpoints in [src/server/api/routers/domain.ts](src/server/api/routers/domain.ts):
+- [x] Add dedicated domain router at [src/server/api/routers/domain.ts](src/server/api/routers/domain.ts) and register it in [src/server/api/root.ts](src/server/api/root.ts).
+- [x] Implement domain management endpoints in [src/server/api/routers/domain.ts](src/server/api/routers/domain.ts):
   - add domain,
   - list domains,
   - set primary domain,
   - remove domain.
-- [ ] Enforce owner-only authorization for domain write operations (add, set primary, remove); list can be owner/admin as desired by policy.
-- [ ] Implement domain verification challenge flow (DNS TXT and/or HTTP token) and persist `verifiedAt`.
-- [ ] Restrict domain resolution to verified domains in production mode.
-- [ ] Add dedicated settings route at [src/app/(app)/settings/domain/page.tsx](src/app/(app)/settings/domain/page.tsx) for domain management.
-- [ ] Add owner-only settings menu entry linking to `/settings/domain` (for example in settings navigation components under [src/components/nav](src/components/nav)).
-- [ ] Ensure non-owner users cannot access `/settings/domain` and receive a clear forbidden UX.
+- [x] Enforce owner-only authorization for domain write operations (add, set primary, remove); list can be owner/admin as desired by policy.
+- [x] Implement domain verification challenge flow (DNS TXT and/or HTTP token) and persist `verifiedAt`.
+- [x] Restrict domain resolution to verified domains in production mode.
+- [x] Add dedicated settings route at [src/app/(app)/settings/domain/page.tsx](src/app/(app)/settings/domain/page.tsx) for domain management.
+- [x] Add owner-only settings menu entry linking to `/settings/domain` (for example in settings navigation components under [src/components/nav](src/components/nav)).
+- [x] Ensure non-owner users cannot access `/settings/domain` and receive a clear forbidden UX.
 
 ### Phase 5: Session, Redirect, and Security Hardening
 
