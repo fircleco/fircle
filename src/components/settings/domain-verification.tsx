@@ -162,15 +162,15 @@ export function DomainVerification({
         <div className="space-y-4">
           <div className="space-y-2">
             <label className="text-sm font-medium">Verification Method</label>
-            <div className="flex gap-3 border-b">
+            <div className="flex gap-2 rounded-lg border border-input bg-muted/30 p-1">
               <button
                 type="button"
                 onClick={() => setMethod("dns")}
                 disabled={isSubmitting}
-                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-all ${
                   method === "dns"
-                    ? "border-primary text-primary"
-                    : "border-transparent text-muted-foreground hover:text-foreground"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 DNS TXT Record
@@ -179,10 +179,10 @@ export function DomainVerification({
                 type="button"
                 onClick={() => setMethod("http")}
                 disabled={isSubmitting}
-                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-all ${
                   method === "http"
-                    ? "border-primary text-primary"
-                    : "border-transparent text-muted-foreground hover:text-foreground"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 HTTP Endpoint
