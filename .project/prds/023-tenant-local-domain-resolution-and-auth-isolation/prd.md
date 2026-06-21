@@ -1,6 +1,6 @@
 ---
 title: "Tenant-Local Domain Resolution and Auth Isolation"
-status: in-progress
+status: completed
 references:
   - type: doc
     url: .project/brief.md
@@ -159,7 +159,7 @@ Implications of this model:
   - explicit mapped self-host root-domain resolution,
   - unresolved host handling.
 - [x] Add automated tests for tenant-scoped invite/claim/email behavior across two families with same email.
-- [ ] Manual QA scenarios:
+- [x] Manual QA scenarios:
   - cloud-hosted subdomain tenant,
   - custom domain tenant,
   - self-host root-domain single-family install.
@@ -172,22 +172,22 @@ Implications of this model:
 
 ## Acceptance Criteria
 
-- [ ] `Family.slug` exists, is globally unique, and is backfilled safely for existing families.
-- [ ] `Domain` model exists with globally unique `domain` values mapped to `familyId`.
-- [ ] Seed fixtures are updated to include tenant-valid `Family.slug` and mapped `Domain` rows.
-- [ ] Hostname resolution supports mapped domains for:
+- [x] `Family.slug` exists, is globally unique, and is backfilled safely for existing families.
+- [x] `Domain` model exists with globally unique `domain` values mapped to `familyId`.
+- [x] Seed fixtures are updated to include tenant-valid `Family.slug` and mapped `Domain` rows.
+- [x] Hostname resolution supports mapped domains for:
   - `family-slug.fircle.app` style hosts,
   - verified custom domains,
   - self-hosted root/subdomain installs.
-- [ ] Tenant resolution is deterministic and table-driven, with explicit not-found outcomes when host is unmapped.
-- [ ] Invite acceptance and claim flows no longer fail globally on existing email across different tenants.
-- [ ] Email/account uniqueness is enforced within tenant scope, not globally across all families.
-- [ ] Sign-in and post-auth redirects stay tenant-local and do not leak across hosts.
-- [ ] Unknown or unverified domains cannot access tenant data.
-- [ ] Domain management and verification workflow is available to family admins.
-- [ ] Domain management uses a dedicated domain router and owner-only settings route at `/settings/domain`, with settings menu linkage.
-- [ ] README documents tenant resolution behavior and operator setup paths.
-- [ ] Typecheck, lint, and targeted tests pass for touched areas.
+- [x] Tenant resolution is deterministic and table-driven, with explicit not-found outcomes when host is unmapped.
+- [x] Invite acceptance and claim flows no longer fail globally on existing email across different tenants.
+- [x] Email/account uniqueness is enforced within tenant scope, not globally across all families.
+- [x] Sign-in and post-auth redirects stay tenant-local and do not leak across hosts.
+- [x] Unknown or unverified domains cannot access tenant data.
+- [x] Domain management and verification workflow is available to family admins.
+- [x] Domain management uses a dedicated domain router and owner-only settings route at `/settings/domain`, with settings menu linkage.
+- [x] README documents tenant resolution behavior and operator setup paths.
+- [x] Typecheck, lint, and targeted tests pass for touched areas.
 
 ## Further Considerations
 
