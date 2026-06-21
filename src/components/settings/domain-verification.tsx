@@ -62,7 +62,7 @@ export function DomainVerification({
   onClose,
   onSuccess,
 }: DomainVerificationProps) {
-  const [copied, setCopied] = useState(false);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
   const [method, setMethod] = useState<"dns" | "http">("dns");
   const [error, setError] = useState<VerificationErrorState | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -86,14 +86,14 @@ export function DomainVerification({
     return "Use this after serving the token from the HTTP challenge endpoint.";
   }, [method]);
 
-  const handleCopyToken = (text: string) => {
+  const handleCopyToken = (field: string, text: string) => {
     if (!text) {
       return;
     }
 
     void navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setCopiedField(field);
+    setTimeout(() => setCopiedField((current) => (current === field ? null : current)), 2000);
   };
 
   async function onSubmit(e: React.FormEvent) {
@@ -151,7 +151,7 @@ export function DomainVerification({
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl overflow-x-hidden">
         <DialogHeader>
           <DialogTitle>Verify Domain: {domain}</DialogTitle>
           <DialogDescription>
@@ -159,15 +159,15 @@ export function DomainVerification({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          <div className="space-y-2">
+        <div className="min-w-0 space-y-4">
+          <div className="min-w-0 space-y-2">
             <label className="text-sm font-medium">Verification Method</label>
-            <div className="flex gap-2 rounded-lg border border-input bg-muted/30 p-1">
+            <div className="flex w-full min-w-0 gap-2 rounded-lg border border-input bg-muted/30 p-1">
               <button
                 type="button"
                 onClick={() => setMethod("dns")}
                 disabled={isSubmitting}
-                className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-all ${
+                className={`min-w-0 flex-1 truncate rounded-md px-3 py-2 text-sm font-medium transition-all ${
                   method === "dns"
                     ? "bg-primary text-primary-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
@@ -179,7 +179,7 @@ export function DomainVerification({
                 type="button"
                 onClick={() => setMethod("http")}
                 disabled={isSubmitting}
-                className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-all ${
+                className={`min-w-0 flex-1 truncate rounded-md px-3 py-2 text-sm font-medium transition-all ${
                   method === "http"
                     ? "bg-primary text-primary-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
@@ -192,26 +192,31 @@ export function DomainVerification({
           </div>
 
           {method === "dns" && (
-            <div className="space-y-3 rounded-lg border p-4 bg-muted/20">
+            <div className="min-w-0 space-y-3 rounded-lg border bg-muted/20 p-4">
               <h3 className="text-sm font-semibold">DNS Setup Instructions</h3>
               <p className="text-xs text-muted-foreground">
                 Add this TXT record to your domain&apos;s DNS settings.
               </p>
 
-              <div className="rounded bg-muted/40 p-3 font-mono text-xs space-y-2">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <div className="mb-1 text-xs text-muted-foreground">Name:</div>
-                    <div className="select-all font-semibold">{dnsRecord?.name}</div>
+              <div className="min-w-0 space-y-2 rounded bg-muted/40 p-3 font-mono text-xs">
+                <div>
+                  <div className="mb-1 text-xs text-muted-foreground">Name:</div>
+                  <div className="relative min-w-0 max-w-full">
+                    <div className="max-w-full overflow-hidden rounded-md border bg-background/80 pr-12">
+                      <div className="overflow-x-auto px-3 py-2 font-semibold whitespace-nowrap">
+                        <div className="select-all inline-block min-w-full">{dnsRecord?.name}</div>
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleCopyToken("dns-name", dnsRecord?.name ?? "")}
+                      className="absolute right-1 top-1/2 size-8 -translate-y-1/2"
+                    >
+                      {copiedField === "dns-name" ? <Check className="size-4" /> : <Copy className="size-4" />}
+                    </Button>
                   </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleCopyToken(dnsRecord?.name ?? "")}
-                  >
-                    {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
-                  </Button>
                 </div>
 
                 <div>
@@ -221,30 +226,35 @@ export function DomainVerification({
 
                 <div>
                   <div className="text-xs text-muted-foreground mb-1">Value:</div>
-                  <div className="select-all break-all font-semibold">{dnsRecord?.value}</div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleCopyToken(dnsRecord?.value ?? "")}
-                    className="mt-1"
-                  >
-                    {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
-                    Copy Value
-                  </Button>
+                  <div className="relative min-w-0 max-w-full">
+                    <div className="max-w-full overflow-hidden rounded-md border bg-background/80 pr-12">
+                      <div className="overflow-x-auto scrollbar px-3 py-2 font-semibold whitespace-nowrap">
+                        <div className="select-all inline-block min-w-full">{dnsRecord?.value}</div>
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleCopyToken("dns-value", dnsRecord?.value ?? "")}
+                      className="absolute right-1 top-1/2 size-8 -translate-y-1/2"
+                    >
+                      {copiedField === "dns-value" ? <Check className="size-4" /> : <Copy className="size-4" />}
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
           )}
 
           {method === "http" && (
-            <div className="space-y-3 rounded-lg border p-4 bg-muted/20">
+            <div className="min-w-0 space-y-3 rounded-lg border bg-muted/20 p-4">
               <h3 className="text-sm font-semibold">HTTP Setup Instructions</h3>
               <p className="text-xs text-muted-foreground">
                 Serve the verification token from this endpoint on your domain.
               </p>
 
-              <div className="rounded bg-muted/40 p-3 font-mono text-xs space-y-2">
+              <div className="min-w-0 space-y-2 rounded bg-muted/40 p-3 font-mono text-xs">
                 <div>
                   <div className="text-xs text-muted-foreground">Method:</div>
                   <div className="font-semibold">{httpChallenge?.method}</div>
@@ -252,22 +262,42 @@ export function DomainVerification({
 
                 <div>
                   <div className="text-xs text-muted-foreground mb-1">URL:</div>
-                  <div className="select-all break-all font-semibold">{httpChallenge?.url}</div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleCopyToken(httpChallenge?.url ?? "")}
-                    className="mt-1"
-                  >
-                    {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
-                    Copy URL
-                  </Button>
+                  <div className="relative min-w-0 max-w-full">
+                    <div className="max-w-full overflow-hidden rounded-md border bg-background/80 pr-12">
+                      <div className="overflow-x-auto scrollbar px-3 py-2 font-semibold whitespace-nowrap">
+                        <div className="select-all inline-block min-w-full">{httpChallenge?.url}</div>
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleCopyToken("http-url", httpChallenge?.url ?? "")}
+                      className="absolute right-1 top-1/2 size-8 -translate-y-1/2"
+                    >
+                      {copiedField === "http-url" ? <Check className="size-4" /> : <Copy className="size-4" />}
+                    </Button>
+                  </div>
                 </div>
 
                 <div>
                   <div className="text-xs text-muted-foreground mb-1">Expected Response Body:</div>
-                  <Input readOnly value={httpChallenge?.expectedBody ?? ""} className="h-8 text-xs" />
+                  <div className="relative">
+                    <Input
+                      readOnly
+                      value={httpChallenge?.expectedBody ?? ""}
+                      className="h-10 pr-12 text-xs"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleCopyToken("http-body", httpChallenge?.expectedBody ?? "")}
+                      className="absolute right-1 top-1/2 size-8 -translate-y-1/2"
+                    >
+                      {copiedField === "http-body" ? <Check className="size-4" /> : <Copy className="size-4" />}
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
