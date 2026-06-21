@@ -11,6 +11,9 @@ references:
   - type: pr
     url: https://github.com/fircle-app/fircle/pull/36
     description: "Current implementation PR with placeholder verification mutation"
+  - type: pr
+    url: https://github.com/fircle-app/fircle/pull/37
+    description: "Implementation pull request - feat: domain verification"
 ---
 
 > **Instructions for AI Agents:**
