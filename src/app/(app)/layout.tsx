@@ -9,13 +9,29 @@ import { MobileHeader } from "~/components/nav/mobile-header";
 import { PushPermissionRequest } from "~/components/pwa/push-permission-request";
 import { env } from "~/env";
 import { resolveUnauthenticatedAppRedirect } from "~/lib/bootstrap-routing";
+import { buildAbsoluteUrl } from "~/lib/request-host";
+import { resolveTenantFromHeaders } from "~/lib/tenant-resolution";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const session = await auth();
   const requestHeaders = await headers();
   const callbackUrl = requestHeaders.get("x-current-path") ?? "/";
+  const resolution = await resolveTenantFromHeaders(requestHeaders);
+
+  if (resolution.state === "bootstrap-required") {
+    redirect("/auth/setup");
+  }
+
+  if (resolution.state === "not-found" || resolution.state === "ambiguous") {
+    redirect("/tenant-not-found");
+  }
+
+  if (resolution.canonicalHost !== resolution.host) {
+    redirect(buildAbsoluteUrl(requestHeaders, resolution.canonicalHost, callbackUrl));
+  }
+
+  const session = await auth();
 
   if (!session?.user) {
     const hasExistingFamily = env.SELF_HOSTED

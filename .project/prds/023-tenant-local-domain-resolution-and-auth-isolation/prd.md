@@ -89,17 +89,17 @@ Implications of this model:
 
 #### Tasks
 
-- [ ] Create tenant resolver utility (for example [src/lib/tenant-resolution.ts](src/lib/tenant-resolution.ts)) that:
+- [x] Create tenant resolver utility (for example [src/lib/tenant-resolution.ts](src/lib/tenant-resolution.ts)) that:
   - extracts and normalizes request host,
   - resolves by `Domain.domain` only,
   - returns not-found when no explicit mapping exists.
-- [ ] Define explicit resolver result states (`resolved`, `not-found`, `ambiguous`, `bootstrap-required`).
-- [ ] Integrate resolver in middleware/auth entry points:
+- [x] Define explicit resolver result states (`resolved`, `not-found`, `ambiguous`, `bootstrap-required`).
+- [x] Integrate resolver in middleware/auth entry points:
   - [src/middleware.ts](src/middleware.ts),
   - [src/app/auth/signin/page.tsx](src/app/auth/signin/page.tsx),
   - [src/app/(app)/layout.tsx](src/app/(app)/layout.tsx).
-- [ ] Add tenant-not-found UX route/page for unresolved hosts.
-- [ ] Add canonical-host redirect policy (primary domain enforcement) for resolved tenants.
+- [x] Add tenant-not-found UX route/page for unresolved hosts.
+- [x] Add canonical-host redirect policy (primary domain enforcement) for resolved tenants.
 
 ### Phase 3: Tenant-Scoped Auth and Invite Semantics
 
