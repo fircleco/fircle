@@ -5,17 +5,14 @@ import { z } from "zod";
 import { encryptCredentials } from "~/lib/encryption";
 import { getIntegrationCredentialMasterKey } from "~/server/config";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
+import { validateProviderPayload } from "~/lib/integration-providers";
+
 
 const supportedIntegrationCategorySchema = z.literal("storage");
 const supportedIntegrationProviderSchema = z.literal("r2");
 
-const r2StorageCredentialPayloadSchema = z.object({
-  accountId: z.string().trim().min(1).max(100),
-  bucket: z.string().trim().min(1).max(255),
-  accessKeyId: z.string().trim().min(1).max(255),
-  secretAccessKey: z.string().trim().min(1).max(500),
-  publicBaseUrl: z.string().trim().url(),
-});
+// Generic payload schema - specific validation happens via provider registry
+const integrationCredentialPayloadSchema = z.record(z.string(), z.string());
 
 const familyScopedCategoryInputSchema = z.object({
   familyId: z.string().cuid(),
@@ -24,7 +21,7 @@ const familyScopedCategoryInputSchema = z.object({
 
 const saveIntegrationCredentialInputSchema = familyScopedCategoryInputSchema.extend({
   provider: supportedIntegrationProviderSchema,
-  payload: r2StorageCredentialPayloadSchema,
+  payload: integrationCredentialPayloadSchema,
   isEnabled: z.boolean().default(true),
   testBeforeSave: z.boolean().default(true),
 });
@@ -35,7 +32,32 @@ const testIntegrationCredentialInputSchema = saveIntegrationCredentialInputSchem
 
 const disableIntegrationCredentialInputSchema = familyScopedCategoryInputSchema;
 
-async function requireOwnerMembership(familyId: string, userId: string, db: { familyMember: { findUnique: (args: unknown) => Promise<{ role: string } | null> } }) {
+type OwnerMembershipDb = {
+  familyMember: {
+    findUnique(args: {
+      where: {
+        familyId_userId: {
+          familyId: string;
+          userId: string;
+        };
+      };
+      select: {
+        role: true;
+      };
+    }): Promise<
+      | {
+          role: string;
+        }
+      | null
+    >;
+  };
+};
+
+async function requireOwnerMembership(
+  familyId: string,
+  userId: string,
+  db: OwnerMembershipDb
+): Promise<void> {
   const membership = await db.familyMember.findUnique({
     where: {
       familyId_userId: {
@@ -56,14 +78,18 @@ async function requireOwnerMembership(familyId: string, userId: string, db: { fa
   }
 }
 
-function createR2Client(payload: z.infer<typeof r2StorageCredentialPayloadSchema>) {
+function createR2Client(payload: Record<string, string>) {
+  const accountId = payload.accountId!;
+  const accessKeyId = payload.accessKeyId!;
+  const secretAccessKey = payload.secretAccessKey!;
+
   return new S3Client({
     region: "auto",
-    endpoint: `https://${payload.accountId}.r2.cloudflarestorage.com`,
+    endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
     forcePathStyle: true,
     credentials: {
-      accessKeyId: payload.accessKeyId,
-      secretAccessKey: payload.secretAccessKey,
+      accessKeyId,
+      secretAccessKey,
     },
   });
 }
@@ -86,20 +112,21 @@ function describeR2CredentialTestError(error: unknown): string {
     return "Storage provider is rate-limiting requests; credentials appear valid.";
   }
 
-  if (statusCode !== null && statusCode >= 500) {
+  if (statusCode && statusCode >= 500) {
     return "Storage provider is temporarily unavailable.";
   }
 
   return error.message || "Could not reach the storage provider.";
 }
 
-async function testR2StorageCredentials(payload: z.infer<typeof r2StorageCredentialPayloadSchema>) {
+async function testR2StorageCredentials(payload: Record<string, string>) {
+  const bucket = payload.bucket!;
   const client = createR2Client(payload);
 
   try {
     await client.send(
       new HeadBucketCommand({
-        Bucket: payload.bucket,
+        Bucket: bucket,
       }),
     );
 
@@ -145,6 +172,14 @@ export const integrationRouter = createTRPCRouter({
   testIntegrationCredential: protectedProcedure
     .input(testIntegrationCredentialInputSchema)
     .mutation(async ({ ctx, input }) => {
+      // Validate payload against provider schema first
+      const validation = validateProviderPayload(input.category, input.provider, input.payload);
+      if (!validation.ok) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: validation.message ?? "Invalid credentials.",
+        });
+      }
       await requireOwnerMembership(input.familyId, ctx.session.user.id, ctx.db);
 
       const result = await testR2StorageCredentials(input.payload);
@@ -161,6 +196,14 @@ export const integrationRouter = createTRPCRouter({
   saveIntegrationCredential: protectedProcedure
     .input(saveIntegrationCredentialInputSchema)
     .mutation(async ({ ctx, input }) => {
+      // Validate payload against provider schema
+      const validation = validateProviderPayload(input.category, input.provider, input.payload);
+      if (!validation.ok) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: validation.message ?? "Invalid credentials.",
+        });
+      }
       await requireOwnerMembership(input.familyId, ctx.session.user.id, ctx.db);
 
       if (input.isEnabled && input.testBeforeSave) {

@@ -12,13 +12,15 @@ import {
   getProvidersForCategory,
   getProviderDef,
   validateProviderPayload,
+  type IntegrationCategory,
+  type IntegrationProvider,
 } from "~/lib/integration-providers";
 import { api } from "~/trpc/react";
 
 export type IntegrationCredentialFormValues = {
   familyId: string;
-  category: string;
-  provider: string;
+  category: IntegrationCategory;
+  provider: IntegrationProvider;
   payload: Record<string, string>;
   isEnabled: boolean;
 };
@@ -62,7 +64,7 @@ function validateValues(values: IntegrationCredentialFormValues): string | null 
   // Validate payload against provider schema
   const validation = validateProviderPayload(values.category, values.provider, values.payload);
   if (!validation.ok) {
-    return validation.message || "Invalid payload.";
+    return validation.message ?? "Invalid payload.";
   }
 
   return null;
@@ -104,13 +106,14 @@ export function IntegrationCredentialsForm({
       return;
     }
 
+    const data = credentialQuery.data;
     setValues((current) => ({
       ...current,
-      category: credentialQuery.data.category,
-      provider: credentialQuery.data.provider,
-      isEnabled: credentialQuery.data.isEnabled,
+      category: data.category as IntegrationCategory,
+      provider: data.provider as IntegrationProvider,
+      isEnabled: data.isEnabled,
     }));
-    setLastUpdatedAt(new Date(credentialQuery.data.updatedAt));
+    setLastUpdatedAt(new Date(data.updatedAt));
   }, [credentialQuery.data]);
 
   function updatePayloadValue(fieldName: string, fieldValue: string) {
@@ -124,16 +127,17 @@ export function IntegrationCredentialsForm({
   }
 
   function handleCategoryChange(nextCategory: string) {
+    const category = nextCategory as IntegrationCategory;
     setValues((current) => {
-      const providersForCategory = getProvidersForCategory(nextCategory);
+      const providersForCategory = getProvidersForCategory(category);
       const firstProvider = providersForCategory[0];
 
       return {
         ...current,
-        category: nextCategory,
-        provider: firstProvider?.provider ?? "",
+        category,
+        provider: (firstProvider?.provider ?? "") as IntegrationProvider,
         payload: getInitialPayloadForProvider(
-          nextCategory,
+          category,
           firstProvider?.provider ?? ""
         ),
       };
@@ -141,15 +145,16 @@ export function IntegrationCredentialsForm({
   }
 
   function handleProviderChange(nextProvider: string) {
+    const provider = nextProvider as IntegrationProvider;
     setValues((current) => ({
       ...current,
-      provider: nextProvider,
-      payload: getInitialPayloadForProvider(current.category, nextProvider),
+      provider,
+      payload: getInitialPayloadForProvider(current.category, provider),
     }));
   }
 
-  function getInitialPayloadForProvider(category: string, provider: string): Record<string, string> {
-    const providerDef = getProviderDef(category, provider);
+  function getInitialPayloadForProvider(category: IntegrationCategory, provider: string): Record<string, string> {
+    const providerDef = getProviderDef(category, provider as IntegrationProvider);
     if (!providerDef) {
       return {};
     }
@@ -389,7 +394,7 @@ export function IntegrationCredentialsForm({
               ))}
             </select>
             <p className="text-xs text-muted-foreground">
-              {currentProviderDef?.description || "Select a provider."}
+              {currentProviderDef?.description ?? "Select a provider."}
             </p>
           </div>
 
@@ -510,11 +515,11 @@ export function IntegrationCredentialsForm({
             </div>
             <div className="flex items-center justify-between gap-2">
               <span className="text-muted-foreground">Category</span>
-              <span className="font-medium">{values.category || "-"}</span>
+              <span className="font-medium">{values.category ?? "-"}</span>
             </div>
             <div className="flex items-center justify-between gap-2">
               <span className="text-muted-foreground">Provider</span>
-              <span className="font-medium">{currentProviderDef?.label || "-"}</span>
+              <span className="font-medium">{currentProviderDef?.label ?? "-"}</span>
             </div>
             <div className="flex items-center justify-between gap-2">
               <span className="text-muted-foreground">State</span>

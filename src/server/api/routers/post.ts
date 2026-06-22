@@ -908,7 +908,7 @@ export const postRouter = createTRPCRouter({
         }
 
         return {
-          result: mapPostResponse(storage, createdPost),
+          result: storage ? mapPostResponse(storage, createdPost) : null,
           createdNotifications,
         };
       });
@@ -937,7 +937,7 @@ export const postRouter = createTRPCRouter({
         return null;
       }
 
-      return mapPostResponse(storage, post);
+      return storage ? mapPostResponse(storage, post) : null;
     }),
 
   getFeed: protectedProcedure.input(getFeedInputSchema).query(async ({ ctx, input }) => {
@@ -984,7 +984,7 @@ export const postRouter = createTRPCRouter({
       : null;
 
     return {
-      items: items.map((post) => mapPostResponse(storage, post)),
+      items: storage ? items.map((post) => mapPostResponse(storage, post)) : [],
       nextCursor,
     };
   }),
@@ -1027,7 +1027,7 @@ export const postRouter = createTRPCRouter({
         : null;
 
       return {
-        items: items.map((post) => mapPostResponse(storage, post)),
+        items: storage ? items.map((post) => mapPostResponse(storage, post)) : [],
         nextCursor,
       };
     }),
@@ -1091,7 +1091,7 @@ export const postRouter = createTRPCRouter({
         : null;
 
       return {
-        items: items.map((post) => mapPostResponse(storage, post)),
+        items: storage ? items.map((post) => mapPostResponse(storage, post)) : [],
         nextCursor,
       };
     }),
@@ -1170,7 +1170,7 @@ export const postRouter = createTRPCRouter({
         : null;
 
       return {
-        items: items.map((post) => mapPostResponse(storage, post)),
+        items: storage ? items.map((post) => mapPostResponse(storage, post)) : [],
         nextCursor,
       };
     }),

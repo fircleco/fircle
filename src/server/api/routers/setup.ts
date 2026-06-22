@@ -224,6 +224,10 @@ export const setupRouter = createTRPCRouter({
 
     // 3) Storage readiness (R2 credential + bucket access probe)
     try {
+      if (!env.R2_ACCOUNT_ID || !env.R2_ACCESS_KEY_ID || !env.R2_SECRET_ACCESS_KEY || !env.R2_BUCKET) {
+        throw new Error("Missing R2 environment variables");
+      }
+
       const storageProbeClient = new S3Client({
         region: "auto",
         endpoint: `https://${env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,

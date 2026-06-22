@@ -95,17 +95,28 @@ export const INTEGRATION_PROVIDERS = {
 } as const;
 
 /**
+ * Extract category type from registry.
+ */
+export type IntegrationCategory = keyof typeof INTEGRATION_PROVIDERS;
+
+/**
+ * Extract provider type for a given category.
+ */
+export type IntegrationProvider<C extends IntegrationCategory = IntegrationCategory> =
+  keyof typeof INTEGRATION_PROVIDERS[C];
+
+/**
  * Get all available categories.
  */
-export function getAvailableCategories(): string[] {
-  return Object.keys(INTEGRATION_PROVIDERS);
+export function getAvailableCategories(): IntegrationCategory[] {
+  return Object.keys(INTEGRATION_PROVIDERS) as IntegrationCategory[];
 }
 
 /**
  * Get all providers for a given category.
  */
-export function getProvidersForCategory(category: string): ProviderDef[] {
-  const categoryProviders = INTEGRATION_PROVIDERS[category as keyof typeof INTEGRATION_PROVIDERS];
+export function getProvidersForCategory(category: IntegrationCategory): ProviderDef[] {
+  const categoryProviders = INTEGRATION_PROVIDERS[category];
   if (!categoryProviders) {
     return [];
   }
@@ -115,20 +126,24 @@ export function getProvidersForCategory(category: string): ProviderDef[] {
 /**
  * Get a specific provider definition.
  */
-export function getProviderDef(category: string, provider: string): ProviderDef | null {
-  const categoryProviders = INTEGRATION_PROVIDERS[category as keyof typeof INTEGRATION_PROVIDERS];
+export function getProviderDef(
+  category: IntegrationCategory,
+  provider: IntegrationProvider
+): ProviderDef | null {
+  const categoryProviders = INTEGRATION_PROVIDERS[category];
   if (!categoryProviders) {
     return null;
   }
-  return categoryProviders[provider as keyof typeof categoryProviders] || null;
+  const prov = categoryProviders[provider as keyof typeof categoryProviders];
+  return prov ?? null;
 }
 
 /**
  * Validate payload against a provider's schema.
  */
 export function validateProviderPayload(
-  category: string,
-  provider: string,
+  category: IntegrationCategory,
+  provider: IntegrationProvider,
   payload: unknown,
 ): { ok: boolean; message?: string } {
   const providerDef = getProviderDef(category, provider);

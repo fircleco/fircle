@@ -340,7 +340,7 @@ export const mediaRouter = createTRPCRouter({
         : null;
 
       return {
-        items: items.map((row) => mapGalleryMediaItem(storage, row)),
+        items: storage ? items.map((row) => mapGalleryMediaItem(storage, row)) : [],
         nextCursor,
       };
     }),
@@ -389,12 +389,12 @@ export const mediaRouter = createTRPCRouter({
       const dedupedTagged = taggedRows.filter((row) => !publishedIds.has(row.id));
 
       return {
-        publishedMedia: sortMediaDescendingByCreatedAt(publishedRows).map((row) =>
+        publishedMedia: storage ? sortMediaDescendingByCreatedAt(publishedRows).map((row) =>
           mapGalleryMediaItem(storage, row),
-        ),
-        taggedMedia: sortMediaDescendingByCreatedAt(dedupedTagged).map((row) =>
+        ) : [],
+        taggedMedia: storage ? sortMediaDescendingByCreatedAt(dedupedTagged).map((row) =>
           mapGalleryMediaItem(storage, row),
-        ),
+        ) : [],
       };
     }),
 });
