@@ -6,6 +6,7 @@ import { env } from "~/env";
 import { decryptCredentials } from "~/lib/encryption";
 import { getIntegrationCredentialMasterKey } from "~/server/config";
 import { db as defaultDb } from "~/server/db";
+import { warnAboutCloudModeR2Env } from "~/server/storage/cloud-mode-warning";
 
 import type { R2StorageCredential, StorageConfigResolution } from "./types";
 
@@ -16,8 +17,6 @@ const r2StorageCredentialSchema = z.object({
   secretAccessKey: z.string().trim().min(1),
   publicBaseUrl: z.string().trim().url(),
 });
-
-let hasWarnedAboutCloudEnvFallback = false;
 
 function hasAnyR2EnvironmentValues(): boolean {
   return [
@@ -101,11 +100,8 @@ export async function resolveStorageConfig(
         config: envCredential,
       };
     }
-  } else if (hasAnyR2EnvironmentValues() && !hasWarnedAboutCloudEnvFallback) {
-    hasWarnedAboutCloudEnvFallback = true;
-    console.warn(
-      "Cloud mode detected with R2_* environment variables; these will be ignored. Configure owner-managed storage credentials in app settings instead.",
-    );
+  } else if (hasAnyR2EnvironmentValues()) {
+    warnAboutCloudModeR2Env();
   }
 
   return {

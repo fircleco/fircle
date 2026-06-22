@@ -253,7 +253,8 @@ export const setupRouter = createTRPCRouter({
         label: "Object storage",
         status: "blocking",
         message: `Storage provider is not ready.${probeMessage}`,
-        remediation: "Verify STORAGE_DRIVER and R2_* environment variables.",
+        remediation:
+          "For self-hosted installs, verify R2_* environment variables. For cloud deployments, configure owner-managed storage credentials in Settings > Integrations.",
       })
     }
 
