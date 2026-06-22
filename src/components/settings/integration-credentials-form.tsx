@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Check, Loader, Settings } from "~/components/ui/icons";
+import { api } from "~/trpc/react";
 
 export type IntegrationCredentialFormValues = {
   familyId: string;
@@ -85,21 +86,36 @@ export function IntegrationCredentialsForm({ familyId, onSave, onTest, onCancel 
   const [isTesting, setIsTesting] = useState(false);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
 
-  const statusBadge = useMemo(() => {
-    if (!values.isEnabled) {
-      return { label: "Disabled", className: "border-muted-foreground/30 bg-muted/60 text-muted-foreground" };
+  const utils = api.useUtils();
+
+  const credentialQuery = api.integration.getIntegrationCredential.useQuery(
+    {
+      familyId,
+      category: values.category,
+    },
+    {
+      retry: false,
+      refetchOnWindowFocus: false,
+    },
+  );
+
+  const saveIntegrationCredentialMutation = api.integration.saveIntegrationCredential.useMutation();
+  const testIntegrationCredentialMutation = api.integration.testIntegrationCredential.useMutation();
+  const disableIntegrationCredentialMutation = api.integration.disableIntegrationCredential.useMutation();
+
+  useEffect(() => {
+    if (!credentialQuery.data) {
+      return;
     }
 
-    if (lastUpdatedAt) {
-      return { label: "Configured", className: "border-emerald-500/30 bg-emerald-500/10 text-emerald-700" };
-    }
-
-    return { label: "Not saved yet", className: "border-amber-500/30 bg-amber-500/10 text-amber-700" };
-  }, [lastUpdatedAt, values.isEnabled]);
-
-  const currentStateDescription = values.isEnabled
-    ? "This credential set will be used for the selected category/provider once saved."
-    : "This credential set is disabled and will not be used until re-enabled.";
+    setValues((current) => ({
+      ...current,
+      category: credentialQuery.data.category,
+      provider: credentialQuery.data.provider,
+      isEnabled: credentialQuery.data.isEnabled,
+    }));
+    setLastUpdatedAt(new Date(credentialQuery.data.updatedAt));
+  }, [credentialQuery.data]);
 
   function updateValue<Key extends keyof IntegrationCredentialFormValues>(key: Key, nextValue: IntegrationCredentialFormValues[Key]) {
     setValues((current) => ({ ...current, [key]: nextValue }));
@@ -127,9 +143,27 @@ export function IntegrationCredentialsForm({ familyId, onSave, onTest, onCancel 
     try {
       if (onTest) {
         await onTest(values);
+      } else {
+        const result = await testIntegrationCredentialMutation.mutateAsync({
+          familyId: values.familyId,
+          category: values.category,
+          provider: values.provider,
+          payload: {
+            accountId: values.accountId,
+            bucket: values.bucket,
+            accessKeyId: values.accessKeyId,
+            secretAccessKey: values.secretAccessKey,
+            publicBaseUrl: values.publicBaseUrl,
+          },
+        });
+
+        if (!result.ok) {
+          setErrorMessage(result.message);
+          return;
+        }
       }
 
-      setStatusMessage("Credential check is wired for the next phase. The form state is ready.");
+      setStatusMessage("Credential check completed successfully.");
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Credential test failed.");
     } finally {
@@ -152,16 +186,84 @@ export function IntegrationCredentialsForm({ familyId, onSave, onTest, onCancel 
     try {
       if (onSave) {
         await onSave(values);
+      } else {
+        const savedCredential = await saveIntegrationCredentialMutation.mutateAsync({
+          familyId: values.familyId,
+          category: values.category,
+          provider: values.provider,
+          isEnabled: values.isEnabled,
+          payload: {
+            accountId: values.accountId,
+            bucket: values.bucket,
+            accessKeyId: values.accessKeyId,
+            secretAccessKey: values.secretAccessKey,
+            publicBaseUrl: values.publicBaseUrl,
+          },
+          testBeforeSave: true,
+        });
+
+        setLastUpdatedAt(new Date(savedCredential.updatedAt));
+        await utils.integration.getIntegrationCredential.invalidate({
+          familyId: values.familyId,
+          category: values.category,
+        });
       }
 
-      setLastUpdatedAt(new Date());
-      setStatusMessage("Credential form is ready for backend persistence in the next phase.");
+      setStatusMessage(values.isEnabled ? "Credential saved successfully." : "Credential saved and disabled.");
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Failed to save credentials.");
     } finally {
       setIsSaving(false);
     }
   }
+
+  async function handleDisable() {
+    setErrorMessage(null);
+    setStatusMessage(null);
+
+    setIsSaving(true);
+    try {
+      if (onSave) {
+        await onSave({ ...values, isEnabled: false });
+      } else {
+        const disabledCredential = await disableIntegrationCredentialMutation.mutateAsync({
+          familyId: values.familyId,
+          category: values.category,
+        });
+
+        setValues((current) => ({ ...current, isEnabled: false }));
+        setLastUpdatedAt(new Date(disabledCredential.updatedAt));
+        await utils.integration.getIntegrationCredential.invalidate({
+          familyId: values.familyId,
+          category: values.category,
+        });
+      }
+
+      setStatusMessage("Credential disabled successfully.");
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Failed to disable credentials.");
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  const statusBadge = useMemo(() => {
+    const enabled = credentialQuery.data?.isEnabled ?? values.isEnabled;
+
+    if (!enabled) {
+      return { label: "Disabled", className: "border-muted-foreground/30 bg-muted/60 text-muted-foreground" };
+    }
+
+    if (credentialQuery.data || lastUpdatedAt) {
+      return { label: "Configured", className: "border-emerald-500/30 bg-emerald-500/10 text-emerald-700" };
+    }
+
+    return { label: "Not saved yet", className: "border-amber-500/30 bg-amber-500/10 text-amber-700" };
+  }, [credentialQuery.data, lastUpdatedAt, values.isEnabled]);
+
+  const currentStateDescription = (credentialQuery.data?.isEnabled ?? values.isEnabled)
+    ? "This credential set will be used for the selected category/provider once saved."
+    : "This credential set is disabled and will not be used until re-enabled.";
 
   return (
     <div className="space-y-6">
@@ -186,7 +288,9 @@ export function IntegrationCredentialsForm({ familyId, onSave, onTest, onCancel 
         <form onSubmit={handleSubmit} className="space-y-6 rounded-2xl border bg-card p-4 shadow-sm">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <label htmlFor="category" className="text-sm font-medium">Category</label>
+              <label htmlFor="category" className="text-sm font-medium">
+                Category
+              </label>
               <Input
                 id="category"
                 value={values.category}
@@ -198,7 +302,9 @@ export function IntegrationCredentialsForm({ familyId, onSave, onTest, onCancel 
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="provider" className="text-sm font-medium">Provider</label>
+              <label htmlFor="provider" className="text-sm font-medium">
+                Provider
+              </label>
               <Input
                 id="provider"
                 value={values.provider}
@@ -225,7 +331,9 @@ export function IntegrationCredentialsForm({ familyId, onSave, onTest, onCancel 
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <label htmlFor="accountId" className="text-sm font-medium">R2 Account ID</label>
+              <label htmlFor="accountId" className="text-sm font-medium">
+                R2 Account ID
+              </label>
               <Input
                 id="accountId"
                 value={values.accountId}
@@ -237,7 +345,9 @@ export function IntegrationCredentialsForm({ familyId, onSave, onTest, onCancel 
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="bucket" className="text-sm font-medium">R2 Bucket</label>
+              <label htmlFor="bucket" className="text-sm font-medium">
+                R2 Bucket
+              </label>
               <Input
                 id="bucket"
                 value={values.bucket}
@@ -249,7 +359,9 @@ export function IntegrationCredentialsForm({ familyId, onSave, onTest, onCancel 
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="accessKeyId" className="text-sm font-medium">R2 Access Key ID</label>
+              <label htmlFor="accessKeyId" className="text-sm font-medium">
+                R2 Access Key ID
+              </label>
               <Input
                 id="accessKeyId"
                 value={values.accessKeyId}
@@ -261,7 +373,9 @@ export function IntegrationCredentialsForm({ familyId, onSave, onTest, onCancel 
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="secretAccessKey" className="text-sm font-medium">R2 Secret Access Key</label>
+              <label htmlFor="secretAccessKey" className="text-sm font-medium">
+                R2 Secret Access Key
+              </label>
               <Input
                 id="secretAccessKey"
                 type="password"
@@ -275,7 +389,9 @@ export function IntegrationCredentialsForm({ familyId, onSave, onTest, onCancel 
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="publicBaseUrl" className="text-sm font-medium">R2 Public Base URL</label>
+            <label htmlFor="publicBaseUrl" className="text-sm font-medium">
+              R2 Public Base URL
+            </label>
             <Input
               id="publicBaseUrl"
               value={values.publicBaseUrl}
@@ -295,6 +411,10 @@ export function IntegrationCredentialsForm({ familyId, onSave, onTest, onCancel 
             <Button type="submit" disabled={isSaving || isTesting} className="gap-2">
               {isSaving ? <Loader className="size-4 animate-spin" /> : <Check className="size-4" />}
               <span>Save</span>
+            </Button>
+
+            <Button type="button" variant="outline" onClick={handleDisable} disabled={isSaving || isTesting || !credentialQuery.data}>
+              Disable
             </Button>
 
             <Button type="button" variant="ghost" onClick={resetForm} disabled={isSaving || isTesting}>
@@ -338,11 +458,13 @@ export function IntegrationCredentialsForm({ familyId, onSave, onTest, onCancel 
             </div>
             <div className="flex items-center justify-between gap-2">
               <span className="text-muted-foreground">State</span>
-              <span className="font-medium">{values.isEnabled ? "Enabled" : "Disabled"}</span>
+              <span className="font-medium">{(credentialQuery.data?.isEnabled ?? values.isEnabled) ? "Enabled" : "Disabled"}</span>
             </div>
             <div className="flex items-center justify-between gap-2">
               <span className="text-muted-foreground">Last updated</span>
-              <span className="font-medium">{lastUpdatedAt ? lastUpdatedAt.toLocaleString() : "Not saved"}</span>
+              <span className="font-medium">
+                {lastUpdatedAt ? lastUpdatedAt.toLocaleString() : credentialQuery.data ? new Date(credentialQuery.data.updatedAt).toLocaleString() : "Not saved"}
+              </span>
             </div>
           </div>
 
