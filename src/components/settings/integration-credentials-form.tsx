@@ -5,19 +5,21 @@ import { useEffect, useMemo, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
 import { Check, Loader, Settings } from "~/components/ui/icons";
+import { DynamicFieldRenderer } from "~/components/ui/dynamic-field-renderer";
+import {
+  getAvailableCategories,
+  getProvidersForCategory,
+  getProviderDef,
+  validateProviderPayload,
+} from "~/lib/integration-providers";
 import { api } from "~/trpc/react";
 
 export type IntegrationCredentialFormValues = {
   familyId: string;
   category: string;
   provider: string;
-  accountId: string;
-  bucket: string;
-  accessKeyId: string;
-  secretAccessKey: string;
-  publicBaseUrl: string;
+  payload: Record<string, string>;
   isEnabled: boolean;
 };
 
@@ -33,11 +35,13 @@ function createInitialValues(familyId: string): IntegrationCredentialFormValues 
     familyId,
     category: "storage",
     provider: "r2",
-    accountId: "",
-    bucket: "",
-    accessKeyId: "",
-    secretAccessKey: "",
-    publicBaseUrl: "",
+    payload: {
+      accountId: "",
+      bucket: "",
+      accessKeyId: "",
+      secretAccessKey: "",
+      publicBaseUrl: "",
+    },
     isEnabled: true,
   };
 }
@@ -55,30 +59,21 @@ function validateValues(values: IntegrationCredentialFormValues): string | null 
     return null;
   }
 
-  if (!values.accountId.trim()) {
-    return "R2 Account ID is required.";
-  }
-
-  if (!values.bucket.trim()) {
-    return "R2 bucket is required.";
-  }
-
-  if (!values.accessKeyId.trim()) {
-    return "R2 Access Key ID is required.";
-  }
-
-  if (!values.secretAccessKey.trim()) {
-    return "R2 Secret Access Key is required.";
-  }
-
-  if (!values.publicBaseUrl.trim()) {
-    return "R2 Public Base URL is required.";
+  // Validate payload against provider schema
+  const validation = validateProviderPayload(values.category, values.provider, values.payload);
+  if (!validation.ok) {
+    return validation.message || "Invalid payload.";
   }
 
   return null;
 }
 
-export function IntegrationCredentialsForm({ familyId, onSave, onTest, onCancel }: IntegrationCredentialsFormProps) {
+export function IntegrationCredentialsForm({
+  familyId,
+  onSave,
+  onTest,
+  onCancel,
+}: IntegrationCredentialsFormProps) {
   const [values, setValues] = useState(() => createInitialValues(familyId));
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -101,7 +96,8 @@ export function IntegrationCredentialsForm({ familyId, onSave, onTest, onCancel 
 
   const saveIntegrationCredentialMutation = api.integration.saveIntegrationCredential.useMutation();
   const testIntegrationCredentialMutation = api.integration.testIntegrationCredential.useMutation();
-  const disableIntegrationCredentialMutation = api.integration.disableIntegrationCredential.useMutation();
+  const disableIntegrationCredentialMutation =
+    api.integration.disableIntegrationCredential.useMutation();
 
   useEffect(() => {
     if (!credentialQuery.data) {
@@ -117,8 +113,52 @@ export function IntegrationCredentialsForm({ familyId, onSave, onTest, onCancel 
     setLastUpdatedAt(new Date(credentialQuery.data.updatedAt));
   }, [credentialQuery.data]);
 
-  function updateValue<Key extends keyof IntegrationCredentialFormValues>(key: Key, nextValue: IntegrationCredentialFormValues[Key]) {
-    setValues((current) => ({ ...current, [key]: nextValue }));
+  function updatePayloadValue(fieldName: string, fieldValue: string) {
+    setValues((current) => ({
+      ...current,
+      payload: {
+        ...current.payload,
+        [fieldName]: fieldValue,
+      },
+    }));
+  }
+
+  function handleCategoryChange(nextCategory: string) {
+    setValues((current) => {
+      const providersForCategory = getProvidersForCategory(nextCategory);
+      const firstProvider = providersForCategory[0];
+
+      return {
+        ...current,
+        category: nextCategory,
+        provider: firstProvider?.provider ?? "",
+        payload: getInitialPayloadForProvider(
+          nextCategory,
+          firstProvider?.provider ?? ""
+        ),
+      };
+    });
+  }
+
+  function handleProviderChange(nextProvider: string) {
+    setValues((current) => ({
+      ...current,
+      provider: nextProvider,
+      payload: getInitialPayloadForProvider(current.category, nextProvider),
+    }));
+  }
+
+  function getInitialPayloadForProvider(category: string, provider: string): Record<string, string> {
+    const providerDef = getProviderDef(category, provider);
+    if (!providerDef) {
+      return {};
+    }
+
+    const initialPayload: Record<string, string> = {};
+    for (const field of providerDef.fields) {
+      initialPayload[field.name] = "";
+    }
+    return initialPayload;
   }
 
   function resetForm() {
@@ -148,13 +188,7 @@ export function IntegrationCredentialsForm({ familyId, onSave, onTest, onCancel 
           familyId: values.familyId,
           category: values.category,
           provider: values.provider,
-          payload: {
-            accountId: values.accountId,
-            bucket: values.bucket,
-            accessKeyId: values.accessKeyId,
-            secretAccessKey: values.secretAccessKey,
-            publicBaseUrl: values.publicBaseUrl,
-          },
+          payload: values.payload,
         });
 
         if (!result.ok) {
@@ -192,13 +226,7 @@ export function IntegrationCredentialsForm({ familyId, onSave, onTest, onCancel 
           category: values.category,
           provider: values.provider,
           isEnabled: values.isEnabled,
-          payload: {
-            accountId: values.accountId,
-            bucket: values.bucket,
-            accessKeyId: values.accessKeyId,
-            secretAccessKey: values.secretAccessKey,
-            publicBaseUrl: values.publicBaseUrl,
-          },
+          payload: values.payload,
           testBeforeSave: true,
         });
 
@@ -209,9 +237,15 @@ export function IntegrationCredentialsForm({ familyId, onSave, onTest, onCancel 
         });
       }
 
-      setStatusMessage(values.isEnabled ? "Credential saved successfully." : "Credential saved and disabled.");
+      setStatusMessage(
+        values.isEnabled
+          ? "Credential saved successfully."
+          : "Credential saved and disabled."
+      );
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Failed to save credentials.");
+      setErrorMessage(
+        error instanceof Error ? error.message : "Failed to save credentials."
+      );
     } finally {
       setIsSaving(false);
     }
@@ -226,10 +260,11 @@ export function IntegrationCredentialsForm({ familyId, onSave, onTest, onCancel 
       if (onSave) {
         await onSave({ ...values, isEnabled: false });
       } else {
-        const disabledCredential = await disableIntegrationCredentialMutation.mutateAsync({
-          familyId: values.familyId,
-          category: values.category,
-        });
+        const disabledCredential =
+          await disableIntegrationCredentialMutation.mutateAsync({
+            familyId: values.familyId,
+            category: values.category,
+          });
 
         setValues((current) => ({ ...current, isEnabled: false }));
         setLastUpdatedAt(new Date(disabledCredential.updatedAt));
@@ -241,27 +276,48 @@ export function IntegrationCredentialsForm({ familyId, onSave, onTest, onCancel 
 
       setStatusMessage("Credential disabled successfully.");
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Failed to disable credentials.");
+      setErrorMessage(
+        error instanceof Error ? error.message : "Failed to disable credentials."
+      );
     } finally {
       setIsSaving(false);
     }
   }
 
+  const categories = useMemo(() => getAvailableCategories(), []);
+  const providers = useMemo(
+    () => getProvidersForCategory(values.category),
+    [values.category]
+  );
+  const currentProviderDef = useMemo(
+    () => getProviderDef(values.category, values.provider),
+    [values.category, values.provider]
+  );
+
   const statusBadge = useMemo(() => {
     const enabled = credentialQuery.data?.isEnabled ?? values.isEnabled;
 
     if (!enabled) {
-      return { label: "Disabled", className: "border-muted-foreground/30 bg-muted/60 text-muted-foreground" };
+      return {
+        label: "Disabled",
+        className: "border-muted-foreground/30 bg-muted/60 text-muted-foreground",
+      };
     }
 
     if (credentialQuery.data || lastUpdatedAt) {
-      return { label: "Configured", className: "border-emerald-500/30 bg-emerald-500/10 text-emerald-700" };
+      return {
+        label: "Configured",
+        className: "border-emerald-500/30 bg-emerald-500/10 text-emerald-700",
+      };
     }
 
-    return { label: "Not saved yet", className: "border-amber-500/30 bg-amber-500/10 text-amber-700" };
+    return {
+      label: "Not saved yet",
+      className: "border-amber-500/30 bg-amber-500/10 text-amber-700",
+    };
   }, [credentialQuery.data, lastUpdatedAt, values.isEnabled]);
 
-  const currentStateDescription = (credentialQuery.data?.isEnabled ?? values.isEnabled)
+  const currentStateDescription = credentialQuery.data?.isEnabled ?? values.isEnabled
     ? "This credential set will be used for the selected category/provider once saved."
     : "This credential set is disabled and will not be used until re-enabled.";
 
@@ -271,11 +327,13 @@ export function IntegrationCredentialsForm({ familyId, onSave, onTest, onCancel 
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <Settings className="size-4 text-muted-foreground" aria-hidden="true" />
-            <h2 className="font-semibold text-xl tracking-tight">Integration Credentials</h2>
+            <h2 className="font-semibold text-xl tracking-tight">
+              Integration Credentials
+            </h2>
           </div>
           <p className="max-w-2xl text-sm text-muted-foreground">
-            Configure owner-managed credentials for the current family. The form is already structured
-            around category and provider so future integrations can reuse the same model.
+            Configure owner-managed credentials for the current family. The form
+            automatically adapts based on the selected provider.
           </p>
         </div>
 
@@ -285,43 +343,68 @@ export function IntegrationCredentialsForm({ familyId, onSave, onTest, onCancel 
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1.3fr)_minmax(280px,0.7fr)]">
-        <form onSubmit={handleSubmit} className="space-y-6 rounded-2xl border bg-card p-4 shadow-sm">
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <label htmlFor="category" className="text-sm font-medium">
-                Category
-              </label>
-              <Input
-                id="category"
-                value={values.category}
-                onChange={(event) => updateValue("category", event.target.value)}
-                placeholder="storage"
-                autoComplete="off"
-              />
-              <p className="text-xs text-muted-foreground">Use broad groups like storage or ai.</p>
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="provider" className="text-sm font-medium">
-                Provider
-              </label>
-              <Input
-                id="provider"
-                value={values.provider}
-                onChange={(event) => updateValue("provider", event.target.value)}
-                placeholder="r2"
-                autoComplete="off"
-              />
-              <p className="text-xs text-muted-foreground">Use the vendor or service name.</p>
-            </div>
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-6 rounded-2xl border bg-card p-4 shadow-sm"
+        >
+          {/* Category selector */}
+          <div className="space-y-2">
+            <label htmlFor="category" className="text-sm font-medium">
+              Category
+            </label>
+            <select
+              id="category"
+              value={values.category}
+              onChange={(event) => handleCategoryChange(event.target.value)}
+              disabled={isSaving || isTesting}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {categories.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-muted-foreground">
+              Select the integration category.
+            </p>
           </div>
 
+          {/* Provider selector */}
+          <div className="space-y-2">
+            <label htmlFor="provider" className="text-sm font-medium">
+              Provider
+            </label>
+            <select
+              id="provider"
+              value={values.provider}
+              onChange={(event) => handleProviderChange(event.target.value)}
+              disabled={isSaving || isTesting || providers.length === 0}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {providers.map((provider) => (
+                <option key={provider.provider} value={provider.provider}>
+                  {provider.label}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-muted-foreground">
+              {currentProviderDef?.description || "Select a provider."}
+            </p>
+          </div>
+
+          {/* Enable toggle */}
           <div className="flex items-center gap-2 rounded-xl border bg-muted/20 px-3 py-2">
             <input
               id="enabled"
               type="checkbox"
               checked={values.isEnabled}
-              onChange={(event) => updateValue("isEnabled", event.target.checked)}
+              onChange={(event) =>
+                setValues((current) => ({
+                  ...current,
+                  isEnabled: event.target.checked,
+                }))
+              }
               className="size-4 rounded border-input"
             />
             <label htmlFor="enabled" className="text-sm font-medium">
@@ -329,99 +412,72 @@ export function IntegrationCredentialsForm({ familyId, onSave, onTest, onCancel 
             </label>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <label htmlFor="accountId" className="text-sm font-medium">
-                R2 Account ID
-              </label>
-              <Input
-                id="accountId"
-                value={values.accountId}
-                onChange={(event) => updateValue("accountId", event.target.value)}
-                placeholder="account id"
-                autoComplete="off"
-                disabled={!values.isEnabled}
-              />
+          {/* Dynamic fields based on provider */}
+          {currentProviderDef && (
+            <div className="grid gap-4 md:grid-cols-2">
+              {currentProviderDef.fields.map((field) => (
+                <div key={field.name}>
+                  <DynamicFieldRenderer
+                    field={field}
+                    value={values.payload[field.name] ?? ""}
+                    onChange={(value) => updatePayloadValue(field.name, value)}
+                    disabled={!values.isEnabled}
+                  />
+                </div>
+              ))}
             </div>
+          )}
 
-            <div className="space-y-2">
-              <label htmlFor="bucket" className="text-sm font-medium">
-                R2 Bucket
-              </label>
-              <Input
-                id="bucket"
-                value={values.bucket}
-                onChange={(event) => updateValue("bucket", event.target.value)}
-                placeholder="family-media"
-                autoComplete="off"
-                disabled={!values.isEnabled}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="accessKeyId" className="text-sm font-medium">
-                R2 Access Key ID
-              </label>
-              <Input
-                id="accessKeyId"
-                value={values.accessKeyId}
-                onChange={(event) => updateValue("accessKeyId", event.target.value)}
-                placeholder="access key id"
-                autoComplete="off"
-                disabled={!values.isEnabled}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="secretAccessKey" className="text-sm font-medium">
-                R2 Secret Access Key
-              </label>
-              <Input
-                id="secretAccessKey"
-                type="password"
-                value={values.secretAccessKey}
-                onChange={(event) => updateValue("secretAccessKey", event.target.value)}
-                placeholder="secret access key"
-                autoComplete="off"
-                disabled={!values.isEnabled}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="publicBaseUrl" className="text-sm font-medium">
-              R2 Public Base URL
-            </label>
-            <Input
-              id="publicBaseUrl"
-              value={values.publicBaseUrl}
-              onChange={(event) => updateValue("publicBaseUrl", event.target.value)}
-              placeholder="https://pub-....r2.dev"
-              autoComplete="off"
-              disabled={!values.isEnabled}
-            />
-          </div>
-
+          {/* Action buttons */}
           <div className="flex flex-wrap items-center gap-3">
-            <Button type="button" variant="outline" onClick={handleTest} disabled={isTesting || isSaving} className="gap-2">
-              {isTesting ? <Loader className="size-4 animate-spin" /> : <Check className="size-4" />}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleTest}
+              disabled={isTesting || isSaving}
+              className="gap-2"
+            >
+              {isTesting ? (
+                <Loader className="size-4 animate-spin" />
+              ) : (
+                <Check className="size-4" />
+              )}
               <span>Test Credentials</span>
             </Button>
 
-            <Button type="submit" disabled={isSaving || isTesting} className="gap-2">
-              {isSaving ? <Loader className="size-4 animate-spin" /> : <Check className="size-4" />}
+            <Button
+              type="submit"
+              disabled={isSaving || isTesting}
+              className="gap-2"
+            >
+              {isSaving ? (
+                <Loader className="size-4 animate-spin" />
+              ) : (
+                <Check className="size-4" />
+              )}
               <span>Save</span>
             </Button>
 
-            <Button type="button" variant="outline" onClick={handleDisable} disabled={isSaving || isTesting || !credentialQuery.data}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleDisable}
+              disabled={isSaving || isTesting || !credentialQuery.data}
+            >
               Disable
             </Button>
 
-            <Button type="button" variant="ghost" onClick={resetForm} disabled={isSaving || isTesting}>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={resetForm}
+              disabled={isSaving || isTesting}
+            >
               Cancel
             </Button>
           </div>
 
+          {/* Error message */}
           {errorMessage ? (
             <Alert variant="destructive">
               <AlertTitle>Unable to continue</AlertTitle>
@@ -429,6 +485,7 @@ export function IntegrationCredentialsForm({ familyId, onSave, onTest, onCancel 
             </Alert>
           ) : null}
 
+          {/* Success message */}
           {statusMessage ? (
             <Alert>
               <AlertTitle>Ready</AlertTitle>
@@ -437,10 +494,13 @@ export function IntegrationCredentialsForm({ familyId, onSave, onTest, onCancel 
           ) : null}
         </form>
 
+        {/* Sidebar */}
         <aside className="space-y-4 rounded-2xl border bg-card p-4 shadow-sm">
           <div className="space-y-2">
             <h3 className="font-semibold">Credential status</h3>
-            <p className="text-sm text-muted-foreground">{currentStateDescription}</p>
+            <p className="text-sm text-muted-foreground">
+              {currentStateDescription}
+            </p>
           </div>
 
           <div className="space-y-2 rounded-xl border bg-muted/20 p-4 text-sm">
@@ -454,23 +514,31 @@ export function IntegrationCredentialsForm({ familyId, onSave, onTest, onCancel 
             </div>
             <div className="flex items-center justify-between gap-2">
               <span className="text-muted-foreground">Provider</span>
-              <span className="font-medium">{values.provider || "-"}</span>
+              <span className="font-medium">{currentProviderDef?.label || "-"}</span>
             </div>
             <div className="flex items-center justify-between gap-2">
               <span className="text-muted-foreground">State</span>
-              <span className="font-medium">{(credentialQuery.data?.isEnabled ?? values.isEnabled) ? "Enabled" : "Disabled"}</span>
+              <span className="font-medium">
+                {credentialQuery.data?.isEnabled ?? values.isEnabled
+                  ? "Enabled"
+                  : "Disabled"}
+              </span>
             </div>
             <div className="flex items-center justify-between gap-2">
               <span className="text-muted-foreground">Last updated</span>
               <span className="font-medium">
-                {lastUpdatedAt ? lastUpdatedAt.toLocaleString() : credentialQuery.data ? new Date(credentialQuery.data.updatedAt).toLocaleString() : "Not saved"}
+                {lastUpdatedAt
+                  ? lastUpdatedAt.toLocaleString()
+                  : credentialQuery.data
+                    ? new Date(credentialQuery.data.updatedAt).toLocaleString()
+                    : "Not saved"}
               </span>
             </div>
           </div>
 
           <div className="rounded-xl border border-dashed bg-muted/10 p-4 text-sm text-muted-foreground">
-            Object storage is the first supported provider category, but this model is ready for future
-            credential-backed features without changing the schema shape.
+            This dynamic form is provider-agnostic and automatically adapts to new
+            integrations as they are added to the registry.
           </div>
         </aside>
       </div>
