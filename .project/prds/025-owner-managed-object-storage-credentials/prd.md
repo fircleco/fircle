@@ -1,6 +1,6 @@
 ---
 title: "Owner-Managed Integration Credentials (BYO)"
-status: draft
+status: in-progress
 references:
   - type: doc
     url: .project/brief.md
@@ -62,7 +62,7 @@ Storing credentials securely requires encryption at rest. A single instance mast
 
 #### Tasks
 
-- [ ] Add `IntegrationCredential` model to `prisma/schema.prisma`:
+- [x] Add `IntegrationCredential` model to `prisma/schema.prisma`:
   ```prisma
   model IntegrationCredential {
     id               String   @id @default(cuid())
@@ -85,15 +85,15 @@ Storing credentials securely requires encryption at rest. A single instance mast
     @@index([provider])
   }
   ```
-- [ ] Create and apply Prisma migration for `IntegrationCredential`.
-- [ ] Add encryption/decryption utilities in `src/lib/encryption.ts`:
+- [x] Create and apply Prisma migration for `IntegrationCredential`.
+- [x] Add encryption/decryption utilities in `src/lib/encryption.ts`:
   - `encryptCredentials(payload: unknown, masterKey: string): string`
   - `decryptCredentials(encryptedPayload: string, masterKey: string): unknown`
   - Use `crypto.subtle` or `libsodium` (via libsodium.js or tweetnacl) for authenticated encryption.
-- [ ] Add master key derivation in `src/server/config.ts`:
+- [x] Add master key derivation in `src/server/config.ts`:
   - Derive encryption key from `AUTH_SECRET` using HKDF or similar.
   - Ensure key is stable and deterministic so decrypt always works.
-- [ ] Export utilities for use in credential read/write paths.
+- [x] Export utilities for use in credential read/write paths.
 
 ### Phase 2: Owner-Only Integration Settings UI
 
@@ -101,19 +101,19 @@ Storing credentials securely requires encryption at rest. A single instance mast
 
 #### Tasks
 
-- [ ] Add `/settings/integrations` route in `src/app/(app)/settings/`:
+- [x] Add `/settings/integrations` route in `src/app/(app)/settings/`:
   - Create `page.tsx` with owner-only access guard (similar to existing domain settings).
   - Add to settings nav in `src/app/(app)/settings/layout.tsx`.
-- [ ] Create `IntegrationCredentialsForm` component in `src/components/settings/integration-credentials-form.tsx`:
+- [x] Create `IntegrationCredentialsForm` component in `src/components/settings/integration-credentials-form.tsx`:
   - Form fields: `category`, `provider`, R2 Account ID, R2 Bucket, R2 Access Key ID, R2 Secret Access Key, R2 Public Base URL.
   - Validation: Require all fields if provider is to be enabled.
   - Submit action: Save credentials (encrypted) to database or display error.
   - Test button: Probe R2 credentials with a `HeadBucket` call before saving (show success/failure feedback).
-- [ ] Add visual feedback for credential state:
+- [x] Add visual feedback for credential state:
   - Show if credentials are currently enabled/disabled.
   - Show last updated timestamp.
   - Offer ability to disable storage (set `isEnabled=false`) without deleting credentials.
-- [ ] Add form sections for:
+- [x] Add form sections for:
   - Category and provider selection.
   - Current credential status (enabled/disabled, last updated).
   - R2 credentials input with validation.
@@ -126,7 +126,7 @@ Storing credentials securely requires encryption at rest. A single instance mast
 
 #### Tasks
 
-- [ ] Create `src/server/storage/config-resolver.ts`:
+- [x] Create `src/server/storage/config-resolver.ts`:
   ```typescript
   export interface StorageConfigResolution {
     driver: StorageDriver;
@@ -140,7 +140,7 @@ Storing credentials securely requires encryption at rest. A single instance mast
     db: PrismaClient,
   ): Promise<StorageConfigResolution>;
   ```
-- [ ] Implement resolution logic:
+- [x] Implement resolution logic:
   1. If `SELF_HOSTED=false` (cloud):
     - Query `IntegrationCredential` for `familyId` and `category === "storage"`.
      - If present and enabled, decrypt and return config with `source: "database"`.
@@ -151,12 +151,12 @@ Storing credentials securely requires encryption at rest. A single instance mast
      - If present and enabled, decrypt and return config with `source: "database"`.
      - Else if env R2_* is configured, validate and return with `source: "environment"`.
      - Else return disabled.
-- [ ] Update `src/server/storage/provider.ts`:
+- [x] Update `src/server/storage/provider.ts`:
   - Refactor `createStorageProvider()` to accept `StorageConfigResolution` instead of reading env directly.
   - Update `getStorageProvider()` to call `resolveStorageConfig()` and pass result to provider factory.
   - Add context to provider instantiation (for example, pass `familyId` to provider or cache by family).
   - Handle disabled case: throw clear error with remediation hint.
-- [ ] Ensure upload intent endpoint in `src/app/api/uploads/intent/route.ts` calls the new resolver and surfaces credential errors with clear messaging.
+- [x] Ensure upload intent endpoint in `src/app/api/uploads/intent/route.ts` calls the new resolver and surfaces credential errors with clear messaging.
 
 ### Phase 4: Credential Management API (tRPC Procedures)
 
@@ -164,7 +164,7 @@ Storing credentials securely requires encryption at rest. A single instance mast
 
 #### Tasks
 
-- [ ] Create `src/server/api/routers/integration.ts`:
+- [x] Create `src/server/api/routers/integration.ts`:
   - `saveIntegrationCredential`: Owner-only mutation to save encrypted integration credentials.
     - Input: `familyId`, `category`, `provider`, `payload`.
     - Validate all required fields.
@@ -191,7 +191,7 @@ Storing credentials securely requires encryption at rest. A single instance mast
   - If cloud mode: Check for valid `IntegrationCredential` record for the storage category or note that storage is required.
   - If self-hosted mode: Keep existing env + optional owner-config logic.
   - Display storage readiness status clearly in setup UI.
-- [ ] Add startup warning logic:
+- [x] Add startup warning logic:
   - On app boot, if `SELF_HOSTED=false` and env R2_* are set, log warning to console and structured logs.
   - Suggest operators migrate to owner-managed settings.
 - [ ] Update setup/readiness UI to show:
@@ -217,16 +217,16 @@ Storing credentials securely requires encryption at rest. A single instance mast
 
 ## Acceptance Criteria
 
-- [ ] `IntegrationCredential` table exists and stores encrypted integration credential records.
-- [ ] Encryption/decryption utilities work correctly with master key derived from `AUTH_SECRET`.
-- [ ] Owner-only `/settings/integrations` page loads and displays current credential state.
-- [ ] Owner can enter R2 credentials, test them, and save them successfully.
-- [ ] Credentials are stored encrypted in the database and inaccessible in plaintext queries.
-- [ ] Storage provider resolution prioritizes DB config over env in both self-hosted and cloud modes per the specified precedence.
-- [ ] Cloud mode (`SELF_HOSTED=false`) ignores env R2_* and logs a warning if detected.
-- [ ] Cloud mode fails with clear error if no DB credential record exists and upload is attempted.
-- [ ] Self-hosted mode falls back to env if no DB record and env is configured.
+- [x] `IntegrationCredential` table exists and stores encrypted integration credential records.
+- [x] Encryption/decryption utilities work correctly with master key derived from `AUTH_SECRET`.
+- [x] Owner-only `/settings/integrations` page loads and displays current credential state.
+- [x] Owner can enter R2 credentials, test them, and save them successfully.
+- [x] Credentials are stored encrypted in the database and inaccessible in plaintext queries.
+- [x] Storage provider resolution prioritizes DB config over env in both self-hosted and cloud modes per the specified precedence.
+- [x] Cloud mode (`SELF_HOSTED=false`) ignores env R2_* and logs a warning if detected.
+- [x] Cloud mode fails with clear error if no DB credential record exists and upload is attempted.
+- [x] Self-hosted mode falls back to env if no DB record and env is configured.
 - [ ] Setup readiness checks account for owner-managed storage status and display it correctly.
-- [ ] Upload intent endpoint resolves credentials correctly and returns errors if storage is disabled.
-- [ ] tRPC integration router procedures work: save, get, test, disable.
+- [x] Upload intent endpoint resolves credentials correctly and returns errors if storage is disabled.
+- [x] tRPC integration router procedures work: save, get, test, disable.
 - [ ] Documentation reflects the new flow and deployment differences.
