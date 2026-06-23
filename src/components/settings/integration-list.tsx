@@ -49,7 +49,7 @@ export function IntegrationList({
         description:
           category === "storage"
             ? "Object storage for media and files"
-            : `Configure ${category} integrations`,
+            : `Configure ${String(category)} integrations`,
         providers,
         defaultProvider,
       };
@@ -146,7 +146,7 @@ export function IntegrationList({
                 </div>
                 <p className="text-sm text-muted-foreground">{item.description}</p>
                 <p className="text-xs text-muted-foreground/80">
-                  Available providers: {item.providers.map((p) => p.provider).join(", ")}
+                  Available providers: {String(item.providers.map((p) => p.provider).join(", "))}
                 </p>
               </div>
 
@@ -157,7 +157,7 @@ export function IntegrationList({
                 onClick={() =>
                   onConfigureIntegration({
                     category: item.category,
-                    provider: configured?.provider ?? item.defaultProvider,
+                    provider: (configured?.provider ?? item.defaultProvider) as IntegrationProvider,
                   })
                 }
               >
