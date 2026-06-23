@@ -31,6 +31,9 @@ const testIntegrationCredentialInputSchema = saveIntegrationCredentialInputSchem
 });
 
 const disableIntegrationCredentialInputSchema = familyScopedCategoryInputSchema;
+const familyScopedInputSchema = z.object({
+  familyId: z.string().cuid(),
+});
 
 type OwnerMembershipDb = {
   familyMember: {
@@ -143,6 +146,32 @@ async function testR2StorageCredentials(payload: Record<string, string>) {
 }
 
 export const integrationRouter = createTRPCRouter({
+  listIntegrationCredentials: protectedProcedure
+    .input(familyScopedInputSchema)
+    .query(async ({ ctx, input }) => {
+      await requireOwnerMembership(input.familyId, ctx.session.user.id, ctx.db);
+
+      const credentials = await ctx.db.integrationCredential.findMany({
+        where: {
+          familyId: input.familyId,
+        },
+        select: {
+          id: true,
+          familyId: true,
+          category: true,
+          provider: true,
+          isEnabled: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+        orderBy: {
+          updatedAt: "desc",
+        },
+      });
+
+      return credentials;
+    }),
+
   getIntegrationCredential: protectedProcedure
     .input(familyScopedCategoryInputSchema)
     .query(async ({ ctx, input }) => {

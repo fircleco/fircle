@@ -27,23 +27,42 @@ export type IntegrationCredentialFormValues = {
 
 interface IntegrationCredentialsFormProps {
   familyId: string;
+  initialCategory?: IntegrationCategory;
+  initialProvider?: IntegrationProvider;
+  compact?: boolean;
   onSave?: (values: IntegrationCredentialFormValues) => Promise<void> | void;
   onTest?: (values: IntegrationCredentialFormValues) => Promise<void> | void;
   onCancel?: () => void;
+  onSaved?: (values: IntegrationCredentialFormValues) => void;
 }
 
-function createInitialValues(familyId: string): IntegrationCredentialFormValues {
+function getInitialPayloadForProvider(
+  category: IntegrationCategory,
+  provider: IntegrationProvider,
+): Record<string, string> {
+  const providerDef = getProviderDef(category, provider);
+  if (!providerDef) {
+    return {};
+  }
+
+  const initialPayload: Record<string, string> = {};
+  for (const field of providerDef.fields) {
+    initialPayload[field.name] = "";
+  }
+
+  return initialPayload;
+}
+
+function createInitialValues(
+  familyId: string,
+  category: IntegrationCategory = "storage",
+  provider: IntegrationProvider = "r2",
+): IntegrationCredentialFormValues {
   return {
     familyId,
-    category: "storage",
-    provider: "r2",
-    payload: {
-      accountId: "",
-      bucket: "",
-      accessKeyId: "",
-      secretAccessKey: "",
-      publicBaseUrl: "",
-    },
+    category,
+    provider,
+    payload: getInitialPayloadForProvider(category, provider),
     isEnabled: true,
   };
 }
@@ -72,11 +91,17 @@ function validateValues(values: IntegrationCredentialFormValues): string | null 
 
 export function IntegrationCredentialsForm({
   familyId,
+  initialCategory = "storage",
+  initialProvider = "r2",
+  compact = false,
   onSave,
   onTest,
   onCancel,
+  onSaved,
 }: IntegrationCredentialsFormProps) {
-  const [values, setValues] = useState(() => createInitialValues(familyId));
+  const [values, setValues] = useState(() =>
+    createInitialValues(familyId, initialCategory, initialProvider),
+  );
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -100,6 +125,13 @@ export function IntegrationCredentialsForm({
   const testIntegrationCredentialMutation = api.integration.testIntegrationCredential.useMutation();
   const disableIntegrationCredentialMutation =
     api.integration.disableIntegrationCredential.useMutation();
+
+  useEffect(() => {
+    setValues(createInitialValues(familyId, initialCategory, initialProvider));
+    setStatusMessage(null);
+    setErrorMessage(null);
+    setLastUpdatedAt(null);
+  }, [familyId, initialCategory, initialProvider]);
 
   useEffect(() => {
     if (!credentialQuery.data) {
@@ -138,7 +170,7 @@ export function IntegrationCredentialsForm({
         provider: (firstProvider?.provider ?? "") as IntegrationProvider,
         payload: getInitialPayloadForProvider(
           category,
-          firstProvider?.provider ?? ""
+          (firstProvider?.provider ?? "r2") as IntegrationProvider
         ),
       };
     });
@@ -153,21 +185,8 @@ export function IntegrationCredentialsForm({
     }));
   }
 
-  function getInitialPayloadForProvider(category: IntegrationCategory, provider: string): Record<string, string> {
-    const providerDef = getProviderDef(category, provider as IntegrationProvider);
-    if (!providerDef) {
-      return {};
-    }
-
-    const initialPayload: Record<string, string> = {};
-    for (const field of providerDef.fields) {
-      initialPayload[field.name] = "";
-    }
-    return initialPayload;
-  }
-
   function resetForm() {
-    setValues(createInitialValues(familyId));
+    setValues(createInitialValues(familyId, initialCategory, initialProvider));
     setStatusMessage(null);
     setErrorMessage(null);
     setLastUpdatedAt(null);
@@ -247,6 +266,7 @@ export function IntegrationCredentialsForm({
           ? "Credential saved successfully."
           : "Credential saved and disabled."
       );
+      onSaved?.(values);
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : "Failed to save credentials."
@@ -280,6 +300,7 @@ export function IntegrationCredentialsForm({
       }
 
       setStatusMessage("Credential disabled successfully.");
+      onSaved?.({ ...values, isEnabled: false });
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : "Failed to disable credentials."
@@ -326,6 +347,163 @@ export function IntegrationCredentialsForm({
     ? "This credential set will be used for the selected category/provider once saved."
     : "This credential set is disabled and will not be used until re-enabled.";
 
+  const formContent = (
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-6 rounded-2xl border bg-card p-4 shadow-sm"
+    >
+      {/* Category selector */}
+      <div className="space-y-2">
+        <label htmlFor="category" className="text-sm font-medium">
+          Category
+        </label>
+        <select
+          id="category"
+          value={values.category}
+          onChange={(event) => handleCategoryChange(event.target.value)}
+          disabled={isSaving || isTesting}
+          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {categories.map((category) => (
+            <option key={category} value={category}>
+              {category}
+            </option>
+          ))}
+        </select>
+        <p className="text-xs text-muted-foreground">
+          Select the integration category.
+        </p>
+      </div>
+
+      {/* Provider selector */}
+      <div className="space-y-2">
+        <label htmlFor="provider" className="text-sm font-medium">
+          Provider
+        </label>
+        <select
+          id="provider"
+          value={values.provider}
+          onChange={(event) => handleProviderChange(event.target.value)}
+          disabled={isSaving || isTesting || providers.length === 0}
+          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {providers.map((provider) => (
+            <option key={provider.provider} value={provider.provider}>
+              {provider.label}
+            </option>
+          ))}
+        </select>
+        <p className="text-xs text-muted-foreground">
+          {currentProviderDef?.description ?? "Select a provider."}
+        </p>
+      </div>
+
+      {/* Enable toggle */}
+      <div className="flex items-center gap-2 rounded-xl border bg-muted/20 px-3 py-2">
+        <input
+          id="enabled"
+          type="checkbox"
+          checked={values.isEnabled}
+          onChange={(event) =>
+            setValues((current) => ({
+              ...current,
+              isEnabled: event.target.checked,
+            }))
+          }
+          className="size-4 rounded border-input"
+        />
+        <label htmlFor="enabled" className="text-sm font-medium">
+          Enable this credential set
+        </label>
+      </div>
+
+      {/* Dynamic fields based on provider */}
+      {currentProviderDef && (
+        <div className="grid gap-4 md:grid-cols-2">
+          {currentProviderDef.fields.map((field) => (
+            <div key={field.name}>
+              <DynamicFieldRenderer
+                field={field}
+                value={values.payload[field.name] ?? ""}
+                onChange={(value) => updatePayloadValue(field.name, value)}
+                disabled={!values.isEnabled}
+              />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Action buttons */}
+      <div className="flex flex-wrap items-center gap-3">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleTest}
+          disabled={isTesting || isSaving}
+          className="gap-2"
+        >
+          {isTesting ? (
+            <Loader className="size-4 animate-spin" />
+          ) : (
+            <Check className="size-4" />
+          )}
+          <span>Test Credentials</span>
+        </Button>
+
+        <Button
+          type="submit"
+          disabled={isSaving || isTesting}
+          className="gap-2"
+        >
+          {isSaving ? (
+            <Loader className="size-4 animate-spin" />
+          ) : (
+            <Check className="size-4" />
+          )}
+          <span>Save</span>
+        </Button>
+
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleDisable}
+          disabled={isSaving || isTesting || !credentialQuery.data}
+        >
+          Disable
+        </Button>
+
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={resetForm}
+          disabled={isSaving || isTesting}
+        >
+          Cancel
+        </Button>
+      </div>
+
+      {/* Error message */}
+      {errorMessage ? (
+        <Alert variant="destructive">
+          <AlertTitle>Unable to continue</AlertTitle>
+          <AlertDescription>{errorMessage}</AlertDescription>
+        </Alert>
+      ) : null}
+
+      {/* Success message */}
+      {statusMessage ? (
+        <Alert>
+          <AlertTitle>Ready</AlertTitle>
+          <AlertDescription>{statusMessage}</AlertDescription>
+        </Alert>
+      ) : null}
+    </form>
+  );
+
+  if (compact) {
+    return <div className="space-y-4">{formContent}</div>;
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3 rounded-2xl border bg-card p-4 shadow-sm">
@@ -348,156 +526,7 @@ export function IntegrationCredentialsForm({
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1.3fr)_minmax(280px,0.7fr)]">
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-6 rounded-2xl border bg-card p-4 shadow-sm"
-        >
-          {/* Category selector */}
-          <div className="space-y-2">
-            <label htmlFor="category" className="text-sm font-medium">
-              Category
-            </label>
-            <select
-              id="category"
-              value={values.category}
-              onChange={(event) => handleCategoryChange(event.target.value)}
-              disabled={isSaving || isTesting}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {categories.map((category) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
-            <p className="text-xs text-muted-foreground">
-              Select the integration category.
-            </p>
-          </div>
-
-          {/* Provider selector */}
-          <div className="space-y-2">
-            <label htmlFor="provider" className="text-sm font-medium">
-              Provider
-            </label>
-            <select
-              id="provider"
-              value={values.provider}
-              onChange={(event) => handleProviderChange(event.target.value)}
-              disabled={isSaving || isTesting || providers.length === 0}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {providers.map((provider) => (
-                <option key={provider.provider} value={provider.provider}>
-                  {provider.label}
-                </option>
-              ))}
-            </select>
-            <p className="text-xs text-muted-foreground">
-              {currentProviderDef?.description ?? "Select a provider."}
-            </p>
-          </div>
-
-          {/* Enable toggle */}
-          <div className="flex items-center gap-2 rounded-xl border bg-muted/20 px-3 py-2">
-            <input
-              id="enabled"
-              type="checkbox"
-              checked={values.isEnabled}
-              onChange={(event) =>
-                setValues((current) => ({
-                  ...current,
-                  isEnabled: event.target.checked,
-                }))
-              }
-              className="size-4 rounded border-input"
-            />
-            <label htmlFor="enabled" className="text-sm font-medium">
-              Enable this credential set
-            </label>
-          </div>
-
-          {/* Dynamic fields based on provider */}
-          {currentProviderDef && (
-            <div className="grid gap-4 md:grid-cols-2">
-              {currentProviderDef.fields.map((field) => (
-                <div key={field.name}>
-                  <DynamicFieldRenderer
-                    field={field}
-                    value={values.payload[field.name] ?? ""}
-                    onChange={(value) => updatePayloadValue(field.name, value)}
-                    disabled={!values.isEnabled}
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Action buttons */}
-          <div className="flex flex-wrap items-center gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleTest}
-              disabled={isTesting || isSaving}
-              className="gap-2"
-            >
-              {isTesting ? (
-                <Loader className="size-4 animate-spin" />
-              ) : (
-                <Check className="size-4" />
-              )}
-              <span>Test Credentials</span>
-            </Button>
-
-            <Button
-              type="submit"
-              disabled={isSaving || isTesting}
-              className="gap-2"
-            >
-              {isSaving ? (
-                <Loader className="size-4 animate-spin" />
-              ) : (
-                <Check className="size-4" />
-              )}
-              <span>Save</span>
-            </Button>
-
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleDisable}
-              disabled={isSaving || isTesting || !credentialQuery.data}
-            >
-              Disable
-            </Button>
-
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={resetForm}
-              disabled={isSaving || isTesting}
-            >
-              Cancel
-            </Button>
-          </div>
-
-          {/* Error message */}
-          {errorMessage ? (
-            <Alert variant="destructive">
-              <AlertTitle>Unable to continue</AlertTitle>
-              <AlertDescription>{errorMessage}</AlertDescription>
-            </Alert>
-          ) : null}
-
-          {/* Success message */}
-          {statusMessage ? (
-            <Alert>
-              <AlertTitle>Ready</AlertTitle>
-              <AlertDescription>{statusMessage}</AlertDescription>
-            </Alert>
-          ) : null}
-        </form>
+        {formContent}
 
         {/* Sidebar */}
         <aside className="space-y-4 rounded-2xl border bg-card p-4 shadow-sm">
