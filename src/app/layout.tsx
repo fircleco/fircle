@@ -2,6 +2,7 @@ import "~/styles/globals.css";
 
 import { type Metadata, type Viewport } from "next";
 import { Geist, Inter } from "next/font/google";
+import { Suspense } from "react";
 
 import { NavigationProgress } from "~/components/nav/navigation-progress";
 import { PwaInstallPrompt } from "~/components/pwa/pwa-install-prompt";
@@ -80,7 +81,9 @@ export default function RootLayout({
           <TRPCReactProvider>
             <PwaRegistration />
             <PwaInstallPrompt />
-            <NavigationProgress />
+            <Suspense fallback={null}>
+              <NavigationProgress />
+            </Suspense>
             {children}
           </TRPCReactProvider>
         </ThemeProvider>

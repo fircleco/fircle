@@ -43,6 +43,14 @@ Required variables:
 - `AUTH_SECRET` (required in production, optional in development)
 - `NODE_ENV` (`development`, `test`, or `production`)
 - `STORAGE_DRIVER` (`r2`)
+
+Storage configuration depends on deployment mode:
+
+- **Cloud mode** (`SELF_HOSTED=false`): configure storage in Settings > Integrations. Environment `R2_*` values are ignored.
+- **Self-hosted mode** (`SELF_HOSTED=true`): you can keep using `R2_*` env values or migrate to owner-managed storage in Settings > Integrations.
+
+If you want to use environment-backed storage in self-hosted mode, provide:
+
 - `R2_ACCOUNT_ID` (Cloudflare account id)
 - `R2_BUCKET` (R2 bucket name)
 - `R2_ACCESS_KEY_ID` (R2 API access key id)
@@ -84,6 +92,9 @@ DATABASE_URL="postgresql://postgres:password@localhost:5432/fircle"
 AUTH_SECRET="dev-secret"
 NODE_ENV="development"
 STORAGE_DRIVER="r2"
+
+# Cloud mode: configure storage in the app settings instead of env.
+# Self-hosted mode: uncomment these if you want env-backed storage fallback.
 R2_ACCOUNT_ID="your-cloudflare-account-id"
 R2_BUCKET="fircle-media"
 R2_ACCESS_KEY_ID="your-r2-access-key-id"
@@ -128,6 +139,19 @@ If uploads fail with a network/CORS-style error, configure the R2 bucket CORS to
 
 You can add additional origins for staging/production as needed.
 
+### Owner-managed storage credentials
+
+Fircle supports owner-managed storage credentials through Settings > Integrations.
+
+- In **self-hosted mode**, storage can still fall back to `R2_*` environment variables if no owner-managed credential exists.
+- In **cloud mode**, storage must be configured per family in the app settings. Any `R2_*` environment values are ignored.
+- The owner-facing setup flow includes a credential test step before saving.
+
+See the rollout guides:
+
+- [Cloud storage deployment guide](docs/cloud-storage-deployment.md)
+- [Self-hosted storage migration guide](docs/self-hosted-storage-migration.md)
+
 ### 4. Apply schema
 
 For local development:
@@ -170,6 +194,12 @@ The setup wizard runs active readiness probes before allowing first-family boots
 - Transactional email: ZeptoMail auth probe when `EMAIL_DRIVER=zeptomail`
 
 If you change `.env` values while the dev server is running, restart `pnpm dev` before re-checking readiness so updated environment values are applied.
+
+### Storage rollout notes
+
+If you are running a cloud deployment and storage has not been configured yet, media uploads will be blocked until an owner adds storage credentials in Settings > Integrations.
+
+If you are self-hosting, you can continue using `R2_*` env variables or migrate to owner-managed storage at your own pace.
 
 ## Tenant Domain Resolution
 

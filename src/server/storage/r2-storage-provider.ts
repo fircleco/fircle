@@ -3,9 +3,8 @@ import "server-only";
 import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
-import { env } from "~/env";
-
 import type {
+  R2StorageCredential,
   StoredObjectRef,
   StorageProvider,
   UploadIntentRequest,
@@ -36,15 +35,10 @@ export class R2StorageProvider implements StorageProvider {
   private readonly bucket: string;
   private readonly client: S3Client;
 
-  public constructor() {
-    if (env.STORAGE_DRIVER !== "r2") {
-      throw new Error("R2StorageProvider requires STORAGE_DRIVER=r2");
-    }
+  public constructor(config: R2StorageCredential) {
+    const { accountId, bucket, accessKeyId, secretAccessKey } = config;
 
-    this.bucket = String(env.R2_BUCKET);
-    const accountId = String(env.R2_ACCOUNT_ID);
-    const accessKeyId = String(env.R2_ACCESS_KEY_ID);
-    const secretAccessKey = String(env.R2_SECRET_ACCESS_KEY);
+    this.bucket = bucket;
 
     this.client = new S3Client({
       region: "auto",

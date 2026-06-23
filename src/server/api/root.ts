@@ -1,4 +1,5 @@
 import { domainRouter } from "~/server/api/routers/domain";
+import { integrationRouter } from "~/server/api/routers/integration";
 import { familyMemberRouter } from "~/server/api/routers/family-member";
 import { inviteRouter } from "~/server/api/routers/invite";
 import { mediaRouter } from "~/server/api/routers/media";
@@ -16,6 +17,7 @@ import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
 export const appRouter = createTRPCRouter({
   domain: domainRouter,
   familyMember: familyMemberRouter,
+  integration: integrationRouter,
   invite: inviteRouter,
   media: mediaRouter,
   notification: notificationRouter,

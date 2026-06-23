@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { getStorageProvider } from "~/server/storage";
+import type { StorageProvider } from "~/server/storage";
+import { getStorageProvider, tryGetStorageProvider } from "~/server/storage";
 import { checkRateLimit } from "~/lib/rate-limit";
 import type { db as appDb } from "~/server/db";
 import { createNotifications, getClaimedMemberIds, dispatchPushForNotifications } from "~/server/notifications";
@@ -283,8 +284,10 @@ function toPostMediaType(mimeType: string): "IMAGE" | "VIDEO" {
   });
 }
 
-function toReadUrl(input: { provider: string; bucket: string; objectKey: string; fallbackUrl: string }) {
-  const storage = getStorageProvider();
+function toReadUrl(storage: StorageProvider | null, input: { provider: string; bucket: string; objectKey: string; fallbackUrl: string }) {
+  if (!storage) {
+    return input.fallbackUrl;
+  }
 
   if (input.provider !== storage.driver) {
     return input.fallbackUrl;
@@ -324,8 +327,8 @@ function mapMediaRecord<T extends {
   caption: string | null;
   sortOrder: number;
   createdAt: Date;
-}>(media: T) {
-  const readUrl = toReadUrl({
+}>(storage: StorageProvider, media: T) {
+  const readUrl = toReadUrl(storage, {
     provider: media.provider,
     bucket: media.bucket,
     objectKey: media.objectKey,
@@ -359,8 +362,8 @@ function mapFeedMediaItem<T extends {
   url: string;
   durationMs: number | null;
   caption: string | null;
-}>(media: T) {
-  const readUrl = toReadUrl({
+}>(storage: StorageProvider, media: T) {
+  const readUrl = toReadUrl(storage, {
     provider: media.provider,
     bucket: media.bucket,
     objectKey: media.objectKey,
@@ -558,7 +561,7 @@ function postResponseSelect(currentViewerMemberId: string) {
   };
 }
 
-function mapPostResponse(post: {
+function mapPostResponse(storage: StorageProvider, post: {
   id: string;
   type: "TEXT" | "PHOTO" | "VIDEO" | "MIXED";
   caption: string | null;
@@ -599,8 +602,8 @@ function mapPostResponse(post: {
 
     return {
       media,
-      mediaRecord: mapMediaRecord(media),
-      feedMediaItem: mapFeedMediaItem(media),
+      mediaRecord: mapMediaRecord(storage, media),
+      feedMediaItem: mapFeedMediaItem(storage, media),
       tags,
     };
   });
@@ -818,6 +821,7 @@ export const postRouter = createTRPCRouter({
         ctx.session.user.id,
         ctx.db,
       );
+      const storage = await getStorageProvider(input.familyId);
 
       await assertMentionMembersBelongToFamily({
         db: ctx.db,
@@ -904,7 +908,7 @@ export const postRouter = createTRPCRouter({
         }
 
         return {
-          result: mapPostResponse(createdPost),
+          result: storage ? mapPostResponse(storage, createdPost) : null,
           createdNotifications,
         };
       });
@@ -917,6 +921,7 @@ export const postRouter = createTRPCRouter({
     .input(getPostByIdInputSchema)
     .query(async ({ ctx, input }) => {
       const membership = await requireFamilyMembership(input.familyId, ctx.session.user.id, ctx.db);
+      const storage = await tryGetStorageProvider(input.familyId);
 
       const post = await ctx.db.post.findFirst({
         where: {
@@ -932,11 +937,12 @@ export const postRouter = createTRPCRouter({
         return null;
       }
 
-      return mapPostResponse(post);
+      return storage ? mapPostResponse(storage, post) : null;
     }),
 
   getFeed: protectedProcedure.input(getFeedInputSchema).query(async ({ ctx, input }) => {
     const membership = await requireFamilyMembership(input.familyId, ctx.session.user.id, ctx.db);
+    const storage = await tryGetStorageProvider(input.familyId);
 
     const cursor = parseCursor(input.cursor);
 
@@ -978,7 +984,7 @@ export const postRouter = createTRPCRouter({
       : null;
 
     return {
-      items: items.map((post) => mapPostResponse(post)),
+      items: storage ? items.map((post) => mapPostResponse(storage, post)) : [],
       nextCursor,
     };
   }),
@@ -987,6 +993,7 @@ export const postRouter = createTRPCRouter({
     .input(getPostsByMemberInputSchema)
     .query(async ({ ctx, input }) => {
       const membership = await requireFamilyMembership(input.familyId, ctx.session.user.id, ctx.db);
+      const storage = await tryGetStorageProvider(input.familyId);
 
       const cursor = parseCursor(input.cursor);
 
@@ -1020,7 +1027,7 @@ export const postRouter = createTRPCRouter({
         : null;
 
       return {
-        items: items.map((post) => mapPostResponse(post)),
+        items: storage ? items.map((post) => mapPostResponse(storage, post)) : [],
         nextCursor,
       };
     }),
@@ -1029,6 +1036,7 @@ export const postRouter = createTRPCRouter({
     .input(getLikedPostsByMemberInputSchema)
     .query(async ({ ctx, input }) => {
       const membership = await requireFamilyMembership(input.familyId, ctx.session.user.id, ctx.db);
+      const storage = await tryGetStorageProvider(input.familyId);
 
       const targetMember = await ctx.db.familyMember.findFirst({
         where: {
@@ -1083,7 +1091,7 @@ export const postRouter = createTRPCRouter({
         : null;
 
       return {
-        items: items.map((post) => mapPostResponse(post)),
+        items: storage ? items.map((post) => mapPostResponse(storage, post)) : [],
         nextCursor,
       };
     }),
@@ -1092,6 +1100,7 @@ export const postRouter = createTRPCRouter({
     .input(getTaggedPostsByMemberInputSchema)
     .query(async ({ ctx, input }) => {
       const membership = await requireFamilyMembership(input.familyId, ctx.session.user.id, ctx.db);
+      const storage = await tryGetStorageProvider(input.familyId);
 
       const targetMember = await ctx.db.familyMember.findFirst({
         where: {
@@ -1161,7 +1170,7 @@ export const postRouter = createTRPCRouter({
         : null;
 
       return {
-        items: items.map((post) => mapPostResponse(post)),
+        items: storage ? items.map((post) => mapPostResponse(storage, post)) : [],
         nextCursor,
       };
     }),

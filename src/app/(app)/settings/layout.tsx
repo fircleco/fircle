@@ -17,10 +17,11 @@ const settingsNav = [
   { href: "/settings/invites", label: "Invites", adminOnly: true },
   { href: "/settings/roles", label: "Roles", adminOnly: true },
   { href: "/settings/domain", label: "Domain", ownerOnly: true },
+  { href: "/settings/integrations", label: "Integrations", ownerOnly: true },
 ];
 
 const adminOnlySettingsPaths = ["/settings/family", "/settings/invites", "/settings/roles"];
-const ownerOnlySettingsPaths = ["/settings/domain"];
+const ownerOnlySettingsPaths = ["/settings/domain", "/settings/integrations"];
 
 function isActivePath(pathname: string, href: string) {
   if (href === "/settings") {

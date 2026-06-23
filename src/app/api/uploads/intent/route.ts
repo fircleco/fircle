@@ -43,6 +43,7 @@ function jsonError(
     | "NOT_FOUND"
     | "BAD_REQUEST"
     | "UNSUPPORTED_MEDIA_TYPE"
+    | "SERVICE_UNAVAILABLE"
     | "PAYLOAD_TOO_LARGE",
   message: string,
   details?: unknown,
@@ -174,7 +175,13 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  const storage = getStorageProvider();
+  let storage;
+  try {
+    storage = await getStorageProvider(parsed.data.familyId);
+  } catch (error) {
+    return jsonError(503, "SERVICE_UNAVAILABLE", error instanceof Error ? error.message : "Storage is not configured");
+  }
+
   const intents = await Promise.all(
     parsed.data.files.map(async (file) => {
       const objectKey =

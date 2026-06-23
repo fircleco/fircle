@@ -97,10 +97,11 @@ function isRetryableUploadError(error: unknown) {
 }
 
 async function uploadTranscodedVideo(input: {
+  familyId: string;
   objectKey: string;
   buffer: Buffer;
 }) {
-  const storage = getStorageProvider();
+  const storage = await getStorageProvider(input.familyId);
   const mimeType = "video/mp4";
 
   let lastError: Error | null = null;
@@ -246,6 +247,7 @@ export async function POST(request: NextRequest) {
     });
 
     const uploadedMedia = await uploadTranscodedVideo({
+      familyId: membership.familyId,
       objectKey,
       buffer: outputBuffer,
     });

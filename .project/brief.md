@@ -60,7 +60,7 @@ Open-source MVP focused on becoming functional quickly for one family instance, 
 - [x] Notifications platform foundation
 - [x] Transactional email notifications
 - [x] Push notifications (web push)
-- [ ] PWA enablement for reliable install and push UX
+- [x] PWA enablement for reliable install and push UX
 
 ## Roadmap
 
@@ -87,7 +87,7 @@ Open-source MVP focused on becoming functional quickly for one family instance, 
 - Tag notification refinements for claimed members
 - Basic moderation and content controls for family admins
 
-### Phase 4 - Multi-tenancy and Hosting [In Progress]
+### Phase 4 - Multi-tenancy and Hosting [Completed]
 - Multi-tenancy model for isolated family instances
 - Tenant-aware auth, routing, and data boundaries
 - Self-hosting and deployment guidance per family instance

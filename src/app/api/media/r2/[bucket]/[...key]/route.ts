@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
-import { getStorageProvider } from "~/server/storage";
+import { tryGetStorageProvider } from "~/server/storage";
 
 const familyKeyPattern = /^families\/([a-z0-9]+)\//;
 
@@ -58,7 +58,14 @@ export async function GET(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const storage = getStorageProvider();
+  const storage = await tryGetStorageProvider(familyId);
+  if (!storage) {
+    return NextResponse.json(
+      { error: "Object storage is not configured for this family" },
+      { status: 503 },
+    );
+  }
+
   const signedReadUrl = await storage.signReadUrl({
     provider: "r2",
     bucket,

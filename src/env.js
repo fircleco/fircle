@@ -77,11 +77,11 @@ export const env = createEnv({
     DOMAIN_VERIFICATION_TIMEOUT_MS: z.coerce.number().int().min(1_000).max(20_000).default(5_000),
     DOMAIN_VERIFICATION_MAX_ATTEMPTS: z.coerce.number().int().min(1).max(5).default(3),
     DOMAIN_VERIFICATION_RETRY_DELAY_MS: z.coerce.number().int().min(100).max(5_000).default(500),
-    R2_ACCOUNT_ID: z.string(),
-    R2_BUCKET: z.string(),
-    R2_ACCESS_KEY_ID: z.string(),
-    R2_SECRET_ACCESS_KEY: z.string(),
-    R2_PUBLIC_BASE_URL: z.string().url(),
+    R2_ACCOUNT_ID: z.string().optional(),
+    R2_BUCKET: z.string().optional(),
+    R2_ACCESS_KEY_ID: z.string().optional(),
+    R2_SECRET_ACCESS_KEY: z.string().optional(),
+    R2_PUBLIC_BASE_URL: z.string().url().optional(),
     EMAIL_DRIVER: z.enum(["zeptomail"]).optional(),
     EMAIL_FROM_ADDRESS: z
       .string()

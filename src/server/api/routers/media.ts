@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { getStorageProvider } from "~/server/storage";
+import type { StorageProvider } from "~/server/storage";
+import { tryGetStorageProvider } from "~/server/storage";
 import type { db as appDb } from "~/server/db";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
@@ -45,8 +46,10 @@ function encodeCursor(input: { createdAt: Date; id: string }) {
   return `${input.createdAt.toISOString()}__${input.id}`;
 }
 
-function toReadUrl(input: { provider: string; bucket: string; objectKey: string; fallbackUrl: string }) {
-  const storage = getStorageProvider();
+function toReadUrl(storage: StorageProvider | null, input: { provider: string; bucket: string; objectKey: string; fallbackUrl: string }) {
+  if (!storage) {
+    return input.fallbackUrl;
+  }
 
   if (input.provider !== storage.driver) {
     return input.fallbackUrl;
@@ -138,9 +141,9 @@ function mapMediaTagResponse(tag: MediaTagRecord) {
   };
 }
 
-function mapGalleryMediaItem(media: GalleryMediaRow) {
+function mapGalleryMediaItem(storage: StorageProvider, media: GalleryMediaRow) {
   const tags = media.mediaTags.map((tag) => mapMediaTagResponse(tag));
-  const readUrl = toReadUrl({
+  const readUrl = toReadUrl(storage, {
     provider: media.provider,
     bucket: media.bucket,
     objectKey: media.objectKey,
@@ -302,6 +305,7 @@ export const mediaRouter = createTRPCRouter({
     .input(getFamilyGalleryInputSchema)
     .query(async ({ ctx, input }) => {
       await requireFamilyMembership(input.familyId, ctx.session.user.id, ctx.db);
+      const storage = await tryGetStorageProvider(input.familyId);
 
       const cursor = parseCursor(input.cursor);
 
@@ -336,7 +340,7 @@ export const mediaRouter = createTRPCRouter({
         : null;
 
       return {
-        items: items.map((row) => mapGalleryMediaItem(row)),
+        items: storage ? items.map((row) => mapGalleryMediaItem(storage, row)) : [],
         nextCursor,
       };
     }),
@@ -346,6 +350,7 @@ export const mediaRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       await requireFamilyMembership(input.familyId, ctx.session.user.id, ctx.db);
       await requireMemberInFamily(input.familyId, input.memberId, ctx.db);
+      const storage = await tryGetStorageProvider(input.familyId);
 
       const [publishedRows, taggedRows] = await Promise.all([
         ctx.db.postMedia.findMany({
@@ -384,12 +389,12 @@ export const mediaRouter = createTRPCRouter({
       const dedupedTagged = taggedRows.filter((row) => !publishedIds.has(row.id));
 
       return {
-        publishedMedia: sortMediaDescendingByCreatedAt(publishedRows).map((row) =>
-          mapGalleryMediaItem(row),
-        ),
-        taggedMedia: sortMediaDescendingByCreatedAt(dedupedTagged).map((row) =>
-          mapGalleryMediaItem(row),
-        ),
+        publishedMedia: storage ? sortMediaDescendingByCreatedAt(publishedRows).map((row) =>
+          mapGalleryMediaItem(storage, row),
+        ) : [],
+        taggedMedia: storage ? sortMediaDescendingByCreatedAt(dedupedTagged).map((row) =>
+          mapGalleryMediaItem(storage, row),
+        ) : [],
       };
     }),
 });

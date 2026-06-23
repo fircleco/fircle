@@ -1,24 +1,46 @@
 import "server-only";
 
-import { env } from "~/env";
+import { db } from "~/server/db";
 
+import { resolveStorageConfig } from "./config-resolver";
 import { R2StorageProvider } from "./r2-storage-provider";
-import type { StorageProvider } from "./types";
+import type { StorageConfigResolution, StorageProvider } from "./types";
 
-let cachedProvider: StorageProvider | null = null;
+export function createStorageProvider(resolution: StorageConfigResolution): StorageProvider {
+  if (!resolution.isValid || !resolution.config) {
+    throw new Error(
+      `Object storage is not configured for category ${resolution.category}. Configure owner-managed credentials or provide self-hosted env fallbacks.`,
+    );
+  }
 
-export function createStorageProvider(): StorageProvider {
-  switch (env.STORAGE_DRIVER) {
+  switch (resolution.provider) {
     case "r2":
-      return new R2StorageProvider();
+      return new R2StorageProvider(resolution.config);
     default: {
-      const exhaustiveCheck: never = env.STORAGE_DRIVER;
-      throw new Error(`Unsupported storage driver: ${String(exhaustiveCheck)}`);
+      const exhaustiveCheck: never = resolution.provider;
+      throw new Error(`Unsupported storage provider: ${String(exhaustiveCheck)}`);
     }
   }
 }
 
-export function getStorageProvider(): StorageProvider {
-  cachedProvider ??= createStorageProvider();
-  return cachedProvider;
+export async function tryGetStorageProvider(familyId: string): Promise<StorageProvider | null> {
+  const resolution = await resolveStorageConfig(familyId, db);
+
+  if (!resolution.isValid || !resolution.config) {
+    return null;
+  }
+
+  return createStorageProvider(resolution);
+}
+
+export async function getStorageProvider(familyId: string): Promise<StorageProvider> {
+  const storage = await tryGetStorageProvider(familyId);
+
+  if (!storage) {
+    throw new Error(
+      `Object storage is not configured for family ${familyId}. Configure owner-managed credentials or provide self-hosted env fallbacks.`,
+    );
+  }
+
+  return storage;
 }

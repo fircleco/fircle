@@ -1,8 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { ImageOff } from "~/components/ui/icons";
 import { useMemo } from "react";
 
+import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { ComposerEntry } from "~/components/feed/composer-entry";
 import { PostCard } from "~/components/feed/post-card";
 import type { PostCardData } from "~/components/feed/post-card";
@@ -171,9 +173,26 @@ export default function FeedPage() {
     retry: false,
     refetchOnWindowFocus: false,
   });
+  const bootstrapStatus = api.setup.getBootstrapStatus.useQuery(undefined, {
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
 
   const familyId = managementContext.data?.family?.id;
+  const isOwner = managementContext.data?.role === "OWNER";
   const isAdmin = managementContext.data?.role === "OWNER" || managementContext.data?.role === "ADMIN";
+
+  const storageCredentialQuery = api.integration.getIntegrationCredential.useQuery(
+    {
+      familyId: familyId ?? "",
+      category: "storage",
+    },
+    {
+      enabled: Boolean(familyId) && isOwner,
+      retry: false,
+      refetchOnWindowFocus: false,
+    },
+  );
 
   const memberQuery = api.familyMember.getCurrentUserMemberProfile.useQuery(
     { familyId: familyId ?? "" },
@@ -204,6 +223,13 @@ export default function FeedPage() {
     return items.map(mapFeedItemToPostCardData);
   }, [feedQuery.data?.items]);
 
+  const shouldShowStorageConfigNotice =
+    isOwner &&
+    bootstrapStatus.data?.selfHosted === false &&
+    !storageCredentialQuery.isLoading &&
+    !storageCredentialQuery.error &&
+    !storageCredentialQuery.data?.isEnabled;
+
   const isLoading = managementContext.isLoading || (Boolean(familyId) && feedQuery.isLoading);
   const hasNoFamily = !managementContext.isLoading && !familyId;
 
@@ -221,6 +247,21 @@ export default function FeedPage() {
           <div className="supports-backdrop-filter:bg-background/80 sticky top-0 z-20 -mx-1 hidden rounded-3xl bg-background/95 px-1 pb-2 pt-1 backdrop-blur md:block">
             <ComposerEntry user={currentUser} familyId={familyId} />
           </div>
+
+          {shouldShowStorageConfigNotice ? (
+            <Alert className="border-amber-500/40 bg-amber-500/10 text-amber-900 dark:text-amber-100">
+              <AlertTitle>Storage setup required for media uploads</AlertTitle>
+              <AlertDescription className="mt-1">
+                This cloud instance has no storage integration configured yet. Photos and videos
+                require storage credentials before uploads can work.
+              </AlertDescription>
+              <div className="mt-3">
+                <Button asChild size="sm" variant="outline" className="border-amber-500/40 bg-transparent">
+                  <Link href="/settings/integrations">Configure storage integration</Link>
+                </Button>
+              </div>
+            </Alert>
+          ) : null}
 
           {hasNoFamily ? (
             <section className="rounded-3xl border border-dashed border-border/80 bg-card/70 px-6 py-10 text-center">
