@@ -10,7 +10,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
-import { Loader, Settings } from "~/components/ui/icons";
+import { Settings } from "~/components/ui/icons";
+import { Skeleton } from "~/components/ui/skeleton";
 import {
   type IntegrationCategory,
   type IntegrationProvider,
@@ -24,6 +25,36 @@ type IntegrationSelection = {
   category: IntegrationCategory;
   provider: IntegrationProvider;
 };
+
+function IntegrationSettingsSkeleton() {
+  return (
+    <section className="space-y-3 rounded-2xl border bg-card/60 p-5" aria-hidden>
+      <div className="flex items-center justify-between gap-3">
+        <div className="space-y-2">
+          <Skeleton className="h-5 w-44" />
+          <Skeleton className="h-4 w-80 max-w-full" />
+        </div>
+        <Skeleton className="h-9 w-32" />
+      </div>
+
+      <div className="space-y-3">
+        {Array.from({ length: 2 }).map((_, index) => (
+          <div
+            key={`integration-skeleton-${index}`}
+            className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-card p-4 shadow-sm"
+          >
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-40" />
+              <Skeleton className="h-4 w-72 max-w-full" />
+              <Skeleton className="h-3.5 w-56 max-w-full" />
+            </div>
+            <Skeleton className="h-9 w-28" />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
 
 export default function IntegrationSettingsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -48,9 +79,18 @@ export default function IntegrationSettingsPage() {
 
   if (managementContext.isLoading || bootstrapStatus.isLoading) {
     return (
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Loader className="size-4 animate-spin" />
-        Loading integration settings...
+      <div className="space-y-6">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Settings className="size-4 text-muted-foreground" aria-hidden="true" />
+            <h2 className="font-semibold text-xl tracking-tight">Integrations</h2>
+          </div>
+          <p className="max-w-2xl text-sm text-muted-foreground">
+            Manage owner-controlled integration credentials from a clean list view.
+          </p>
+        </div>
+
+        <IntegrationSettingsSkeleton />
       </div>
     );
   }
