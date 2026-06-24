@@ -1,8 +1,11 @@
+export type SidebarAccessRole = "OWNER" | "ADMIN" | "MEMBER";
+
 export type RightSidebarItem = {
   id: string;
   label: string;
   href: string;
   description?: string;
+  requiredRole?: SidebarAccessRole;
   sortOrder?: number;
 };
 

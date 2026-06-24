@@ -1,8 +1,12 @@
+"use client";
+
 import Link from "next/link";
 import {
   type RightSidebarContribution,
+  type SidebarAccessRole,
   type RightSidebarSection,
 } from "~/components/nav/right-sidebar-types";
+import { api } from "~/trpc/react";
 
 const baseSections: RightSidebarSection[] = [
   {
@@ -14,6 +18,7 @@ const baseSections: RightSidebarSection[] = [
         label: "Family Settings",
         href: "/settings/family",
         description: "Manage family profile details and preferences.",
+        requiredRole: "ADMIN",
         sortOrder: 10,
       },
       {
@@ -21,6 +26,7 @@ const baseSections: RightSidebarSection[] = [
         label: "Invites",
         href: "/settings/invites",
         description: "Review invite links and pending invite access.",
+        requiredRole: "ADMIN",
         sortOrder: 20,
       },
       {
@@ -66,19 +72,42 @@ function bySortOrder<T extends { sortOrder?: number }>(a: T, b: T) {
   return (a.sortOrder ?? 0) - (b.sortOrder ?? 0);
 }
 
+function hasRequiredRole(currentRole: SidebarAccessRole | null, requiredRole?: SidebarAccessRole) {
+  if (!requiredRole) {
+    return true;
+  }
+
+  if (!currentRole) {
+    return false;
+  }
+
+  const roleRank: Record<SidebarAccessRole, number> = {
+    MEMBER: 1,
+    ADMIN: 2,
+    OWNER: 3,
+  };
+
+  return roleRank[currentRole] >= roleRank[requiredRole];
+}
+
 function composeRightSidebarSections(input: {
   base: RightSidebarSection[];
   contribution: RightSidebarContribution;
+  currentRole: SidebarAccessRole | null;
 }) {
   const normalizedBase = input.base.map((section) => ({
     ...section,
-    items: [...section.items].sort(bySortOrder),
-  }));
+    items: [...section.items]
+      .filter((item) => hasRequiredRole(input.currentRole, item.requiredRole))
+      .sort(bySortOrder),
+  })).filter((section) => section.items.length > 0);
 
   const contributedSections = (input.contribution.sections ?? []).map((section) => ({
     ...section,
-    items: [...section.items].sort(bySortOrder),
-  }));
+    items: [...section.items]
+      .filter((item) => hasRequiredRole(input.currentRole, item.requiredRole))
+      .sort(bySortOrder),
+  })).filter((section) => section.items.length > 0);
 
   const optionalItemsSection: RightSidebarSection | null =
     (input.contribution.items?.length ?? 0) > 0
@@ -86,17 +115,31 @@ function composeRightSidebarSections(input: {
           id: "more-for-you",
           title: "More for You",
           sortOrder: 999,
-          items: [...(input.contribution.items ?? [])].sort(bySortOrder),
+          items: [...(input.contribution.items ?? [])]
+            .filter((item) => hasRequiredRole(input.currentRole, item.requiredRole))
+            .sort(bySortOrder),
         }
       : null;
 
-  return [...normalizedBase, ...contributedSections, ...(optionalItemsSection ? [optionalItemsSection] : [])].sort(bySortOrder);
+  return [
+    ...normalizedBase,
+    ...contributedSections,
+    ...(optionalItemsSection && optionalItemsSection.items.length > 0 ? [optionalItemsSection] : []),
+  ].sort(bySortOrder);
 }
 
 export function RightSidebarShell() {
+  const managementContext = api.invite.getManagementContext.useQuery(undefined, {
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+
+  const currentRole = managementContext.data?.role ?? null;
+
   const sections = composeRightSidebarSections({
     base: baseSections,
     contribution: optionalContribution,
+    currentRole,
   });
 
   const hasOptionalContent =

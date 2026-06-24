@@ -67,6 +67,7 @@ The right sidebar is considered infrastructure: it should exist independently of
 
 - [x] Create baseline right-sidebar component(s) under `src/components/nav/` or another app-shell-owned location.
 - [x] Add manually authored base items to the right sidebar (no feature framework requirement).
+- [x] Add role-aware visibility rules so admin-only management links are hidden from non-admin members.
 - [x] Keep content and rendering deterministic when no features are enabled.
 - [x] Add empty-state/fallback behavior when no optional content is available.
 
@@ -95,6 +96,7 @@ The right sidebar is considered infrastructure: it should exist independently of
 
 - [x] Authenticated app shell includes a right-sidebar placement region.
 - [x] Right sidebar renders baseline manually authored items without requiring feature toggles.
+- [x] Admin-only right-sidebar items are hidden for non-admin users while member-safe items remain visible.
 - [x] Existing left sidebar, mobile header, and bottom nav behavior remain intact.
 - [x] Right sidebar behavior on mobile is explicit and does not harm usability.
 - [x] A lightweight extension shape is documented for future feature-contributed right-sidebar content.
