@@ -69,6 +69,10 @@ The right sidebar is considered infrastructure: it should exist independently of
 - [ ] Add manually authored base items to the right sidebar (no feature framework requirement).
 - [ ] Keep content and rendering deterministic when no features are enabled.
 - [ ] Add empty-state/fallback behavior when no optional content is available.
+- [x] Create baseline right-sidebar component(s) under `src/components/nav/` or another app-shell-owned location.
+- [x] Add manually authored base items to the right sidebar (no feature framework requirement).
+- [x] Keep content and rendering deterministic when no features are enabled.
+- [x] Add empty-state/fallback behavior when no optional content is available.
 
 ### Phase 3: Lightweight Future Compatibility Hooks
 
