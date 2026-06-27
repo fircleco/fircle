@@ -1,6 +1,6 @@
 ---
 title: "Fircle Feature Foundations"
-status: in-progress
+status: completed
 references:
   - type: doc
     url: .project/brief.md
@@ -165,10 +165,10 @@ The objective is to make future features additive and predictable: each feature 
 
 #### Tasks
 
-- [ ] Run `pnpm lint`, `pnpm typecheck`, and relevant tests for touched modules.
-- [ ] Verify integration settings page behavior is unchanged for existing storage/r2 flow.
-- [ ] Verify no runtime path requires `Ffeature` rows to exist.
-- [ ] Confirm migration is additive and does not alter existing feature data models.
+- [x] Run `pnpm lint`, `pnpm typecheck`, and relevant tests for touched modules.
+- [x] Verify integration settings page behavior is unchanged for existing storage/r2 flow.
+- [x] Verify no runtime path requires `Ffeature` rows to exist.
+- [x] Confirm migration is additive and does not alter existing feature data models.
 
 ## Acceptance Criteria
 
@@ -185,4 +185,4 @@ The objective is to make future features additive and predictable: each feature 
 - [x] Feature activation conventions define optional right-sidebar contributions for feature modules that compose into the base sidebar from PRD 026.
 - [x] Enabled-but-not-ready features surface remediation paths rather than silent failures when UI or API entry points are reached.
 - [x] Convention doc includes an Events example and rollout checklist.
-- [ ] Lint, typecheck, and targeted tests pass for touched areas.
+- [x] Lint, typecheck, and targeted tests pass for touched areas.
