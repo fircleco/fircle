@@ -147,7 +147,6 @@ model Ffeature {
   @@unique([familyId, featureKey])
   @@index([familyId])
   @@index([featureKey])
-  @@map("Feature")
 }
 
 model FamilyMember {
