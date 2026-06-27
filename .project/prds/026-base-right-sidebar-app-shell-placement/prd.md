@@ -11,6 +11,9 @@ references:
   - type: prd
     url: .project/prds/021-full-pwa/prd.md
     description: "Responsive behavior and mobile UX constraints for app shell surfaces"
+  - type: pr
+    url: https://github.com/fircle-app/fircle/pull/39
+    description: "Implementation pull request - feat: right sidebar foundation"
 ---
 
 > **Instructions for AI Agents:**
