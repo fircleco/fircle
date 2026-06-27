@@ -89,12 +89,12 @@ The objective is to make future features additive and predictable: each feature 
 
 #### Tasks
 
-- [ ] Refactor input validation in `src/server/api/routers/integration.ts` to derive category/provider acceptance from `src/lib/integration-providers.ts`.
-- [ ] Replace hardcoded `supportedIntegrationCategorySchema` and `supportedIntegrationProviderSchema` with dynamic validation sourced from the provider registry.
-- [ ] Enforce valid category/provider pair semantics (provider must belong to selected category).
-- [ ] Preserve owner-only authorization semantics and existing mutation/query names.
-- [ ] Keep payload validation via provider registry schemas and return clear validation errors for invalid category/provider combinations.
-- [ ] Add/adjust tests for integration router input validation coverage:
+- [x] Refactor input validation in `src/server/api/routers/integration.ts` to derive category/provider acceptance from `src/lib/integration-providers.ts`.
+- [x] Replace hardcoded `supportedIntegrationCategorySchema` and `supportedIntegrationProviderSchema` with dynamic validation sourced from the provider registry.
+- [x] Enforce valid category/provider pair semantics (provider must belong to selected category).
+- [x] Preserve owner-only authorization semantics and existing mutation/query names.
+- [x] Keep payload validation via provider registry schemas and return clear validation errors for invalid category/provider combinations.
+- [x] Add/adjust tests for integration router input validation coverage:
   - accepts known registry entries,
   - rejects unknown category,
   - rejects provider not mapped to category.
@@ -175,9 +175,9 @@ The objective is to make future features additive and predictable: each feature 
 - [x] `Ffeature` model exists in Prisma schema with family-scoped uniqueness on `(familyId, featureKey)`.
 - [x] Migration for `Ffeature` is additive and applied successfully.
 - [x] No concrete feature records are seeded or pre-registered by this PRD.
-- [ ] Integration router category/provider input validation is registry-driven, not hardcoded.
-- [ ] Integration router rejects invalid category/provider combinations with clear errors.
-- [ ] Existing storage/r2 integration behavior remains functional after validation refactor.
+- [x] Integration router category/provider input validation is registry-driven, not hardcoded.
+- [x] Integration router rejects invalid category/provider combinations with clear errors.
+- [x] Existing storage/r2 integration behavior remains functional after validation refactor.
 - [ ] `.project/conventions/fircle-feature.md` exists and defines the feature lifecycle conventions, including integration prerequisite handling via `/settings/integrations`.
 - [ ] Feature route-group convention is documented and enforced in convention guidance: feature-owned routes are placed under `src/app/(app)/(ffeatures)` and base routes remain in `src/app/(app)`.
 - [ ] Feature API router convention is documented and enforced in convention guidance: feature-owned routers are placed under a dedicated backend feature boundary (for example `src/server/api/routers/ffeatures/*`) and mounted under a feature namespace in `appRouter`.

@@ -5,35 +5,95 @@ import { z } from "zod";
 import { encryptCredentials } from "~/lib/encryption";
 import { getIntegrationCredentialMasterKey } from "~/server/config";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
-import { validateProviderPayload } from "~/lib/integration-providers";
+import {
+  INTEGRATION_PROVIDERS,
+  validateProviderPayload,
+  type IntegrationCategory,
+  type IntegrationProvider,
+} from "~/lib/integration-providers";
 
-
-const supportedIntegrationCategorySchema = z.literal("storage");
-const supportedIntegrationProviderSchema = z.literal("r2");
+const integrationCategorySchema = z.string().trim().min(1, "Category is required.");
+const integrationProviderSchema = z.string().trim().min(1, "Provider is required.");
 
 // Generic payload schema - specific validation happens via provider registry
 const integrationCredentialPayloadSchema = z.record(z.string(), z.string());
 
-const familyScopedCategoryInputSchema = z.object({
-  familyId: z.string().cuid(),
-  category: supportedIntegrationCategorySchema,
-});
+const familyScopedCategoryInputSchema = z
+  .object({
+    familyId: z.string().cuid(),
+    category: integrationCategorySchema,
+  })
+  .superRefine((value, ctx) => {
+    if (!(value.category in INTEGRATION_PROVIDERS)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["category"],
+        message: `Unknown integration category: ${value.category}`,
+      });
+    }
+  });
 
-const saveIntegrationCredentialInputSchema = familyScopedCategoryInputSchema.extend({
-  provider: supportedIntegrationProviderSchema,
-  payload: integrationCredentialPayloadSchema,
-  isEnabled: z.boolean().default(true),
-  testBeforeSave: z.boolean().default(true),
-});
+function addCategoryProviderValidationIssue(
+  value: { category: string; provider: string },
+  ctx: z.RefinementCtx,
+) {
+  const categoryProviders =
+    INTEGRATION_PROVIDERS[value.category as IntegrationCategory];
 
-const testIntegrationCredentialInputSchema = saveIntegrationCredentialInputSchema.omit({
-  testBeforeSave: true,
-});
+  if (!categoryProviders) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["category"],
+      message: `Unknown integration category: ${value.category}`,
+    });
+    return;
+  }
+
+  if (!(value.provider in categoryProviders)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["provider"],
+      message: `Provider '${value.provider}' is not supported for category '${value.category}'`,
+    });
+  }
+}
+
+const saveIntegrationCredentialInputBaseSchema = z
+  .object({
+    familyId: z.string().cuid(),
+    category: integrationCategorySchema,
+    provider: integrationProviderSchema,
+    payload: integrationCredentialPayloadSchema,
+    isEnabled: z.boolean().default(true),
+    testBeforeSave: z.boolean().default(true),
+  });
+
+const saveIntegrationCredentialInputSchema = saveIntegrationCredentialInputBaseSchema.superRefine(
+  addCategoryProviderValidationIssue,
+);
+
+const testIntegrationCredentialInputSchema = saveIntegrationCredentialInputBaseSchema
+  .omit({
+    testBeforeSave: true,
+  })
+  .superRefine(addCategoryProviderValidationIssue);
 
 const disableIntegrationCredentialInputSchema = familyScopedCategoryInputSchema;
 const familyScopedInputSchema = z.object({
   familyId: z.string().cuid(),
 });
+
+function validateIntegrationPayload(
+  category: string,
+  provider: string,
+  payload: Record<string, string>,
+) {
+  return validateProviderPayload(
+    category as IntegrationCategory,
+    provider as IntegrationProvider,
+    payload,
+  );
+}
 
 type OwnerMembershipDb = {
   familyMember: {
@@ -202,7 +262,11 @@ export const integrationRouter = createTRPCRouter({
     .input(testIntegrationCredentialInputSchema)
     .mutation(async ({ ctx, input }) => {
       // Validate payload against provider schema first
-      const validation = validateProviderPayload(input.category, input.provider, input.payload);
+      const validation = validateIntegrationPayload(
+        input.category,
+        input.provider,
+        input.payload,
+      );
       if (!validation.ok) {
         throw new TRPCError({
           code: "BAD_REQUEST",
@@ -226,7 +290,11 @@ export const integrationRouter = createTRPCRouter({
     .input(saveIntegrationCredentialInputSchema)
     .mutation(async ({ ctx, input }) => {
       // Validate payload against provider schema
-      const validation = validateProviderPayload(input.category, input.provider, input.payload);
+      const validation = validateIntegrationPayload(
+        input.category,
+        input.provider,
+        input.payload,
+      );
       if (!validation.ok) {
         throw new TRPCError({
           code: "BAD_REQUEST",
