@@ -84,6 +84,13 @@ Backend ownership:
 
 Feature wiring should use a single activation map/registry, not scattered conditionals.
 
+Implementation anchor points:
+
+- Shared activation contract and resolver live in `src/lib/ffeatures/activation.ts`.
+- Feature-aware app-shell navigation in `src/components/nav/*` must compose feature links from activation metadata, not hardcoded feature arrays.
+- Feature API namespace is exposed under `appRouter.ffeatures` from `src/server/api/routers/ffeatures/*`.
+- Right-sidebar optional feature entries are composed from activation metadata.
+
 Minimum activation contract fields:
 
 - `featureKey`
@@ -107,6 +114,12 @@ Features may integrate through:
 - Optional right-sidebar entries.
 
 Enabled-but-not-ready features must show remediation and never silently no-op when users reach UI/API entry points.
+
+Route and component gating rule:
+
+- Feature route groups under `src/app/(app)/(ffeatures)` should render only when activation state allows access.
+- If a feature is enabled but not ready, UI should render remediation prompts and links to `/settings/integrations` instead of hiding context.
+- Feature-aware components must read shared activation state before rendering links, buttons, and empty states.
 
 ## Recommended Rollout Checklist
 

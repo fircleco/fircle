@@ -1,18 +1,20 @@
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, House, Image, Plus, Settings, User, Users } from "~/components/ui/icons";
+import { Bell, House, Image, Plus, Settings, Sparkles, User, Users } from "~/components/ui/icons";
 
 import { useGlobalComposer } from "~/components/feed/global-composer-provider";
 import { formatUnreadBadgeCount } from "~/components/nav/unread-badge";
 import { ThemeToggle } from "~/components/theme-toggle";
 import { Button } from "~/components/ui/button";
+import { getFeatureNavigationMetadata } from "~/lib/ffeatures/activation";
 import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
 import { Logo } from "~/components/ui/logo";
 
-const items = [
+const baseItems = [
   { href: "/", label: "Home", icon: House },
   { href: "/members", label: "Members", icon: Users },
   { href: "/gallery", label: "Gallery", icon: Image },
@@ -58,6 +60,29 @@ export function DesktopSidebar() {
       refetchInterval: shouldPollUnread ? 30_000 : false,
     },
   );
+
+  const featureActivationQuery = api.ffeatures.listActivations.useQuery(
+    {
+      familyId: familyId ?? "",
+    },
+    {
+      enabled: Boolean(familyId),
+      retry: false,
+      refetchOnWindowFocus: false,
+    },
+  );
+
+  const items = useMemo(() => {
+    const featureItems = getFeatureNavigationMetadata(
+      featureActivationQuery.data?.activations ?? [],
+    ).map((featureNav) => ({
+      href: featureNav.href,
+      label: featureNav.label,
+      icon: Sparkles,
+    }));
+
+    return [...baseItems, ...featureItems];
+  }, [featureActivationQuery.data?.activations]);
 
   const unreadLabel = formatUnreadBadgeCount(unreadCountQuery.data?.count ?? 0);
 

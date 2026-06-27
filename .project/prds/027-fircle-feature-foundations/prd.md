@@ -136,7 +136,7 @@ The objective is to make future features additive and predictable: each feature 
 
 #### Tasks
 
-- [ ] Define a feature activation contract that exposes, at minimum:
+- [x] Define a feature activation contract that exposes, at minimum:
   - `featureKey`,
   - `isEnabled`,
   - `isReady`,
@@ -146,18 +146,18 @@ The objective is to make future features additive and predictable: each feature 
   - backend router namespace,
   - optional component extension points,
   - optional right-sidebar entry metadata.
-- [ ] Add a feature-aware navigation convention for `src/components/nav/*` so feature links are composed from the activation contract rather than hardcoded into base navigation arrays.
-- [ ] Define how feature route groups under `src/app/(app)/(ffeatures)` surface in the app shell and are hidden or disabled when a feature is not ready.
-- [ ] Define how backend feature routers under `src/server/api/routers/ffeatures/*` are exposed through the API root without mixing them into base router concerns.
-- [ ] Define how feature modules can contribute optional entries to the base right sidebar introduced in PRD 026 without requiring a standalone widget framework.
-- [ ] Document component integration points for features, including at least:
+- [x] Add a feature-aware navigation convention for `src/components/nav/*` so feature links are composed from the activation contract rather than hardcoded into base navigation arrays.
+- [x] Define how feature route groups under `src/app/(app)/(ffeatures)` surface in the app shell and are hidden or disabled when a feature is not ready.
+- [x] Define how backend feature routers under `src/server/api/routers/ffeatures/*` are exposed through the API root without mixing them into base router concerns.
+- [x] Define how feature modules can contribute optional entries to the base right sidebar introduced in PRD 026 without requiring a standalone widget framework.
+- [x] Document component integration points for features, including at least:
   - feed/timeline overlays,
   - composer extensions,
   - settings panels,
   - route-local feature banners or CTAs,
   - right-sidebar entries.
-- [ ] Require feature pages and feature-aware components to use the shared activation state when deciding whether to render links, buttons, empty states, or integration prompts.
-- [ ] Add a clear rule that enabled-but-not-ready features should surface remediation, not silent failure, especially when integrations are missing.
+- [x] Require feature pages and feature-aware components to use the shared activation state when deciding whether to render links, buttons, empty states, or integration prompts.
+- [x] Add a clear rule that enabled-but-not-ready features should surface remediation, not silent failure, especially when integrations are missing.
 
 ### Phase 5: Verification and Safety Checks
 
@@ -181,8 +181,8 @@ The objective is to make future features additive and predictable: each feature 
 - [x] `.project/conventions/fircle-feature.md` exists and defines the feature lifecycle conventions, including integration prerequisite handling via `/settings/integrations`.
 - [x] Feature route-group convention is documented and enforced in convention guidance: feature-owned routes are placed under `src/app/(app)/(ffeatures)` and base routes remain in `src/app/(app)`.
 - [x] Feature API router convention is documented and enforced in convention guidance: feature-owned routers are placed under a dedicated backend feature boundary (for example `src/server/api/routers/ffeatures/*`) and mounted under a feature namespace in `appRouter`.
-- [ ] Feature activation conventions are documented so enabled features can wire navigation, route entry points, and component integrations through a single activation layer.
-- [ ] Feature activation conventions define optional right-sidebar contributions for feature modules that compose into the base sidebar from PRD 026.
-- [ ] Enabled-but-not-ready features surface remediation paths rather than silent failures when UI or API entry points are reached.
+- [x] Feature activation conventions are documented so enabled features can wire navigation, route entry points, and component integrations through a single activation layer.
+- [x] Feature activation conventions define optional right-sidebar contributions for feature modules that compose into the base sidebar from PRD 026.
+- [x] Enabled-but-not-ready features surface remediation paths rather than silent failures when UI or API entry points are reached.
 - [x] Convention doc includes an Events example and rollout checklist.
 - [ ] Lint, typecheck, and targeted tests pass for touched areas.

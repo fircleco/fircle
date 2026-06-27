@@ -1,15 +1,25 @@
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { House, Image, PlusCircle, User, Users } from "~/components/ui/icons";
+import { House, Image, PlusCircle, Sparkles, User, Users } from "~/components/ui/icons";
 
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { useGlobalComposer } from "~/components/feed/global-composer-provider";
+import { getFeatureNavigationMetadata } from "~/lib/ffeatures/activation";
 import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
 
-const items = [
+type MobileNavItem = {
+  href: string;
+  label: string;
+  icon: typeof House;
+  prominent?: boolean;
+  action?: "composer";
+};
+
+const baseItems: MobileNavItem[] = [
   { href: "/", label: "Feed", icon: House },
   { href: "/members", label: "Members", icon: Users },
   { href: "#", label: "Create", icon: PlusCircle, prominent: true, action: "composer" },
@@ -59,6 +69,39 @@ export function MobileBottomNav({ currentUser }: MobileBottomNavProps) {
     { familyId: familyId ?? "" },
     { enabled: Boolean(familyId), retry: false, refetchOnWindowFocus: false },
   );
+
+  const featureActivationQuery = api.ffeatures.listActivations.useQuery(
+    {
+      familyId: familyId ?? "",
+    },
+    {
+      enabled: Boolean(familyId),
+      retry: false,
+      refetchOnWindowFocus: false,
+    },
+  );
+
+  const items = useMemo(() => {
+    const staticItems: MobileNavItem[] = [...baseItems];
+    const createIndex = staticItems.findIndex((entry) => entry.action === "composer");
+    const featureItems = getFeatureNavigationMetadata(
+      featureActivationQuery.data?.activations ?? [],
+    ).map<MobileNavItem>((featureNav) => ({
+      href: featureNav.href,
+      label: featureNav.label,
+      icon: Sparkles,
+    }));
+
+    if (createIndex === -1) {
+      return [...staticItems, ...featureItems];
+    }
+
+    return [
+      ...staticItems.slice(0, createIndex),
+      ...featureItems,
+      ...staticItems.slice(createIndex),
+    ];
+  }, [featureActivationQuery.data?.activations]);
 
   const profileName = memberQuery.data?.name ?? currentUser?.name ?? undefined;
   const profileImage = memberQuery.data?.image ?? currentUser?.image ?? undefined;

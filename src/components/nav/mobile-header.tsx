@@ -1,8 +1,9 @@
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, House, Image, Menu, Settings, User, Users } from "~/components/ui/icons";
+import { Bell, House, Image, Menu, Settings, Sparkles, User, Users } from "~/components/ui/icons";
 
 import { formatUnreadBadgeCount } from "~/components/nav/unread-badge";
 import { ThemeToggle } from "~/components/theme-toggle";
@@ -17,10 +18,11 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "~/components/ui/sheet";
+import { getFeatureNavigationMetadata } from "~/lib/ffeatures/activation";
 import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
 
-const menuItems = [
+const baseMenuItems = [
   { href: "/", label: "Home", icon: House },
   { href: "/members", label: "Members", icon: Users },
   { href: "/gallery", label: "Gallery", icon: Image },
@@ -69,6 +71,29 @@ export function MobileHeader() {
     ? unreadCountQuery.data.count
     : 0;
   const unreadLabel = formatUnreadBadgeCount(unreadCount);
+
+  const featureActivationQuery = api.ffeatures.listActivations.useQuery(
+    {
+      familyId: familyId ?? "",
+    },
+    {
+      enabled: Boolean(familyId),
+      retry: false,
+      refetchOnWindowFocus: false,
+    },
+  );
+
+  const menuItems = useMemo(() => {
+    const featureItems = getFeatureNavigationMetadata(
+      featureActivationQuery.data?.activations ?? [],
+    ).map((featureNav) => ({
+      href: featureNav.href,
+      label: featureNav.label,
+      icon: Sparkles,
+    }));
+
+    return [...baseMenuItems, ...featureItems];
+  }, [featureActivationQuery.data?.activations]);
 
   return (
     <header className="sticky top-0 z-30 flex h-[calc(3.5rem+var(--safe-area-inset-top))] w-full items-center border-b border-border bg-background/80 px-3 pt-safe backdrop-blur-sm md:hidden">

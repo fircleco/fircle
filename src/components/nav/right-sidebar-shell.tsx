@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { getFeatureRightSidebarEntries } from "~/lib/ffeatures/activation";
 import {
   type RightSidebarContribution,
   type SidebarAccessRole,
@@ -61,12 +62,6 @@ const baseSections: RightSidebarSection[] = [
     sortOrder: 20,
   },
 ];
-
-// Future feature modules should pass contributions into this slot.
-const optionalContribution: RightSidebarContribution = {
-  sections: [],
-  items: [],
-};
 
 function bySortOrder<T extends { sortOrder?: number }>(a: T, b: T) {
   return (a.sortOrder ?? 0) - (b.sortOrder ?? 0);
@@ -135,6 +130,27 @@ export function RightSidebarShell() {
   });
 
   const currentRole = managementContext.data?.role ?? null;
+  const familyId = managementContext.data?.family?.id;
+
+  const featureActivationQuery = api.ffeatures.listActivations.useQuery(
+    {
+      familyId: familyId ?? "",
+    },
+    {
+      enabled: Boolean(familyId),
+      retry: false,
+      refetchOnWindowFocus: false,
+    },
+  );
+
+  const featureSidebarItems = getFeatureRightSidebarEntries(
+    featureActivationQuery.data?.activations ?? [],
+  );
+
+  const optionalContribution: RightSidebarContribution = {
+    sections: [],
+    items: featureSidebarItems,
+  };
 
   const sections = composeRightSidebarSections({
     base: baseSections,
