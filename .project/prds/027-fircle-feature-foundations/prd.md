@@ -105,8 +105,8 @@ The objective is to make future features additive and predictable: each feature 
 
 #### Tasks
 
-- [ ] Create `.project/conventions/fircle-feature.md`.
-- [ ] Document required conventions for all future feature PRDs and implementations:
+- [x] Create `.project/conventions/fircle-feature.md`.
+- [x] Document required conventions for all future feature PRDs and implementations:
   - family-scoped feature toggle modeling,
   - additive migration-first approach,
   - feature-owned UI routes under `src/app/(app)/(ffeatures)`,
@@ -114,21 +114,21 @@ The objective is to make future features additive and predictable: each feature 
   - no direct secrets in feature settings,
   - integration prerequisites routed through `/settings/integrations`,
   - feature readiness concept (`enabled` vs `ready`).
-- [ ] Document route taxonomy and ownership boundaries:
+- [x] Document route taxonomy and ownership boundaries:
   - base/core product routes remain under `src/app/(app)`,
   - feature routes live under `src/app/(app)/(ffeatures)`,
   - route groups are organizational and should not change public URL shapes.
-- [ ] Document API router taxonomy and ownership boundaries:
+- [x] Document API router taxonomy and ownership boundaries:
   - base/core routers remain in `src/server/api/routers/*` and top-level `appRouter`,
   - feature routers are grouped under `src/server/api/routers/ffeatures/*`,
   - `appRouter` exposes a dedicated feature namespace (for example `ffeatures`) to avoid mixing feature procedures with base router keys.
-- [ ] Add recommended rollout checklist for new features:
+- [x] Add recommended rollout checklist for new features:
   - schema additions,
   - router guards,
   - UI gating,
   - integration dependency messaging,
   - test expectations.
-- [ ] Add an Events example mapping conventions to a concrete feature scenario (event model + post association pattern) without implementing Events itself.
+- [x] Add an Events example mapping conventions to a concrete feature scenario (event model + post association pattern) without implementing Events itself.
 
 ### Phase 4: Feature Activation and UI/API Wiring
 
@@ -178,11 +178,11 @@ The objective is to make future features additive and predictable: each feature 
 - [x] Integration router category/provider input validation is registry-driven, not hardcoded.
 - [x] Integration router rejects invalid category/provider combinations with clear errors.
 - [x] Existing storage/r2 integration behavior remains functional after validation refactor.
-- [ ] `.project/conventions/fircle-feature.md` exists and defines the feature lifecycle conventions, including integration prerequisite handling via `/settings/integrations`.
-- [ ] Feature route-group convention is documented and enforced in convention guidance: feature-owned routes are placed under `src/app/(app)/(ffeatures)` and base routes remain in `src/app/(app)`.
-- [ ] Feature API router convention is documented and enforced in convention guidance: feature-owned routers are placed under a dedicated backend feature boundary (for example `src/server/api/routers/ffeatures/*`) and mounted under a feature namespace in `appRouter`.
+- [x] `.project/conventions/fircle-feature.md` exists and defines the feature lifecycle conventions, including integration prerequisite handling via `/settings/integrations`.
+- [x] Feature route-group convention is documented and enforced in convention guidance: feature-owned routes are placed under `src/app/(app)/(ffeatures)` and base routes remain in `src/app/(app)`.
+- [x] Feature API router convention is documented and enforced in convention guidance: feature-owned routers are placed under a dedicated backend feature boundary (for example `src/server/api/routers/ffeatures/*`) and mounted under a feature namespace in `appRouter`.
 - [ ] Feature activation conventions are documented so enabled features can wire navigation, route entry points, and component integrations through a single activation layer.
 - [ ] Feature activation conventions define optional right-sidebar contributions for feature modules that compose into the base sidebar from PRD 026.
 - [ ] Enabled-but-not-ready features surface remediation paths rather than silent failures when UI or API entry points are reached.
-- [ ] Convention doc includes an Events example and rollout checklist.
+- [x] Convention doc includes an Events example and rollout checklist.
 - [ ] Lint, typecheck, and targeted tests pass for touched areas.
