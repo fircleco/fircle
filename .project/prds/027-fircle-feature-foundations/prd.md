@@ -14,6 +14,9 @@ references:
   - type: prd
     url: .project/prds/025-owner-managed-object-storage-credentials/prd.md
     description: "Owner-managed integration credential model and settings surface"
+  - type: pr
+    url: https://github.com/fircle-app/fircle/pull/40
+    description: "Implementation pull request - feat: fircle features (ffeatures) foundations"
 ---
 
 > **Instructions for AI Agents:**
