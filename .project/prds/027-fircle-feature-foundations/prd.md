@@ -1,6 +1,6 @@
 ---
 title: "Fircle Feature Foundations"
-status: draft
+status: in-progress
 references:
   - type: doc
     url: .project/brief.md
@@ -32,7 +32,7 @@ Fircle needs a stable groundwork for introducing future feature modules (for exa
 
 Today, feature enablement is not represented by a dedicated database model, and integration credential router validation is still hardcoded to a single category/provider path. This creates friction for adding feature toggles, wiring feature prerequisites, and extending owner-managed integrations safely.
 
-This PRD introduces a foundational `Feature` model with no feature records pre-registered, migrates integration router input validation to registry-driven behavior, and codifies feature onboarding conventions in a dedicated project convention document.
+This PRD introduces a foundational `Ffeature` model with no feature records pre-registered, migrates integration router input validation to registry-driven behavior, and codifies feature onboarding conventions in a dedicated project convention document.
 
 It also establishes a UI route-isolation convention for feature-owned pages: any feature route introduced in the app must live under `src/app/(app)/(ffeatures)`, where `ffeatures` stands for Fircle Features.
 
@@ -44,8 +44,8 @@ The objective is to make future features additive and predictable: each feature 
 
 ### Design Decisions
 
-- **Feature model first, feature data later**: Add the `Feature` model now but do not seed or pre-register any concrete features in this PRD.
-- **Family-scoped feature state**: Feature rows are scoped by `familyId` and `featureKey`, preserving strict tenant/family boundaries.
+- **Feature model first, feature data later**: Add the `Ffeature` model now but do not seed or pre-register any concrete features in this PRD.
+- **Family-scoped feature state**: `Ffeature` rows are scoped by `familyId` and `featureKey`, preserving strict tenant/family boundaries.
 - **Registry-driven integration validation**: Remove hardcoded `z.literal("storage")` and `z.literal("r2")` assumptions from integration router inputs, deriving allowed category/provider combinations from the provider registry.
 - **Integrations remain owner-managed source of truth**: Any feature requiring API keys or service credentials must point owners to `/settings/integrations` instead of collecting secrets inside feature-specific settings.
 - **Feature route isolation via route groups**: Feature-owned UI routes must be implemented under `src/app/(app)/(ffeatures)` so they do not mix with base product routes in `src/app/(app)`.
@@ -68,20 +68,20 @@ The objective is to make future features additive and predictable: each feature 
 
 ### Phase 1: Database Feature Groundwork
 
-**Goal:** Introduce a family-scoped `Feature` model that supports future toggle-enabled modules without registering any feature yet.
+**Goal:** Introduce a family-scoped `Ffeature` model that supports future toggle-enabled modules without registering any feature yet.
 
 #### Tasks
 
-- [ ] Add `Feature` model to `prisma/schema.prisma` with fields:
+- [x] Add `Ffeature` model to `prisma/schema.prisma` with fields:
   - `id`, `familyId`, `featureKey`, `isEnabled`, `createdAt`, `updatedAt`.
-- [ ] Add relation from `Feature.familyId` to `Family.id` with cascade delete.
-- [ ] Add uniqueness/index constraints:
+- [x] Add relation from `Ffeature.familyId` to `Family.id` with cascade delete.
+- [x] Add uniqueness/index constraints:
   - `@@unique([familyId, featureKey])`
   - index on `familyId`
   - index on `featureKey`
-- [ ] Create and apply migration for `Feature` model.
-- [ ] Ensure seeds do not create any `Feature` rows; no feature is pre-registered.
-- [ ] Ensure existing app behavior is unchanged when `Feature` table has zero rows.
+- [x] Create and apply migration for `Ffeature` model.
+- [x] Ensure seeds do not create any `Feature` rows; no feature is pre-registered.
+- [x] Ensure existing app behavior is unchanged when `Feature` table has zero rows.
 
 ### Phase 2: Registry-Driven Integration Router Validation
 
@@ -167,14 +167,14 @@ The objective is to make future features additive and predictable: each feature 
 
 - [ ] Run `pnpm lint`, `pnpm typecheck`, and relevant tests for touched modules.
 - [ ] Verify integration settings page behavior is unchanged for existing storage/r2 flow.
-- [ ] Verify no runtime path requires `Feature` rows to exist.
+- [ ] Verify no runtime path requires `Ffeature` rows to exist.
 - [ ] Confirm migration is additive and does not alter existing feature data models.
 
 ## Acceptance Criteria
 
-- [ ] `Feature` model exists in Prisma schema with family-scoped uniqueness on `(familyId, featureKey)`.
-- [ ] Migration for `Feature` is additive and applied successfully.
-- [ ] No concrete feature records are seeded or pre-registered by this PRD.
+- [x] `Ffeature` model exists in Prisma schema with family-scoped uniqueness on `(familyId, featureKey)`.
+- [x] Migration for `Ffeature` is additive and applied successfully.
+- [x] No concrete feature records are seeded or pre-registered by this PRD.
 - [ ] Integration router category/provider input validation is registry-driven, not hardcoded.
 - [ ] Integration router rejects invalid category/provider combinations with clear errors.
 - [ ] Existing storage/r2 integration behavior remains functional after validation refactor.

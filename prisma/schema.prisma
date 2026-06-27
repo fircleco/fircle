@@ -93,6 +93,7 @@ model Family {
   members     FamilyMember[]
   invites     Invite[]
   domains     Domain[]
+  features    Ffeature[]
   integrationCredentials IntegrationCredential[]
   notifications Notification[]
   notificationPreferences NotificationPreference[]
@@ -131,6 +132,22 @@ model IntegrationCredential {
   @@index([familyId])
   @@index([category])
   @@index([provider])
+}
+
+model Ffeature {
+  id         String   @id @default(cuid())
+  familyId   String
+  featureKey String
+  isEnabled  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  @@unique([familyId, featureKey])
+  @@index([familyId])
+  @@index([featureKey])
+  @@map("Feature")
 }
 
 model FamilyMember {
