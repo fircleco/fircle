@@ -1,18 +1,16 @@
 # Fircle
 
-Family-first social network focused on private sharing and memory preservation.
+Family-first social space focused on private sharing and memory preservation.
 
 ## Product Direction
 
-Fircle is currently optimized for shipping a functional MVP quickly:
+Fircle is currently optimized for shipping a focused family-first product quickly:
 
 - Single-family mode first (faster path to usable product)
 - Invite-only registration
 - Family member profiles that can exist before account creation (unclaimed members)
 - Account claiming flow for later ownership
 - Photo/video posts with member tagging
-
-Multi-tenancy is planned after the MVP is functional and validated.
 
 ## Tech Stack
 
@@ -331,15 +329,16 @@ Fircle uses a WebAPK-first PWA approach for Android Chrome installs, with iOS Sa
 
 ## Current Focus
 
-MVP implementation priorities:
+Core family onboarding and private sharing milestones are implemented.
 
-- Invite-only registration
-- Family auth and onboarding
-- Unclaimed member profiles
-- Account claiming flow
-- Posts with photos/videos
-- Member tagging in media
+Current product priorities:
+
+- Production hardening for self-hosted deployments (ops, reliability, and recovery)
+- Tenant and domain operations maturity (verification lifecycle and edge-case handling)
+- Notification delivery robustness (push and email reliability under real-world conditions)
+- Media lifecycle and storage hygiene (retention, cleanup automation, and operational safety)
+- Product quality and UX polish across feed, onboarding, and settings surfaces
 
 ## Contributing
 
-Contributions are welcome. Open an issue or pull request for bug fixes, improvements, and feature work aligned with the MVP roadmap.
+Contributions are welcome. Open an issue or pull request for bug fixes, improvements, and feature work aligned with the current roadmap.
