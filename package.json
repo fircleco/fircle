@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "next build",
+    "build": "pnpm db:migrate && next build",
     "check": "eslint . && tsc --noEmit",
     "db:reset": "prisma migrate reset",
     "db:generate": "prisma migrate dev",
