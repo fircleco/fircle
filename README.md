@@ -183,6 +183,22 @@ pnpm dev
 
 Open http://localhost:3000.
 
+### Build behavior
+
+`pnpm build` runs database migrations first (`pnpm db:migrate`) and then runs the Next.js production build.
+
+This means build requires:
+
+- A reachable database
+- A valid `DATABASE_URL`
+- Permission to apply pending migrations
+
+If you only need to compile assets without applying migrations, run:
+
+```bash
+pnpm exec next build
+```
+
 ### 6. First-time instance setup (single-family)
 
 For a fresh self-hosted instance with no family data yet:
