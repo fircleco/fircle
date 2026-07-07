@@ -43,3 +43,5 @@ jobs:
         run: pnpm test
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/fircle_ci
+          EMAIL_FROM_ADDRESS: ci@example.com
+          EMAIL_FROM_NAME: CI
