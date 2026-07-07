@@ -66,12 +66,12 @@ Out of scope:
 
 #### Tasks
 
-- [ ] Add a shared delivery result type in email domain (for example under `src/server/email/types.ts`) with:
-  - [ ] `status: "sent" | "skipped" | "failed"`
-  - [ ] `reasonCode` enum (for example `provider_not_configured`, `missing_from_address`, `base_url_unresolved`, `provider_error`)
-  - [ ] optional `message` (user-safe)
-  - [ ] optional provider metadata safe for client display (for example accepted timestamp only)
-- [ ] Add mapper utility to convert provider/no-provider/runtime outcomes into canonical delivery status.
+- [x] Add a shared delivery result type in email domain (for example under `src/server/email/types.ts`) with:
+  - [x] `status: "sent" | "skipped" | "failed"`
+  - [x] `reasonCode` enum (for example `provider_not_configured`, `missing_from_address`, `base_url_unresolved`, `provider_error`)
+  - [x] optional `message` (user-safe)
+  - [x] optional provider metadata safe for client display (for example accepted timestamp only)
+- [x] Add mapper utility to convert provider/no-provider/runtime outcomes into canonical delivery status.
 - [ ] Add zod schema(s) if needed for response validation at UI boundaries.
 
 ### Phase 2: Backend Integration for Create Flows
