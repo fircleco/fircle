@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Copy, Check, Link2, X } from "~/components/ui/icons";
+import { AlertCircle, Check, CheckCircle2, Copy, Link2, Loader, Send, TriangleAlert, X } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { api } from "~/trpc/react";
@@ -15,13 +15,21 @@ export function GenerateClaimLinkDialog({ memberId, memberName }: GenerateClaimL
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [claimUrl, setClaimUrl] = useState<string | null>(null);
+  const [inviteId, setInviteId] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [emailDelivery, setEmailDelivery] = useState<{
+    status: "sent" | "skipped" | "failed";
+    reasonCode?: string;
+    message?: string;
+  } | null>(null);
 
   const createClaimLink = api.familyMember.createClaimLink.useMutation({
     onSuccess(data) {
       const url = `${window.location.origin}/auth/claim/${data.code}`;
       setClaimUrl(url);
+      setInviteId(data.id);
+      setEmailDelivery(data.emailDelivery ?? null);
       setError(null);
     },
     onError(err) {
@@ -29,12 +37,26 @@ export function GenerateClaimLinkDialog({ memberId, memberName }: GenerateClaimL
     },
   });
 
+  const retryEmailSend = api.invite.retryEmailSend.useMutation({
+    onSuccess: (result) => {
+      setEmailDelivery(result.emailDelivery);
+    },
+    onError: (err) => {
+      setEmailDelivery({
+        status: "failed",
+        message: err.message,
+      });
+    },
+  });
+
   const handleOpen = () => {
     setOpen(true);
     setEmail("");
     setClaimUrl(null);
+    setInviteId(null);
     setCopied(false);
     setError(null);
+    setEmailDelivery(null);
   };
 
   const handleClose = () => {
@@ -159,6 +181,58 @@ export function GenerateClaimLinkDialog({ memberId, memberName }: GenerateClaimL
                   </p>
                 </div>
 
+                {emailDelivery?.status === "sent" ? (
+                  <div className="flex items-center gap-1.5 text-emerald-700 dark:text-emerald-300">
+                    <CheckCircle2 className="size-4 shrink-0" aria-hidden="true" />
+                    <p className="text-sm">Claim email sent to {email}.</p>
+                  </div>
+                ) : emailDelivery?.status === "skipped" ? (
+                  <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3">
+                    <div className="flex items-start gap-2 text-amber-700 dark:text-amber-300">
+                      <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+                      <div>
+                        <p className="font-medium text-sm">Email not sent automatically</p>
+                        <p className="text-xs">{emailDelivery.message ?? "Share the link above manually."}</p>
+                      </div>
+                    </div>
+                  </div>
+                ) : emailDelivery?.status === "failed" ? (
+                  <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-3">
+                    <div className="flex items-start gap-2 text-destructive">
+                      <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+                      <div>
+                        <p className="font-medium text-sm">Email failed to send</p>
+                        <p className="text-xs">{emailDelivery.message ?? "Copy the link above and share it manually."}</p>
+                      </div>
+                    </div>
+                    <div className="mt-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        className="border-destructive/40 text-destructive hover:bg-destructive/10"
+                        onClick={() => {
+                          if (!inviteId) return;
+                          retryEmailSend.mutate({ inviteId });
+                        }}
+                        disabled={retryEmailSend.isPending || !inviteId}
+                      >
+                        {retryEmailSend.isPending ? (
+                          <>
+                            <Loader className="mr-1 size-4 animate-spin" aria-hidden="true" />
+                            Sending...
+                          </>
+                        ) : (
+                          <>
+                            <Send className="mr-1 size-4" aria-hidden="true" />
+                            Resend email
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                ) : null}
+
                 <div className="flex flex-wrap gap-2">
                   <Button type="button" onClick={handleCopy}>
                     {copied ? (
@@ -178,7 +252,9 @@ export function GenerateClaimLinkDialog({ memberId, memberName }: GenerateClaimL
                     variant="outline"
                     onClick={() => {
                       setClaimUrl(null);
-                      setEmail("");
+                    setInviteId(null);
+                    setEmail("");
+                    setEmailDelivery(null);
                     }}
                   >
                     Generate another

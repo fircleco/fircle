@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, Camera, Check, CheckCircle2, Copy, Link2, Loader, User, UserRoundPlus } from "~/components/ui/icons";
+import { AlertCircle, Camera, Check, CheckCircle2, Copy, Link2, Loader, Send, TriangleAlert, User, UserRoundPlus } from "~/components/ui/icons";
 
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
@@ -81,6 +81,12 @@ export default function AddMemberPage() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [emailDelivery, setEmailDelivery] = useState<{
+    status: "sent" | "skipped" | "failed";
+    reasonCode?: string;
+    message?: string;
+  } | null>(null);
+  const [claimInviteId, setClaimInviteId] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const avatarPreviewSelectionRef = useRef(0);
@@ -113,6 +119,17 @@ export default function AddMemberPage() {
 
   const createMember = api.familyMember.createUnclaimedMember.useMutation();
   const updateMemberProfile = api.familyMember.updateMemberProfile.useMutation();
+  const retryEmailSend = api.invite.retryEmailSend.useMutation({
+    onSuccess: (result) => {
+      setEmailDelivery(result.emailDelivery);
+    },
+    onError: (error) => {
+      setEmailDelivery({
+        status: "failed",
+        message: error.message,
+      });
+    },
+  });
 
   const handleAvatarSelected = (file: File | null) => {
     if (!file) return;
@@ -257,6 +274,8 @@ export default function AddMemberPage() {
             }
           : null,
       );
+      setClaimInviteId(data.claimInvite?.id ?? null);
+      setEmailDelivery(data.emailDelivery ?? null);
       setIsClaimLinkCopied(false);
     } catch (error) {
       const message =
@@ -275,6 +294,8 @@ export default function AddMemberPage() {
     setMemberEmail("");
     setAutoClaimInvite(null);
     setIsClaimLinkCopied(false);
+    setEmailDelivery(null);
+    setClaimInviteId(null);
     if (selectedAvatarPreviewUrl) {
       URL.revokeObjectURL(selectedAvatarPreviewUrl);
     }
@@ -367,6 +388,57 @@ export default function AddMemberPage() {
                     <p className="mt-1 text-muted-foreground">
                       This link is email-bound to {autoClaimInvite.invitedEmail}.
                     </p>
+                  ) : null}
+                  {emailDelivery?.status === "sent" ? (
+                    <div className="mt-2 flex items-center gap-1.5 text-emerald-700 dark:text-emerald-300">
+                      <CheckCircle2 className="size-4 shrink-0" aria-hidden="true" />
+                      <p className="text-xs">Invite email sent to {autoClaimInvite.invitedEmail}.</p>
+                    </div>
+                  ) : emailDelivery?.status === "skipped" ? (
+                    <div className="mt-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-2.5">
+                      <div className="flex items-start gap-2 text-amber-700 dark:text-amber-300">
+                        <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+                        <div>
+                          <p className="font-medium text-xs">Email not sent automatically</p>
+                          <p className="text-xs">{emailDelivery.message ?? "Share the link above manually."}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : emailDelivery?.status === "failed" ? (
+                    <div className="mt-2 rounded-xl border border-destructive/30 bg-destructive/10 p-2.5">
+                      <div className="flex items-start gap-2 text-destructive">
+                        <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+                        <div>
+                          <p className="font-medium text-xs">Email failed to send</p>
+                          <p className="text-xs">{emailDelivery.message ?? "Copy the link above and share it manually."}</p>
+                        </div>
+                      </div>
+                      <div className="mt-2">
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          className="border-destructive/40 text-destructive hover:bg-destructive/10"
+                          onClick={() => {
+                            if (!claimInviteId) return;
+                            retryEmailSend.mutate({ inviteId: claimInviteId });
+                          }}
+                          disabled={retryEmailSend.isPending || !claimInviteId}
+                        >
+                          {retryEmailSend.isPending ? (
+                            <>
+                              <Loader className="mr-1 size-4 animate-spin" aria-hidden="true" />
+                              Sending...
+                            </>
+                          ) : (
+                            <>
+                              <Send className="mr-1 size-4" aria-hidden="true" />
+                              Resend email
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
                   ) : null}
                 </div>
               ) : null}

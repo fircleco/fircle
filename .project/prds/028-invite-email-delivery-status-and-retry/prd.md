@@ -110,14 +110,14 @@ Out of scope:
 
 #### Tasks
 
-- [ ] Update add-member success state in [src/app/(app)/members/new/page.tsx](src/app/(app)/members/new/page.tsx) to show:
-  - [ ] success indicator for `sent`
-  - [ ] warning indicator for `skipped` with reason
-  - [ ] error indicator for `failed` with retry button
-- [ ] Update claim-link generation dialog in [src/components/members/generate-claim-link-dialog.tsx](src/components/members/generate-claim-link-dialog.tsx) with equivalent status UI and retry action.
-- [ ] Update invite management creation flows in [src/app/(app)/settings/invites/page.tsx](src/app/(app)/settings/invites/page.tsx) to display delivery status after invite creation and support retry when `failed`.
-- [ ] Ensure retry button has loading, success, and error states, and does not hide manual copy-link fallback.
-- [ ] Add concise user-facing copy for each reason code.
+- [x] Update add-member success state in [src/app/(app)/members/new/page.tsx](src/app/(app)/members/new/page.tsx) to show:
+  - [x] success indicator for `sent`
+  - [x] warning indicator for `skipped` with reason
+  - [x] error indicator for `failed` with retry button
+- [x] Update claim-link generation dialog in [src/components/members/generate-claim-link-dialog.tsx](src/components/members/generate-claim-link-dialog.tsx) with equivalent status UI and retry action.
+- [x] Update invite management creation flows in [src/app/(app)/settings/invites/page.tsx](src/app/(app)/settings/invites/page.tsx) to display delivery status after invite creation and support retry when `failed`.
+- [x] Ensure retry button has loading, success, and error states, and does not hide manual copy-link fallback.
+- [x] Add concise user-facing copy for each reason code.
 
 ### Phase 5: Observability, Tests, and Rollout Safety
 
