@@ -1,6 +1,6 @@
 ---
 title: "Invite and Claim Email Delivery Status with Retry Actions"
-status: draft
+status: in-progress
 references:
   - type: doc
     url: .project/brief.md
@@ -80,11 +80,11 @@ Out of scope:
 
 #### Tasks
 
-- [ ] Update `createUnclaimedMember` in [src/server/api/routers/family-member.ts](src/server/api/routers/family-member.ts) to include `emailDelivery` on response when claim invite is email-bound.
-- [ ] Update `createClaimLink` in [src/server/api/routers/family-member.ts](src/server/api/routers/family-member.ts) to include `emailDelivery`.
-- [ ] Update `createInvite` in [src/server/api/routers/invite.ts](src/server/api/routers/invite.ts) to include `emailDelivery`.
-- [ ] Preserve current non-blocking write behavior while replacing silent catch-only handling with explicit status assignment.
-- [ ] Ensure no-email flows return `emailDelivery: null` (or omitted) consistently.
+- [x] Update `createUnclaimedMember` in [src/server/api/routers/family-member.ts](src/server/api/routers/family-member.ts) to include `emailDelivery` on response when claim invite is email-bound.
+- [x] Update `createClaimLink` in [src/server/api/routers/family-member.ts](src/server/api/routers/family-member.ts) to include `emailDelivery`.
+- [x] Update `createInvite` in [src/server/api/routers/invite.ts](src/server/api/routers/invite.ts) to include `emailDelivery`.
+- [x] Preserve current non-blocking write behavior while replacing silent catch-only handling with explicit status assignment.
+- [x] Ensure no-email flows return `emailDelivery: null` (or omitted) consistently.
 
 ### Phase 3: Retry Email Send API
 

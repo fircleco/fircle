@@ -27,9 +27,13 @@ import { checkRateLimit, getClientIp } from "~/lib/rate-limit"
 import { getMemberSlugBase, resolveUniqueMemberSlug } from "~/lib/member-slug"
 import { findTenantUserByEmail } from "~/lib/tenant-users"
 import {
+  buildFailedDeliveryResult,
   buildInviteCreatedTemplate,
+  buildSentDeliveryResult,
+  buildSkippedDeliveryResult,
   getEmailProvider,
   resolveAppBaseUrlFromHeaders,
+  type EmailDeliveryResult,
 } from "~/server/email"
 import {
   createNotifications,
@@ -574,6 +578,8 @@ export const inviteRouter = createTRPCRouter({
         `[invite:created] id=${invite.id} code=${invite.code} type=${invite.type} familyId=${invite.familyId} createdBy=${ctx.session.user.id} at=${new Date().toISOString()}`,
       )
 
+      let emailDelivery: EmailDeliveryResult | null = null
+
       if (invite.type === "EMAIL_BOUND" && invite.invitedEmail) {
         const emailProvider = getEmailProvider()
         const appBaseUrl = resolveAppBaseUrlFromHeaders(ctx.headers)
@@ -584,14 +590,17 @@ export const inviteRouter = createTRPCRouter({
           console.info(
             `[invite:email-skipped] inviteId=${invite.id} reason=email-provider-not-configured`,
           )
+          emailDelivery = buildSkippedDeliveryResult("provider_not_configured")
         } else if (!appBaseUrl) {
           console.warn(
             `[invite:email-skipped] inviteId=${invite.id} reason=app-base-url-unresolved`,
           )
+          emailDelivery = buildSkippedDeliveryResult("base_url_unresolved")
         } else if (!fromAddress) {
           console.warn(
             `[invite:email-skipped] inviteId=${invite.id} reason=missing-from-address`,
           )
+          emailDelivery = buildSkippedDeliveryResult("missing_from_address")
         } else {
           const template = buildInviteCreatedTemplate({
             familyName: invite.family.name,
@@ -601,7 +610,7 @@ export const inviteRouter = createTRPCRouter({
           })
 
           try {
-            await emailProvider.send({
+            const sendResult = await emailProvider.send({
               event: "invite-created",
               to: { email: invite.invitedEmail },
               from: { email: fromAddress, name: fromName },
@@ -614,10 +623,12 @@ export const inviteRouter = createTRPCRouter({
                 family_id: invite.familyId,
               },
             })
+            emailDelivery = buildSentDeliveryResult(sendResult)
           } catch (error) {
             console.error(
               `[invite:email-send-failed] inviteId=${invite.id} familyId=${invite.familyId} reason=${error instanceof Error ? error.message : String(error)}`,
             )
+            emailDelivery = buildFailedDeliveryResult(error)
           }
         }
       }
@@ -629,6 +640,7 @@ export const inviteRouter = createTRPCRouter({
         invitedEmail: invite.invitedEmail,
         expiresAt: invite.expiresAt,
         createdAt: invite.createdAt,
+        emailDelivery,
       }
     }),
 
