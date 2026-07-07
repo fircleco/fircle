@@ -64,8 +64,14 @@ describe("feature activation resolver", () => {
       registry,
     });
 
-    expect(activations[0].isEnabled).toBe(true);
-    expect(activations[0].isReady).toBe(false);
-    expect(activations[0].remediationMessage).toContain("/settings/integrations");
+    expect(activations).toHaveLength(1);
+    const activation = activations[0];
+    if (!activation) {
+      throw new Error("Expected one activation result");
+    }
+
+    expect(activation.isEnabled).toBe(true);
+    expect(activation.isReady).toBe(false);
+    expect(activation.remediationMessage).toContain("/settings/integrations");
   });
 });
