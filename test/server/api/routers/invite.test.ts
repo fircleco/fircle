@@ -547,30 +547,27 @@ describe("inviteRouter.retryEmailSend", () => {
   it("throws BAD_REQUEST with 'expired' message when invite is expired", async () => {
     const expiredInvite = { ...pendingEmailBoundInvite, id: "clh0000000000000000009004", status: "PENDING", expiresAt: new Date("2020-01-01T00:00:00.000Z") };
     const caller = createCaller(makeDb(expiredInvite));
+    const retryCall = caller.retryEmailSend({ inviteId: expiredInvite.id });
 
-    await expect(caller.retryEmailSend({ inviteId: expiredInvite.id })).rejects.toMatchObject({
-      code: "BAD_REQUEST",
-      message: expect.stringContaining("expired"),
-    });
+    await expect(retryCall).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    await expect(retryCall).rejects.toThrow(/expired/i);
   });
 
   it("throws BAD_REQUEST with 'revoked' message when invite is revoked", async () => {
     const revokedInvite = { ...pendingEmailBoundInvite, id: "clh0000000000000000009005", status: "REVOKED", revokedAt: new Date() };
     const caller = createCaller(makeDb(revokedInvite));
+    const retryCall = caller.retryEmailSend({ inviteId: revokedInvite.id });
 
-    await expect(caller.retryEmailSend({ inviteId: revokedInvite.id })).rejects.toMatchObject({
-      code: "BAD_REQUEST",
-      message: expect.stringContaining("revoked"),
-    });
+    await expect(retryCall).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    await expect(retryCall).rejects.toThrow(/revoked/i);
   });
 
   it("throws BAD_REQUEST with 'claimed' message when invite is already claimed", async () => {
     const claimedInvite = { ...pendingEmailBoundInvite, id: "clh0000000000000000009006", status: "CLAIMED", claimedAt: new Date() };
     const caller = createCaller(makeDb(claimedInvite));
+    const retryCall = caller.retryEmailSend({ inviteId: claimedInvite.id });
 
-    await expect(caller.retryEmailSend({ inviteId: claimedInvite.id })).rejects.toMatchObject({
-      code: "BAD_REQUEST",
-      message: expect.stringContaining("claimed"),
-    });
+    await expect(retryCall).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    await expect(retryCall).rejects.toThrow(/claimed/i);
   });
 });
