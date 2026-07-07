@@ -92,17 +92,17 @@ Out of scope:
 
 #### Tasks
 
-- [ ] Add protected retry mutation(s) (for example `retryInviteEmailSend`) in [src/server/api/routers/invite.ts](src/server/api/routers/invite.ts) and/or [src/server/api/routers/family-member.ts](src/server/api/routers/family-member.ts).
-- [ ] Validate retry eligibility:
-  - [ ] invite exists and belongs to caller-managed family
-  - [ ] invite is pending, not revoked, and not expired
-  - [ ] invite is email-bound with recipient email present
-- [ ] Return same `emailDelivery` contract for retry result.
-- [ ] Add rate limiting for retry endpoint to prevent abuse.
-- [ ] Record retry attempt metadata in logs (and DB if a delivery-attempt model already exists or is introduced here).
-- [ ] Define product behavior for skipped retries:
-  - [ ] If recoverable (for example config fixed), retry can transition to `sent`.
-  - [ ] If still non-recoverable, return `skipped` with actionable reason.
+- [x] Add protected retry mutation(s) (for example `retryInviteEmailSend`) in [src/server/api/routers/invite.ts](src/server/api/routers/invite.ts) and/or [src/server/api/routers/family-member.ts](src/server/api/routers/family-member.ts).
+- [x] Validate retry eligibility:
+  - [x] invite exists and belongs to caller-managed family
+  - [x] invite is pending, not revoked, and not expired
+  - [x] invite is email-bound with recipient email present
+- [x] Return same `emailDelivery` contract for retry result.
+- [x] Add rate limiting for retry endpoint to prevent abuse.
+- [x] Record retry attempt metadata in logs (and DB if a delivery-attempt model already exists or is introduced here).
+- [x] Define product behavior for skipped retries:
+  - [x] If recoverable (for example config fixed), retry can transition to `sent`.
+  - [x] If still non-recoverable, return `skipped` with actionable reason.
 
 ### Phase 4: UI Indicators and Retry Actions
 

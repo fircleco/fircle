@@ -56,6 +56,12 @@ export type InviteAcceptInput = z.infer<typeof inviteAcceptInputSchema>
 export type InviteCreateInput = z.infer<typeof inviteCreateInputSchema>
 export type InviteRevokeInput = z.infer<typeof inviteRevokeInputSchema>
 
+export const retryEmailSendInputSchema = z.object({
+  inviteId: z.string().cuid(),
+})
+
+export type RetryEmailSendInput = z.infer<typeof retryEmailSendInputSchema>
+
 // ─── Claim schemas ────────────────────────────────────────────────────────────
 
 const internalMediaUrlSchema = z

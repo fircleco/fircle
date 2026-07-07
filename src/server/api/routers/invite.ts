@@ -21,12 +21,14 @@ import {
   inviteAcceptInputSchema,
   inviteCreateInputSchema,
   inviteRevokeInputSchema,
+  retryEmailSendInputSchema,
 } from "~/lib/invite-schemas"
 import { normalizeEmail } from "~/lib/email"
 import { checkRateLimit, getClientIp } from "~/lib/rate-limit"
 import { getMemberSlugBase, resolveUniqueMemberSlug } from "~/lib/member-slug"
 import { findTenantUserByEmail } from "~/lib/tenant-users"
 import {
+  buildClaimLinkCreatedTemplate,
   buildFailedDeliveryResult,
   buildInviteCreatedTemplate,
   buildSentDeliveryResult,
@@ -784,6 +786,157 @@ export const inviteRouter = createTRPCRouter({
       return {
         id: revoked.id,
         status: revoked.status,
+      }
+    }),
+
+  /**
+   * Protected mutation: Retry sending the email for a pending email-bound invite or claim link.
+   * Permission-checked and rate-limited. Returns the same EmailDeliveryResult contract.
+   */
+  retryEmailSend: protectedProcedure
+    .input(retryEmailSendInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      // Rate limit: 5 retries per 5 minutes per user
+      const rl = checkRateLimit(`invite:email-retry:${ctx.session.user.id}`, 5, 5 * 60_000)
+      if (!rl.ok) {
+        throw new TRPCError({
+          code: "TOO_MANY_REQUESTS",
+          message: "Too many retry attempts. Please wait a moment before trying again.",
+        })
+      }
+
+      const invite = await ctx.db.invite.findUnique({
+        where: { id: input.inviteId },
+        include: {
+          family: { select: { name: true } },
+          claimMember: { select: { name: true } },
+        },
+      })
+
+      if (!invite) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Invite not found." })
+      }
+
+      // Permission: caller must be admin/owner of the invite's family
+      const membership = await ctx.db.familyMember.findUnique({
+        where: {
+          familyId_userId: {
+            familyId: invite.familyId,
+            userId: ctx.session.user.id,
+          },
+        },
+      })
+
+      if (!membership || (membership.role !== "ADMIN" && membership.role !== "OWNER")) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You do not have permission to retry email sends for this family.",
+        })
+      }
+
+      // Only email-bound invites with a recipient can be retried
+      if (invite.type !== "EMAIL_BOUND" || !invite.invitedEmail) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Email can only be retried for email-bound invites.",
+        })
+      }
+
+      // Only valid (pending, non-expired) invites can be retried
+      const lifecycleState = getInviteLifecycleState({
+        status: invite.status,
+        expiresAt: invite.expiresAt,
+        claimedAt: invite.claimedAt,
+        revokedAt: invite.revokedAt,
+      })
+
+      if (lifecycleState !== "valid") {
+        const stateMessages: Record<string, string> = {
+          expired: "This invite has expired. Generate a new one before retrying.",
+          claimed: "This invite has already been claimed.",
+          revoked: "This invite has been revoked.",
+        }
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: stateMessages[lifecycleState] ?? "This invite is no longer valid.",
+        })
+      }
+
+      console.log(
+        `[invite:email-retry:attempt] inviteId=${invite.id} familyId=${invite.familyId} retriedBy=${ctx.session.user.id} at=${new Date().toISOString()}`,
+      )
+
+      const emailProvider = getEmailProvider()
+      const appBaseUrl = resolveAppBaseUrlFromHeaders(ctx.headers)
+      const fromAddress = env.EMAIL_FROM_ADDRESS ? String(env.EMAIL_FROM_ADDRESS) : null
+      const fromName = env.EMAIL_FROM_NAME ? String(env.EMAIL_FROM_NAME) : "Fircle"
+
+      if (!emailProvider) {
+        console.info(
+          `[invite:email-retry:skipped] inviteId=${invite.id} reason=email-provider-not-configured`,
+        )
+        return { emailDelivery: buildSkippedDeliveryResult("provider_not_configured") }
+      }
+
+      if (!appBaseUrl) {
+        console.warn(
+          `[invite:email-retry:skipped] inviteId=${invite.id} reason=app-base-url-unresolved`,
+        )
+        return { emailDelivery: buildSkippedDeliveryResult("base_url_unresolved") }
+      }
+
+      if (!fromAddress) {
+        console.warn(
+          `[invite:email-retry:skipped] inviteId=${invite.id} reason=missing-from-address`,
+        )
+        return { emailDelivery: buildSkippedDeliveryResult("missing_from_address") }
+      }
+
+      const isClaimLinkInvite = invite.claimMemberId !== null
+      const event = isClaimLinkInvite
+        ? ("claim-link-created" as const)
+        : ("invite-created" as const)
+
+      const template = isClaimLinkInvite
+        ? buildClaimLinkCreatedTemplate({
+            familyName: invite.family.name,
+            memberName: invite.claimMember?.name ?? "your family member",
+            claimToken: invite.code,
+            appBaseUrl,
+            expiresAt: invite.expiresAt,
+          })
+        : buildInviteCreatedTemplate({
+            familyName: invite.family.name,
+            inviteCode: invite.code,
+            appBaseUrl,
+            expiresAt: invite.expiresAt,
+          })
+
+      try {
+        const sendResult = await emailProvider.send({
+          event,
+          to: { email: invite.invitedEmail },
+          from: { email: fromAddress, name: fromName },
+          subject: template.subject,
+          html: template.html,
+          text: template.text,
+          metadata: {
+            client_reference: `${event}:retry:${invite.id}`,
+            invite_id: invite.id,
+            family_id: invite.familyId,
+          },
+        })
+
+        console.log(
+          `[invite:email-retry:succeeded] inviteId=${invite.id} familyId=${invite.familyId} retriedBy=${ctx.session.user.id} at=${new Date().toISOString()}`,
+        )
+
+        return { emailDelivery: buildSentDeliveryResult(sendResult) }
+      } catch (error) {
+        console.error(
+          `[invite:email-retry:failed] inviteId=${invite.id} familyId=${invite.familyId} retriedBy=${ctx.session.user.id} reason=${error instanceof Error ? error.message : String(error)}`,
+        )
+        return { emailDelivery: buildFailedDeliveryResult(error) }
       }
     }),
 })
