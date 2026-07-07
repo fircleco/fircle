@@ -41,3 +41,5 @@ jobs:
 
       - name: Test
         run: pnpm test
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/fircle_ci
