@@ -11,6 +11,9 @@ references:
   - type: prd
     url: .project/prds/018-transactional-email-adapter-and-zeptomail-invite-claim/prd.md
     description: "Transactional email adapter behavior and current non-blocking send policy"
+  - type: pr
+    url: https://github.com/fircle-app/fircle/pull/44
+    description: "Implementation pull request - feat(email): delivery status reporting and retry actions"
 ---
 
 > **Instructions for AI Agents:**
