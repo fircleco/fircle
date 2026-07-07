@@ -18,6 +18,20 @@ vi.mock("~/server/email", () => ({
     text: "Claim link text",
     actionUrl: "https://fircle.example.com/auth/claim/CLAIM_TOKEN_123",
   }),
+  buildSentDeliveryResult: vi.fn().mockImplementation((result: { acceptedAt: Date }) => ({
+    status: "sent" as const,
+    acceptedAt: result.acceptedAt.toISOString(),
+  })),
+  buildSkippedDeliveryResult: vi.fn().mockImplementation((reason: string) => ({
+    status: "skipped" as const,
+    reasonCode: reason,
+    message: `skipped:${reason}`,
+  })),
+  buildFailedDeliveryResult: vi.fn().mockImplementation(() => ({
+    status: "failed" as const,
+    reasonCode: "provider_error",
+    message: "provider error",
+  })),
 }));
 
 import { familyMemberRouter } from "~/server/api/routers/family-member";
@@ -766,5 +780,234 @@ describe("familyMemberRouter claim-link email delivery", () => {
     });
 
     expect(buildClaimLinkCreatedTemplate).not.toHaveBeenCalled();
+  });
+
+  it("returns emailDelivery.status 'sent' from createUnclaimedMember when email send succeeds", async () => {
+    const acceptedAt = new Date("2030-06-01T00:00:00.000Z");
+    const send = vi.fn().mockResolvedValue({ driver: "zeptomail", providerMessageId: "msg-sent-1", acceptedAt });
+    vi.mocked(getEmailProvider).mockReturnValue({ driver: "zeptomail", send });
+
+    const familyId = "clh0000000000000000000210";
+    const tx = {
+      invite: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        findUnique: vi.fn().mockResolvedValue(null),
+        create: vi.fn().mockResolvedValue({
+          id: "clh0000000000000000007010",
+          code: "CLAIM_TKN_SENT_1",
+          type: "EMAIL_BOUND",
+          invitedEmail: "sent-test@example.com",
+          expiresAt: new Date("2031-01-01T00:00:00.000Z"),
+        }),
+      },
+      familyMember: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        create: vi.fn().mockResolvedValue({ id: "clh0000000000000000000211", familyId, name: "Sent Member", nickname: null, slug: "sent-member", image: null }),
+      },
+    };
+    const db = {
+      familyMember: { findUnique: vi.fn().mockResolvedValue({ id: "clh0000000000000000000212", familyId, userId: "user-1", role: "ADMIN" }) },
+      family: { findUnique: vi.fn().mockResolvedValue({ name: "Test Family" }) },
+      $transaction: vi.fn(async (cb: (txArg: typeof tx) => Promise<unknown>) => cb(tx)),
+    } as never;
+
+    const caller = createCaller(db);
+    const result = await caller.createUnclaimedMember({ familyId, name: "Sent Member", email: "sent-test@example.com" });
+
+    expect(result.emailDelivery).toMatchObject({ status: "sent" });
+  });
+
+  it("returns emailDelivery.status 'skipped' from createUnclaimedMember when no provider configured", async () => {
+    vi.mocked(getEmailProvider).mockReturnValue(null);
+
+    const familyId = "clh0000000000000000000213";
+    const tx = {
+      invite: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        findUnique: vi.fn().mockResolvedValue(null),
+        create: vi.fn().mockResolvedValue({
+          id: "clh0000000000000000007011",
+          code: "CLAIM_TKN_SKIP_1",
+          type: "EMAIL_BOUND",
+          invitedEmail: "skip-test@example.com",
+          expiresAt: new Date("2031-01-01T00:00:00.000Z"),
+        }),
+      },
+      familyMember: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        create: vi.fn().mockResolvedValue({ id: "clh0000000000000000000214", familyId, name: "Skip Member", nickname: null, slug: "skip-member", image: null }),
+      },
+    };
+    const db = {
+      familyMember: { findUnique: vi.fn().mockResolvedValue({ id: "clh0000000000000000000215", familyId, userId: "user-1", role: "ADMIN" }) },
+      family: { findUnique: vi.fn().mockResolvedValue({ name: "Test Family" }) },
+      $transaction: vi.fn(async (cb: (txArg: typeof tx) => Promise<unknown>) => cb(tx)),
+    } as never;
+
+    const caller = createCaller(db);
+    const result = await caller.createUnclaimedMember({ familyId, name: "Skip Member", email: "skip-test@example.com" });
+
+    expect(result.emailDelivery).toMatchObject({ status: "skipped", reasonCode: "provider_not_configured" });
+  });
+
+  it("returns emailDelivery.status 'failed' from createUnclaimedMember when email send throws", async () => {
+    const send = vi.fn().mockRejectedValue(new Error("provider down"));
+    vi.mocked(getEmailProvider).mockReturnValue({ driver: "zeptomail", send });
+
+    const familyId = "clh0000000000000000000216";
+    const tx = {
+      invite: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        findUnique: vi.fn().mockResolvedValue(null),
+        create: vi.fn().mockResolvedValue({
+          id: "clh0000000000000000007012",
+          code: "CLAIM_TKN_FAIL_1",
+          type: "EMAIL_BOUND",
+          invitedEmail: "fail-test@example.com",
+          expiresAt: new Date("2031-01-01T00:00:00.000Z"),
+        }),
+      },
+      familyMember: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        create: vi.fn().mockResolvedValue({ id: "clh0000000000000000000217", familyId, name: "Fail Member", nickname: null, slug: "fail-member", image: null }),
+      },
+    };
+    const db = {
+      familyMember: { findUnique: vi.fn().mockResolvedValue({ id: "clh0000000000000000000218", familyId, userId: "user-1", role: "ADMIN" }) },
+      family: { findUnique: vi.fn().mockResolvedValue({ name: "Test Family" }) },
+      $transaction: vi.fn(async (cb: (txArg: typeof tx) => Promise<unknown>) => cb(tx)),
+    } as never;
+
+    const caller = createCaller(db);
+    const result = await caller.createUnclaimedMember({ familyId, name: "Fail Member", email: "fail-test@example.com" });
+
+    expect(result.emailDelivery).toMatchObject({ status: "failed", reasonCode: "provider_error" });
+  });
+
+  it("returns emailDelivery null from createUnclaimedMember when no email provided", async () => {
+    const familyId = "clh0000000000000000000219";
+    const tx = {
+      invite: { findFirst: vi.fn().mockResolvedValue(null), findUnique: vi.fn().mockResolvedValue(null), create: vi.fn() },
+      familyMember: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        create: vi.fn().mockResolvedValue({ id: "clh0000000000000000000220", familyId, name: "No Email", nickname: null, slug: "no-email", image: null }),
+      },
+    };
+    const db = {
+      familyMember: { findUnique: vi.fn().mockResolvedValue({ id: "clh0000000000000000000221", familyId, userId: "user-1", role: "ADMIN" }) },
+      $transaction: vi.fn(async (cb: (txArg: typeof tx) => Promise<unknown>) => cb(tx)),
+    } as never;
+
+    const caller = createCaller(db);
+    const result = await caller.createUnclaimedMember({ familyId, name: "No Email" });
+
+    expect(result.emailDelivery).toBeNull();
+  });
+
+  it("returns emailDelivery.status 'sent' from createClaimLink when email send succeeds", async () => {
+    const acceptedAt = new Date("2030-06-01T00:00:00.000Z");
+    const send = vi.fn().mockResolvedValue({ driver: "zeptomail", providerMessageId: "msg-cl-1", acceptedAt });
+    vi.mocked(getEmailProvider).mockReturnValue({ driver: "zeptomail", send });
+
+    const familyId = "clh0000000000000000000222";
+    const memberId = "clh0000000000000000000223";
+    const db = {
+      familyMember: {
+        findUnique: vi.fn((args: { where: { id?: string; familyId_userId?: { familyId: string; userId: string } } }) => {
+          if (args.where.id === memberId) return Promise.resolve({ id: memberId, familyId, userId: null, name: "CL Sent Member" });
+          return Promise.resolve({ id: "clh0000000000000000000224", familyId, userId: "user-1", role: "ADMIN" });
+        }),
+      },
+      invite: {
+        findUnique: vi.fn().mockResolvedValue(null),
+        findFirst: vi.fn().mockResolvedValue(null),
+        updateMany: vi.fn().mockResolvedValue({ count: 0 }),
+        create: vi.fn().mockResolvedValue({ id: "clh0000000000000000007013", code: "CL_SENT_TKN", type: "EMAIL_BOUND", invitedEmail: "cl-sent@example.com", familyId, expiresAt: new Date("2031-01-01T00:00:00.000Z"), status: "PENDING" }),
+      },
+      family: { findUnique: vi.fn().mockResolvedValue({ name: "Test Family" }) },
+    } as never;
+
+    const caller = createCaller(db);
+    const result = await caller.createClaimLink({ familyMemberId: memberId, invitedEmail: "cl-sent@example.com", expiresInDays: 30 });
+
+    expect(result.emailDelivery).toMatchObject({ status: "sent" });
+  });
+
+  it("returns emailDelivery.status 'skipped' from createClaimLink when no provider configured", async () => {
+    vi.mocked(getEmailProvider).mockReturnValue(null);
+
+    const familyId = "clh0000000000000000000225";
+    const memberId = "clh0000000000000000000226";
+    const db = {
+      familyMember: {
+        findUnique: vi.fn((args: { where: { id?: string; familyId_userId?: { familyId: string; userId: string } } }) => {
+          if (args.where.id === memberId) return Promise.resolve({ id: memberId, familyId, userId: null, name: "CL Skip Member" });
+          return Promise.resolve({ id: "clh0000000000000000000227", familyId, userId: "user-1", role: "ADMIN" });
+        }),
+      },
+      invite: {
+        findUnique: vi.fn().mockResolvedValue(null),
+        findFirst: vi.fn().mockResolvedValue(null),
+        updateMany: vi.fn().mockResolvedValue({ count: 0 }),
+        create: vi.fn().mockResolvedValue({ id: "clh0000000000000000007014", code: "CL_SKIP_TKN", type: "EMAIL_BOUND", invitedEmail: "cl-skip@example.com", familyId, expiresAt: new Date("2031-01-01T00:00:00.000Z"), status: "PENDING" }),
+      },
+      family: { findUnique: vi.fn().mockResolvedValue({ name: "Test Family" }) },
+    } as never;
+
+    const caller = createCaller(db);
+    const result = await caller.createClaimLink({ familyMemberId: memberId, invitedEmail: "cl-skip@example.com", expiresInDays: 30 });
+
+    expect(result.emailDelivery).toMatchObject({ status: "skipped", reasonCode: "provider_not_configured" });
+  });
+
+  it("returns emailDelivery.status 'failed' from createClaimLink when email send throws", async () => {
+    const send = vi.fn().mockRejectedValue(new Error("provider down"));
+    vi.mocked(getEmailProvider).mockReturnValue({ driver: "zeptomail", send });
+
+    const familyId = "clh0000000000000000000228";
+    const memberId = "clh0000000000000000000229";
+    const db = {
+      familyMember: {
+        findUnique: vi.fn((args: { where: { id?: string; familyId_userId?: { familyId: string; userId: string } } }) => {
+          if (args.where.id === memberId) return Promise.resolve({ id: memberId, familyId, userId: null, name: "CL Fail Member" });
+          return Promise.resolve({ id: "clh0000000000000000000230", familyId, userId: "user-1", role: "ADMIN" });
+        }),
+      },
+      invite: {
+        findUnique: vi.fn().mockResolvedValue(null),
+        findFirst: vi.fn().mockResolvedValue(null),
+        updateMany: vi.fn().mockResolvedValue({ count: 0 }),
+        create: vi.fn().mockResolvedValue({ id: "clh0000000000000000007015", code: "CL_FAIL_TKN", type: "EMAIL_BOUND", invitedEmail: "cl-fail@example.com", familyId, expiresAt: new Date("2031-01-01T00:00:00.000Z"), status: "PENDING" }),
+      },
+      family: { findUnique: vi.fn().mockResolvedValue({ name: "Test Family" }) },
+    } as never;
+
+    const caller = createCaller(db);
+    const result = await caller.createClaimLink({ familyMemberId: memberId, invitedEmail: "cl-fail@example.com", expiresInDays: 30 });
+
+    expect(result.emailDelivery).toMatchObject({ status: "failed", reasonCode: "provider_error" });
+  });
+
+  it("returns emailDelivery null from createClaimLink for OPEN invites without email binding", async () => {
+    const familyId = "clh0000000000000000000231";
+    const memberId = "clh0000000000000000000232";
+    const db = {
+      familyMember: {
+        findUnique: vi.fn((args: { where: { id?: string; familyId_userId?: { familyId: string; userId: string } } }) => {
+          if (args.where.id === memberId) return Promise.resolve({ id: memberId, familyId, userId: null, name: "Open CL Member" });
+          return Promise.resolve({ id: "clh0000000000000000000233", familyId, userId: "user-1", role: "ADMIN" });
+        }),
+      },
+      invite: {
+        findUnique: vi.fn().mockResolvedValue(null),
+        updateMany: vi.fn().mockResolvedValue({ count: 0 }),
+        create: vi.fn().mockResolvedValue({ id: "clh0000000000000000007016", code: "CL_OPEN_TKN", type: "OPEN", invitedEmail: null, familyId, expiresAt: new Date("2031-01-01T00:00:00.000Z"), status: "PENDING" }),
+      },
+    } as never;
+
+    const caller = createCaller(db);
+    const result = await caller.createClaimLink({ familyMemberId: memberId, expiresInDays: 30 });
+
+    expect(result.emailDelivery).toBeNull();
   });
 });

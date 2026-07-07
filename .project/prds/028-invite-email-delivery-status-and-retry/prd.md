@@ -1,6 +1,6 @@
 ---
 title: "Invite and Claim Email Delivery Status with Retry Actions"
-status: in-progress
+status: completed
 references:
   - type: doc
     url: .project/brief.md
@@ -125,23 +125,23 @@ Out of scope:
 
 #### Tasks
 
-- [ ] Add/extend router tests for `sent`, `skipped`, and `failed` outcomes in:
-  - [ ] `test/server/api/routers/family-member.test.ts`
-  - [ ] `test/server/api/routers/invite.test.ts`
-- [ ] Add tests for retry mutation success and rejection cases (expired/revoked/non-email-bound/no-permission).
+- [x] Add/extend router tests for `sent`, `skipped`, and `failed` outcomes in:
+  - [x] `test/server/api/routers/family-member.test.ts`
+  - [x] `test/server/api/routers/invite.test.ts`
+- [x] Add tests for retry mutation success and rejection cases (expired/revoked/non-email-bound/no-permission).
 - [ ] Add UI tests for status rendering and retry action behavior in member and invite surfaces.
-- [ ] Standardize structured log events for delivery outcomes and retries (`attempt`, `succeeded`, `failed`, `skipped`).
-- [ ] Run `pnpm lint`, `pnpm typecheck`, and targeted test suites before completion.
+- [x] Standardize structured log events for delivery outcomes and retries (`attempt`, `succeeded`, `failed`, `skipped`).
+- [x] Run `pnpm lint`, `pnpm typecheck`, and targeted test suites before completion.
 
 ## Acceptance Criteria
 
-- [ ] Creating unclaimed member with email-bound invite returns explicit email delivery result (`sent`, `skipped`, or `failed`) in API response.
-- [ ] Creating claim link with optional email binding returns explicit email delivery result when email-bound.
-- [ ] Creating invite in invite settings returns explicit email delivery result when email-bound.
-- [ ] Add-member success UI clearly indicates real delivery outcome and does not imply sent status when skipped/failed.
-- [ ] Claim-link generation UI clearly indicates real delivery outcome and offers retry for failed states.
-- [ ] Invite settings creation UI clearly indicates real delivery outcome and offers retry for failed states.
-- [ ] Retry action is permission-checked, rate-limited, and rejects invalid invite states.
-- [ ] Retrying a previously failed send can transition to `sent` when configuration/provider conditions are corrected.
-- [ ] Structured logs exist for initial send attempts and retry attempts with actionable context.
-- [ ] Existing domain writes remain successful even when send fails; no regression in invite/member creation persistence.
+- [x] Creating unclaimed member with email-bound invite returns explicit email delivery result (`sent`, `skipped`, or `failed`) in API response.
+- [x] Creating claim link with optional email binding returns explicit email delivery result when email-bound.
+- [x] Creating invite in invite settings returns explicit email delivery result when email-bound.
+- [x] Add-member success UI clearly indicates real delivery outcome and does not imply sent status when skipped/failed.
+- [x] Claim-link generation UI clearly indicates real delivery outcome and offers retry for failed states.
+- [x] Invite settings creation UI clearly indicates real delivery outcome and offers retry for failed states.
+- [x] Retry action is permission-checked, rate-limited, and rejects invalid invite states.
+- [x] Retrying a previously failed send can transition to `sent` when configuration/provider conditions are corrected.
+- [x] Structured logs exist for initial send attempts and retry attempts with actionable context.
+- [x] Existing domain writes remain successful even when send fails; no regression in invite/member creation persistence.
