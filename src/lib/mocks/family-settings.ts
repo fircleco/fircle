@@ -7,7 +7,7 @@ export type FamilySettings = {
 };
 
 export const familySettings: FamilySettings = {
-  name: "The Shittabey Family",
+  name: "Shittabey",
   avatarUrl: undefined,
   invitePolicy: "admin_only",
 };

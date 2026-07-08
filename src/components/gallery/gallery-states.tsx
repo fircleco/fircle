@@ -1,6 +1,7 @@
 import { Button } from "~/components/ui/button";
 import { Film, ImageOff } from "~/components/ui/icons";
 import { Skeleton } from "~/components/ui/skeleton";
+import { formatFamilyDisplayName } from "~/lib/family-name";
 
 export function GalleryLoadingState() {
   return (
@@ -26,7 +27,7 @@ export function GalleryEmptyState({ familyName }: { familyName?: string }) {
       <h2 className="mt-4 font-semibold text-lg tracking-tight">No media yet</h2>
       <p className="mx-auto mt-2 max-w-md text-muted-foreground text-sm sm:text-base">
         {familyName
-          ? `${familyName} has not shared any photo or video memories yet.`
+          ? `${formatFamilyDisplayName(familyName)} has not shared any photo or video memories yet.`
           : "Your family has not shared any photo or video memories yet."}
       </p>
       <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-border bg-background px-3 py-1 text-xs font-medium text-muted-foreground">

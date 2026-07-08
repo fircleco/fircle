@@ -24,6 +24,7 @@ import {
   retryEmailSendInputSchema,
 } from "~/lib/invite-schemas"
 import { normalizeEmail } from "~/lib/email"
+import { formatFamilyLockup, normalizeFamilyNameInput } from "~/lib/family-name"
 import { checkRateLimit, getClientIp } from "~/lib/rate-limit"
 import { getMemberSlugBase, resolveUniqueMemberSlug } from "~/lib/member-slug"
 import { findTenantUserByEmail } from "~/lib/tenant-users"
@@ -52,7 +53,13 @@ const familyImageInputSchema = z.union([z.string().url().max(2048), internalMedi
 
 const updateFamilyIdentityInputSchema = z.object({
   familyId: z.string().cuid(),
-  name: z.string().trim().min(1).max(120),
+  name: z
+    .string()
+    .max(120)
+    .transform(normalizeFamilyNameInput)
+    .refine((value) => value.length > 0, {
+      message: "Family name is required",
+    }),
   description: z.string().trim().max(500).nullable(),
   image: familyImageInputSchema.nullable(),
 })
@@ -586,7 +593,9 @@ export const inviteRouter = createTRPCRouter({
         const emailProvider = getEmailProvider()
         const appBaseUrl = resolveAppBaseUrlFromHeaders(ctx.headers)
         const fromAddress = env.EMAIL_FROM_ADDRESS ? String(env.EMAIL_FROM_ADDRESS) : null
-        const fromName = env.EMAIL_FROM_NAME ? String(env.EMAIL_FROM_NAME) : "Fircle"
+        const fromName = env.EMAIL_FROM_NAME
+          ? String(env.EMAIL_FROM_NAME)
+          : formatFamilyLockup(invite.family.name)
 
         if (!emailProvider) {
           console.info(
@@ -869,7 +878,9 @@ export const inviteRouter = createTRPCRouter({
       const emailProvider = getEmailProvider()
       const appBaseUrl = resolveAppBaseUrlFromHeaders(ctx.headers)
       const fromAddress = env.EMAIL_FROM_ADDRESS ? String(env.EMAIL_FROM_ADDRESS) : null
-      const fromName = env.EMAIL_FROM_NAME ? String(env.EMAIL_FROM_NAME) : "Fircle"
+      const fromName = env.EMAIL_FROM_NAME
+        ? String(env.EMAIL_FROM_NAME)
+        : formatFamilyLockup(invite.family.name)
 
       if (!emailProvider) {
         console.info(

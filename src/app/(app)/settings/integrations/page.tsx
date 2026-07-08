@@ -16,6 +16,7 @@ import {
   type IntegrationCategory,
   type IntegrationProvider,
 } from "~/lib/integration-providers";
+import { formatFamilyDisplayName } from "~/lib/family-name";
 import { api } from "~/trpc/react";
 
 import { IntegrationCredentialsForm } from "~/components/settings/integration-credentials-form";
@@ -75,6 +76,7 @@ export default function IntegrationSettingsPage() {
 
   const familyId = managementContext.data?.family?.id;
   const familyName = managementContext.data?.family?.name;
+  const familyDisplayName = familyName ? formatFamilyDisplayName(familyName) : "your family";
   const isSelfHosted = bootstrapStatus.data?.selfHosted === true;
 
   if (managementContext.isLoading || bootstrapStatus.isLoading) {
@@ -112,8 +114,8 @@ export default function IntegrationSettingsPage() {
         </div>
         <p className="max-w-2xl text-sm text-muted-foreground">
           {isSelfHosted
-            ? `This self-hosted instance reads storage credentials from environment variables. Manual integration setup is not required for ${familyName ?? "your family"}.`
-            : `Manage owner-controlled integration credentials for ${familyName ?? "your family"} from a clean list view. Open credential configuration only when adding or editing an integration.`}
+            ? `This self-hosted instance reads storage credentials from environment variables. Manual integration setup is not required for ${familyDisplayName}.`
+            : `Manage owner-controlled integration credentials for ${familyDisplayName} from a clean list view. Open credential configuration only when adding or editing an integration.`}
         </p>
       </div>
 

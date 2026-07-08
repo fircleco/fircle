@@ -1,0 +1,115 @@
+import { NextResponse } from "next/server";
+import { headers } from "next/headers";
+
+import { resolveBrandContextFromHeaders } from "~/lib/brand-context";
+
+export const dynamic = "force-dynamic";
+
+export async function GET() {
+  const requestHeaders = await headers();
+  const brandContext = await resolveBrandContextFromHeaders(requestHeaders);
+  const shortName = brandContext.familyDisplayName;
+
+  return NextResponse.json(
+    {
+      id: "/",
+      name: brandContext.primaryLockup,
+      short_name: shortName,
+      description: brandContext.appDescription,
+      start_url: "/",
+      scope: "/",
+      display: "standalone",
+      display_override: ["standalone", "minimal-ui", "browser"],
+      orientation: "portrait-primary",
+      categories: ["social", "lifestyle"],
+      background_color: "#0a0a0a",
+      theme_color: "#0a0a0a",
+      prefer_related_applications: false,
+      shortcuts: [
+        {
+          name: "Notifications",
+          short_name: "Alerts",
+          description: `View recent activity for ${brandContext.primaryLockup}`,
+          url: "/notifications",
+          icons: [
+            {
+              src: "/icon.png",
+              sizes: "512x512",
+              type: "image/png",
+            },
+          ],
+        },
+        {
+          name: "Push Settings",
+          short_name: "Push",
+          description: "Manage notification preferences",
+          url: "/settings/notifications",
+          icons: [
+            {
+              src: "/icon.png",
+              sizes: "512x512",
+              type: "image/png",
+            },
+          ],
+        },
+      ],
+      icons: [
+        {
+          src: "/icon.png",
+          sizes: "512x512",
+          type: "image/png",
+          purpose: "any",
+        },
+        {
+          src: "/icon-maskable.png",
+          sizes: "1028x1028",
+          type: "image/png",
+          purpose: "maskable",
+        },
+        {
+          src: "/icon.svg",
+          sizes: "any",
+          type: "image/svg+xml",
+        },
+      ],
+      screenshots: [
+        {
+          src: "/screenshots/feed-narrow.png",
+          sizes: "1080x1920",
+          type: "image/png",
+          form_factor: "narrow",
+        },
+        {
+          src: "/screenshots/gallery-narrow.png",
+          sizes: "1080x1920",
+          type: "image/png",
+          form_factor: "narrow",
+        },
+        {
+          src: "/screenshots/members-narrow.png",
+          sizes: "1080x1920",
+          type: "image/png",
+          form_factor: "narrow",
+        },
+        {
+          src: "/screenshots/profile-narrow.png",
+          sizes: "1080x1920",
+          type: "image/png",
+          form_factor: "narrow",
+        },
+        {
+          src: "/screenshots/app-home-wide.png",
+          sizes: "1920x1080",
+          type: "image/png",
+          form_factor: "wide",
+        },
+      ],
+    },
+    {
+      headers: {
+        "Cache-Control": "private, no-store, max-age=0",
+        Vary: "Host, X-Forwarded-Host, X-Request-Host",
+      },
+    },
+  );
+}

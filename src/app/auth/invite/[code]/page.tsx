@@ -11,6 +11,7 @@ import { beginNavigationProgress } from "~/components/nav/navigation-progress";
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import { formatFamilyDisplayName } from "~/lib/family-name";
 import { api } from "~/trpc/react";
 
 type InvitePageState = "loading" | "valid" | "expired" | "claimed" | "revoked" | "invalid";
@@ -195,7 +196,7 @@ export default function InviteAcceptancePage() {
                 ) : inviteQuery.data ? (
                   <>
                     <p className="text-sm text-muted-foreground">Valid invite</p>
-                    <p className="text-base font-semibold">{inviteQuery.data.family.name}</p>
+                    <p className="text-base font-semibold">{formatFamilyDisplayName(inviteQuery.data.family.name)}</p>
                     {inviteQuery.data.family.description ? (
                       <p className="text-sm leading-6 text-muted-foreground">
                         {inviteQuery.data.family.description}

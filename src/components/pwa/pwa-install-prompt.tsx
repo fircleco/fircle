@@ -30,7 +30,7 @@ function isStandaloneMode() {
   return mediaQuery || navigatorStandalone;
 }
 
-export function PwaInstallPrompt() {
+export function PwaInstallPrompt({ primaryLockup }: { primaryLockup: string }) {
   const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [isInstalling, setIsInstalling] = useState(false);
@@ -109,7 +109,7 @@ export function PwaInstallPrompt() {
           <div className="rounded-xl border bg-muted/40 p-1">
             <Image
               src="/icon.png"
-              alt="Fircle logo"
+              alt={`${primaryLockup} app icon`}
               width={30}
               height={30}
               className="rounded-xl"
@@ -118,9 +118,9 @@ export function PwaInstallPrompt() {
           </div>
 
           <div className="min-w-0 flex-1 space-y-1">
-            <p className="font-medium text-sm">Install Fircle app</p>
+            <p className="font-medium text-sm">Install {primaryLockup}</p>
             <p className="text-muted-foreground text-xs">
-              Install to your home screen for faster access and better push notification reliability.
+              Install {primaryLockup} to your home screen for faster access and better push notification reliability.
             </p>
           </div>
 

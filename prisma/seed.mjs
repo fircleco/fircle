@@ -215,11 +215,11 @@ async function main() {
   const family = await db.family.upsert({
     where: { slug: familySeedSlug },
     update: {
-      name: "The Shittabey Family",
+      name: "Shittabey",
       description: "A close-knit family sharing memories, photos, and updates.",
     },
     create: {
-      name: "The Shittabey Family",
+      name: "Shittabey",
       slug: familySeedSlug,
       description: "A close-knit family sharing memories, photos, and updates.",
     },

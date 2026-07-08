@@ -9,6 +9,7 @@ import { MemberCard } from "~/components/members/member-card";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Skeleton } from "~/components/ui/skeleton";
+import { formatFamilyDisplayName } from "~/lib/family-name";
 import type { FamilyMemberStatus } from "~/lib/mocks/family-members";
 import { api } from "~/trpc/react";
 
@@ -45,6 +46,10 @@ export default function MembersPage() {
   );
 
   const members = useMemo(() => {
+    const familyDisplayName = managementContext.data?.family?.name
+      ? formatFamilyDisplayName(managementContext.data.family.name)
+      : "Family";
+
     return (membersQuery.data ?? []).map((member) => ({
       id: member.id,
       slug: member.slug,
@@ -54,7 +59,7 @@ export default function MembersPage() {
       hasPendingClaimInvite: member.hasPendingClaimInvite,
       role: member.role.toLowerCase() as "owner" | "admin" | "member",
       avatarUrl: member.image ?? undefined,
-      addedByName: managementContext.data?.family?.name ?? "Family",
+      addedByName: familyDisplayName,
       addedAtLabel: `Added ${formatDistanceToNow(new Date(member.createdAt), { addSuffix: true })}`,
     }));
   }, [managementContext.data?.family?.name, membersQuery.data]);

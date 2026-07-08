@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { SignInForm } from "~/components/auth/signin-form";
+import { resolveBrandContextFromTenantResolution } from "~/lib/brand-context";
 import { buildAbsoluteUrl } from "~/lib/request-host";
 import { resolveTenantFromHeaders } from "~/lib/tenant-resolution";
 
@@ -22,5 +23,7 @@ export default async function SignInPage() {
     redirect(buildAbsoluteUrl(requestHeaders, resolution.canonicalHost, currentPath));
   }
 
-  return <SignInForm />;
+  const brandContext = resolveBrandContextFromTenantResolution(resolution);
+
+  return <SignInForm primaryLockup={brandContext.primaryLockup} />;
 }

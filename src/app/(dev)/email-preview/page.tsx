@@ -4,7 +4,7 @@ import {
 } from "~/server/email";
 import { notFound } from "next/navigation";
 
-export const dynamic = "force-static";
+export const dynamic = "force-dynamic";
 
 export default function EmailPreviewPage() {
   if (process.env.NODE_ENV === "production") {
@@ -14,7 +14,7 @@ export default function EmailPreviewPage() {
   const appBaseUrl = "https://fircle.example.com";
 
   const inviteTemplate = buildInviteCreatedTemplate({
-    familyName: "Ng Family",
+    familyName: "Ng",
     inviteCode: "INVITE_2026_SAMPLE",
     appBaseUrl,
     recipientName: "Alex",
@@ -22,7 +22,7 @@ export default function EmailPreviewPage() {
   });
 
   const claimTemplate = buildClaimLinkCreatedTemplate({
-    familyName: "Ng Family",
+    familyName: "Ng",
     memberName: "Grandma Mary",
     claimToken: "CLAIM_2026_SAMPLE",
     appBaseUrl,

@@ -163,7 +163,7 @@ describe("inviteRouter notification producers", () => {
       expiresAt: new Date("2030-01-08T00:00:00.000Z"),
       status: "PENDING",
       family: {
-        name: "Ng Family",
+        name: "Ng",
       },
     };
 
@@ -199,7 +199,7 @@ describe("inviteRouter notification producers", () => {
     expect(resolveAppBaseUrlFromHeaders).toHaveBeenCalled();
     expect(buildInviteCreatedTemplate).toHaveBeenCalledWith(
       expect.objectContaining({
-        familyName: "Ng Family",
+        familyName: "Ng",
         inviteCode: invite.code,
       }),
     );
@@ -229,7 +229,7 @@ describe("inviteRouter notification producers", () => {
       expiresAt: new Date("2030-01-08T00:00:00.000Z"),
       status: "PENDING",
       family: {
-        name: "Ng Family",
+        name: "Ng",
       },
     };
 
@@ -279,7 +279,7 @@ describe("inviteRouter notification producers", () => {
       expiresAt: new Date("2030-01-08T00:00:00.000Z"),
       status: "PENDING",
       family: {
-        name: "Ng Family",
+        name: "Ng",
       },
     };
 
@@ -360,7 +360,7 @@ describe("inviteRouter.createInvite email delivery status", () => {
       createdAt: new Date(),
       expiresAt: new Date("2030-01-08T00:00:00.000Z"),
       status: "PENDING",
-      family: { name: "Test Family" },
+      family: { name: "Test" },
     });
 
     const caller = createCaller(db);
@@ -381,7 +381,7 @@ describe("inviteRouter.createInvite email delivery status", () => {
       createdAt: new Date(),
       expiresAt: new Date("2030-01-08T00:00:00.000Z"),
       status: "PENDING",
-      family: { name: "Test Family" },
+      family: { name: "Test" },
     });
 
     const caller = createCaller(db);
@@ -403,7 +403,7 @@ describe("inviteRouter.createInvite email delivery status", () => {
       createdAt: new Date(),
       expiresAt: new Date("2030-01-08T00:00:00.000Z"),
       status: "PENDING",
-      family: { name: "Test Family" },
+      family: { name: "Test" },
     });
 
     const caller = createCaller(db);
@@ -422,7 +422,7 @@ describe("inviteRouter.createInvite email delivery status", () => {
       createdAt: new Date(),
       expiresAt: new Date("2030-01-08T00:00:00.000Z"),
       status: "PENDING",
-      family: { name: "Test Family" },
+      family: { name: "Test" },
     });
 
     const caller = createCaller(db);
@@ -457,7 +457,7 @@ describe("inviteRouter.retryEmailSend", () => {
     claimedAt: null,
     revokedAt: null,
     claimMemberId: null,
-    family: { name: "Retry Family" },
+    family: { name: "Retry" },
     claimMember: null,
   };
 

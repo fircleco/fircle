@@ -9,6 +9,7 @@ const SW_CACHE_PREFIX = "fircle-shell";
 const SW_CACHE_VERSION = "v1";
 const SW_CACHE_NAME = `${SW_CACHE_PREFIX}-${SW_CACHE_VERSION}`;
 const NAVIGATION_FALLBACK_URL = "/";
+let cachedManifestName = null;
 
 /** @type {string[]} */
 const PRECACHE_URLS = [
@@ -83,6 +84,34 @@ function onMessage(event) {
   }
 }
 
+async function resolveManifestName() {
+  if (cachedManifestName) {
+    return cachedManifestName;
+  }
+
+  try {
+    const response = await fetch("/manifest.json", {
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const manifest = await response.json();
+    const name = typeof manifest?.name === "string" ? manifest.name.trim() : "";
+
+    if (!name) {
+      return null;
+    }
+
+    cachedManifestName = name;
+    return cachedManifestName;
+  } catch {
+    return null;
+  }
+}
+
 function onPush(event) {
   /** @type {PushPayload} */
   let payload = {};
@@ -95,17 +124,27 @@ function onPush(event) {
     }
   }
 
-  const title = payload.title || "Fircle";
-  const options = {
-    body: payload.body || "You have a new notification.",
-    icon: "/icon.svg",
-    badge: "/favicon.ico",
-    data: {
-      url: getPayloadTargetUrl(payload),
-    },
-  };
+  event.waitUntil(
+    (async () => {
+      const payloadTitle =
+        typeof payload.title === "string" && payload.title.trim().length > 0
+          ? payload.title
+          : null;
+      const fallbackTitle = await resolveManifestName();
+      const title = payloadTitle || fallbackTitle || "Fircle";
 
-  event.waitUntil(sw.registration.showNotification(title, options));
+      const options = {
+        body: payload.body || "You have a new notification.",
+        icon: "/icon.svg",
+        badge: "/favicon.ico",
+        data: {
+          url: getPayloadTargetUrl(payload),
+        },
+      };
+
+      await sw.registration.showNotification(title, options);
+    })(),
+  );
 }
 
 function onFetch(event) {

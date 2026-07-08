@@ -9,6 +9,7 @@ import { MobileHeader } from "~/components/nav/mobile-header";
 import { RightSidebarShell } from "~/components/nav/right-sidebar-shell";
 import { PushPermissionRequest } from "~/components/pwa/push-permission-request";
 import { env } from "~/env";
+import { resolveBrandContextFromTenantResolution } from "~/lib/brand-context";
 import { resolveUnauthenticatedAppRedirect } from "~/lib/bootstrap-routing";
 import { buildAbsoluteUrl } from "~/lib/request-host";
 import { resolveTenantFromHeaders } from "~/lib/tenant-resolution";
@@ -32,6 +33,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     redirect(buildAbsoluteUrl(requestHeaders, resolution.canonicalHost, callbackUrl));
   }
 
+  const brandContext = resolveBrandContextFromTenantResolution(resolution);
+
   const session = await auth();
 
   if (!session?.user) {
@@ -54,12 +57,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <GlobalComposerProvider>
-      <MembershipGuard>
+      <MembershipGuard primaryLockup={brandContext.primaryLockup}>
         <PushPermissionRequest />
         <div className="flex min-h-dvh bg-background">
-          <DesktopSidebar />
+          <DesktopSidebar primaryLockup={brandContext.primaryLockup} />
           <div className="flex min-w-0 flex-1 flex-col md:pl-72">
-            <MobileHeader />
+            <MobileHeader primaryLockup={brandContext.primaryLockup} />
             <div className="flex min-h-0 flex-1">
               <main className="min-w-0 flex-1 overflow-y-auto pb-[calc(4rem+var(--safe-area-inset-bottom))] md:pb-0">
                 {children}

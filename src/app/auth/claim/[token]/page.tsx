@@ -11,6 +11,7 @@ import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Skeleton } from "~/components/ui/skeleton";
+import { formatFamilyDisplayName } from "~/lib/family-name";
 import { api } from "~/trpc/react";
 
 function getClaimErrorMessage(error: unknown) {
@@ -111,7 +112,7 @@ export default function ClaimAccountPage() {
 
                 <div className="space-y-2 text-sm">
                   <p className="font-semibold text-base">{claimPreviewQuery.data.member.name}</p>
-                  <p className="text-muted-foreground">{claimPreviewQuery.data.family.name}</p>
+                  <p className="text-muted-foreground">{formatFamilyDisplayName(claimPreviewQuery.data.family.name)}</p>
                   <p className="text-muted-foreground">Prepared by a family admin</p>
                   <p className="text-muted-foreground">
                     Claiming this link will activate this existing profile instead of creating a duplicate person.
