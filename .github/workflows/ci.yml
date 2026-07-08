@@ -85,3 +85,28 @@ jobs:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/fircle_ci
           EMAIL_FROM_ADDRESS: ci@example.com
           EMAIL_FROM_NAME: CI
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node (LTS)
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm exec next build
+        env:
+          SKIP_ENV_VALIDATION: true
