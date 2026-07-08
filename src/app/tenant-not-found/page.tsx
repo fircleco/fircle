@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { headers } from "next/headers";
+import { Logo } from "~/components/ui/logo";
 
 import { normalizeRequestHost } from "~/lib/request-host";
 
@@ -8,7 +9,7 @@ export default async function TenantNotFoundPage() {
   const host = normalizeRequestHost(requestHeaders);
 
   return (
-    <main className="flex min-h-dvh items-center justify-center px-4 py-8">
+    <main className="flex flex-col gap-6 min-h-dvh items-center justify-center px-4 py-8">
       <section className="w-full max-w-lg rounded-4xl border border-border/80 bg-card/90 p-8 text-center shadow-2xl shadow-black/10 backdrop-blur">
         <div className="space-y-4">
           <p className="text-sm font-medium uppercase tracking-[0.24em] text-muted-foreground">
@@ -33,6 +34,13 @@ export default async function TenantNotFoundPage() {
           </div>
         </div>
       </section>
+      <div className="text-center">
+        <p className="text-xs text-muted-foreground">Powered by</p>
+        <div className="mt-1 inline-flex items-center gap-2 text-foreground">
+          <Logo className="h-6 w-auto shrink-0" aria-hidden="true" />
+          <p className="font-semibold text-xl leading-none tracking-tight">Fircle</p>
+        </div>
+      </div>
     </main>
   );
 }
