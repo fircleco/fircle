@@ -4,7 +4,7 @@ import {
 } from "~/server/email";
 import { notFound } from "next/navigation";
 
-export const dynamic = "force-static";
+export const dynamic = "force-dynamic";
 
 export default function EmailPreviewPage() {
   if (process.env.NODE_ENV === "production") {
