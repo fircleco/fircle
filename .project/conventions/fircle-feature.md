@@ -41,6 +41,46 @@ Feature groundwork must ship through additive migrations:
 - Avoid destructive schema operations in initial feature groundwork.
 - Do not pre-register/seed concrete feature rows unless explicitly required by a PRD.
 
+## Relational Schema and Join Practices
+
+When a feature introduces tables that relate to core entities (for example `FamilyMember`, `Post`, `Comment`, `Family`), apply the following rules.
+
+Relational ownership and scope:
+
+- Feature-owned rows must stay family-scoped.
+- If a feature row references a member-scoped entity, include `familyId` on the feature table unless there is a documented exception in the PRD.
+- Add explicit foreign keys for each relationship. Do not rely on inferred application-only relationships.
+
+Foreign key delete behavior:
+
+- Use `onDelete: Cascade` when feature rows are owned by the referenced parent and should be removed with it.
+- Use `onDelete: SetNull` only for optional historical references that should survive parent deletion (for example actor/audit links).
+- Document delete semantics in the feature PRD when a table has more than one foreign key.
+
+Join-table modeling:
+
+- Use dedicated join tables for many-to-many relationships instead of storing arrays/blobs of foreign ids.
+- Add composite uniqueness for join identity (for example `[leftId, rightId]`) to prevent duplicates.
+- Add indexes for both foreign keys and for expected sort/filter paths.
+
+Uniqueness and index strategy:
+
+- Prefer family-scoped composite unique constraints over global unique constraints.
+- Add indexes for actual query paths used by routers and pages, not only for foreign keys.
+- For timeline/listing paths, add stable composite indexes that include family scope and deterministic ordering columns (for example `createdAt` and `id` as tie-breaker).
+
+Tenant safety and join guards:
+
+- Treat family boundary checks as mandatory in router procedures even when foreign keys exist.
+- Mutations that connect feature rows to core rows must verify all related ids belong to the active family context.
+- Cross-family joins must be considered invalid and should return explicit authorization/validation errors.
+
+Migration rollout sequencing:
+
+- Ship relational tables, constraints, and indexes first.
+- Ship read/write behavior second, with guards and readiness checks.
+- Ensure behavior remains safe when feature tables are empty.
+
 ## Secrets and Integration Prerequisites
 
 Feature modules must not collect secrets directly.
@@ -138,15 +178,20 @@ Route and component gating rule:
 For every new feature implementation:
 
 1. Additive schema migration.
-2. Family-scoped toggle model updates.
-3. Router authorization and readiness guards.
-4. Admin/owner settings toggle route under `/settings/ffeatures`.
-5. Feature routes under `src/app/(app)/(ffeatures)`.
-6. Activation-driven navigation and entry-point gating.
-7. Integration dependency messaging to `/settings/integrations`.
-8. Remediation behavior for enabled-but-not-ready state.
-9. Targeted tests for routing, guards, readiness, and toggle actions.
-10. Lint, typecheck, and touched tests pass.
+2. Relational schema review for feature-owned tables:
+	- family scope fields,
+	- foreign keys and delete behavior,
+	- join-table identity constraints,
+	- query-path indexes.
+3. Family-scoped toggle model updates.
+4. Router authorization, family-boundary join checks, and readiness guards.
+5. Admin/owner settings toggle route under `/settings/ffeatures`.
+6. Feature routes under `src/app/(app)/(ffeatures)`.
+7. Activation-driven navigation and entry-point gating.
+8. Integration dependency messaging to `/settings/integrations`.
+9. Remediation behavior for enabled-but-not-ready state.
+10. Targeted tests for routing, guards, readiness, toggle actions, and relational integrity.
+11. Lint, typecheck, and touched tests pass.
 
 ## Events Mapping Example (No Implementation)
 
