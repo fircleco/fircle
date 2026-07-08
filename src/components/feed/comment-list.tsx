@@ -73,7 +73,7 @@ export function CommentList({
           {comment.replies.length > 0
               ? comment.replies.map((reply) => (
                   <div key={reply.id} className="mt-5 ml-4 relative scroll-mt-24" id={`comment-${reply.id}`}>
-                    <div className="w-px h-5 bg-border/80 absolute -top-5 left-8.5 -z-1" />
+                    <div className="w-px h-5 bg-border/80 absolute -top-5 left-8.5 z-1" />
                     <CommentCard
                       comment={reply}
                       isHighlighted={highlightedCommentId === reply.id}
