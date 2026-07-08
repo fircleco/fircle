@@ -11,6 +11,9 @@ references:
   - type: prd
     url: .project/prds/018-transactional-email-adapter-and-zeptomail-invite-claim/prd.md
     description: "Transactional email architecture and template/provider integration points"
+  - type: pr
+    url: https://github.com/fircle-app/fircle/pull/47
+    description: "Implementation pull request - feat(branding): family instance branding in email, PWA, app UI and metadata"
 ---
 
 > **Instructions for AI Agents:**
