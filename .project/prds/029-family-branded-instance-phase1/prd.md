@@ -1,6 +1,6 @@
 ---
 title: "Family-Branded Instance Phase 1 - Host-Aware App, PWA, and Email Identity"
-status: in-progress
+status: completed
 references:
   - type: doc
     url: .project/brief.md
@@ -143,20 +143,20 @@ This decision is locked as a baseline before phase task execution.
 
 #### Tasks
 
-- [ ] Add/extend tests for metadata and brand output on at least two host contexts.
-- [ ] Verify key routes render branded lockup correctly, including:
-  - [ ] app shell routes
-  - [ ] auth routes
-  - [ ] member profile route (`src/app/(app)/member/[slug]/page.tsx`).
-- [ ] Run `pnpm lint`, `pnpm typecheck`, and relevant test suites.
-- [ ] Validate there are no Prisma schema edits and no migration generation as part of this PRD.
+- [x] Add/extend tests for metadata and brand output on at least two host contexts.
+- [x] Verify key routes render branded lockup correctly, including:
+  - [x] app shell routes
+  - [x] auth routes
+  - [x] member profile route (`src/app/(app)/member/[slug]/page.tsx`).
+- [x] Run `pnpm lint`, `pnpm typecheck`, and relevant test suites.
+- [x] Validate there are no Prisma schema edits and no migration generation as part of this PRD.
 
 ## Acceptance Criteria
 
-- [ ] Family-scoped hosts render a consistent primary lockup format: `FamilyName on Fircle` across app shell and auth headers.
-- [ ] App metadata fields (title/application/Open Graph/Twitter/apple web app title) are host-aware and family-branded.
-- [ ] PWA install identity (manifest-facing name/description and install prompt) is family-branded per host context.
-- [ ] Transactional invite and claim email subject/body/header copy reflects family-branded identity.
-- [ ] Existing tenant-local auth/domain isolation behavior remains unchanged.
-- [ ] No Prisma schema changes or database migrations are introduced.
-- [ ] Test coverage includes brand resolver behavior and at least one metadata/email assertion per new branding path.
+- [x] Family-scoped hosts render a consistent primary lockup format: `FamilyName on Fircle` across app shell and auth headers.
+- [x] App metadata fields (title/application/Open Graph/Twitter/apple web app title) are host-aware and family-branded.
+- [x] PWA install identity (manifest-facing name/description and install prompt) is family-branded per host context.
+- [x] Transactional invite and claim email subject/body/header copy reflects family-branded identity.
+- [x] Existing tenant-local auth/domain isolation behavior remains unchanged.
+- [x] No Prisma schema changes or database migrations are introduced.
+- [x] Test coverage includes brand resolver behavior and at least one metadata/email assertion per new branding path.
