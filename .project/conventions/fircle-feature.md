@@ -72,6 +72,12 @@ UI ownership:
 - Feature-owned routes live under `src/app/(app)/(ffeatures)`.
 - Route groups are organizational and should not change public URL shape.
 
+Settings ownership for feature toggles:
+
+- Feature implementations must provide an explicit admin/owner settings surface for toggling feature activation on/off per family.
+- Default location: `/settings/ffeatures` under `src/app/(app)/settings/ffeatures/page.tsx`.
+- This settings surface is separate from feature-owned pages under `(ffeatures)` and exists to make activation state discoverable and manageable.
+
 ## API Taxonomy and Ownership
 
 Backend ownership:
@@ -90,6 +96,12 @@ Implementation anchor points:
 - Feature-aware app-shell navigation in `src/components/nav/*` must compose feature links from activation metadata, not hardcoded feature arrays.
 - Feature API namespace is exposed under `appRouter.ffeatures` from `src/server/api/routers/ffeatures/*`.
 - Right-sidebar optional feature entries are composed from activation metadata.
+
+Settings toggle requirements:
+
+- The settings toggle surface must read/write activation state through the feature API namespace (`appRouter.ffeatures`).
+- Toggle actions must be role-gated to owner/admin capabilities for the active family context.
+- Non-authorized users must receive explicit remediation/permission messaging rather than silent failure.
 
 Minimum activation contract fields:
 
@@ -128,12 +140,13 @@ For every new feature implementation:
 1. Additive schema migration.
 2. Family-scoped toggle model updates.
 3. Router authorization and readiness guards.
-4. Feature routes under `src/app/(app)/(ffeatures)`.
-5. Activation-driven navigation and entry-point gating.
-6. Integration dependency messaging to `/settings/integrations`.
-7. Remediation behavior for enabled-but-not-ready state.
-8. Targeted tests for routing, guards, and readiness.
-9. Lint, typecheck, and touched tests pass.
+4. Admin/owner settings toggle route under `/settings/ffeatures`.
+5. Feature routes under `src/app/(app)/(ffeatures)`.
+6. Activation-driven navigation and entry-point gating.
+7. Integration dependency messaging to `/settings/integrations`.
+8. Remediation behavior for enabled-but-not-ready state.
+9. Targeted tests for routing, guards, readiness, and toggle actions.
+10. Lint, typecheck, and touched tests pass.
 
 ## Events Mapping Example (No Implementation)
 
