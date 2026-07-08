@@ -1,6 +1,6 @@
 ---
 title: "Family-Branded Instance Phase 1 - Host-Aware App, PWA, and Email Identity"
-status: draft
+status: in-progress
 references:
   - type: doc
     url: .project/brief.md
@@ -79,15 +79,15 @@ This decision is locked as a baseline before phase task execution.
 
 #### Tasks
 
-- [ ] Add a shared brand utility (for example `src/lib/brand-context.ts`) that resolves:
-  - [ ] `familyBaseName` (canonical normalized family name for lockup generation)
-  - [ ] `familyDisplayName` (resolved via shared naming utility behavior)
-  - [ ] `primaryLockup` (`${familyDisplayName} on Fircle`)
-  - [ ] `appDescription`
-  - [ ] fallback behavior when family context is unavailable.
-- [ ] Compose `brand-context` with `src/lib/family-name.ts` helpers to keep normalization and display formatting logic centralized (no duplicate regex/string handling in brand resolver).
-- [ ] Reuse existing tenant/domain resolution inputs from `src/lib/tenant-resolution.ts` and request headers.
-- [ ] Add unit tests for mapped host, fallback host, and canonical-host scenarios.
+- [x] Add a shared brand utility (for example `src/lib/brand-context.ts`) that resolves:
+  - [x] `familyBaseName` (canonical normalized family name for lockup generation)
+  - [x] `familyDisplayName` (resolved via shared naming utility behavior)
+  - [x] `primaryLockup` (`${familyDisplayName} on Fircle`)
+  - [x] `appDescription`
+  - [x] fallback behavior when family context is unavailable.
+- [x] Compose `brand-context` with `src/lib/family-name.ts` helpers to keep normalization and display formatting logic centralized (no duplicate regex/string handling in brand resolver).
+- [x] Reuse existing tenant/domain resolution inputs from `src/lib/tenant-resolution.ts` and request headers.
+- [x] Add unit tests for mapped host, fallback host, and canonical-host scenarios.
 
 ### Phase 2: App Metadata and Shell Branding
 
