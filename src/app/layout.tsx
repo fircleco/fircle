@@ -70,9 +70,12 @@ const geist = Geist({
   variable: "--font-geist-sans",
 });
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const requestHeaders = await headers();
+  const brandContext = await resolveBrandContextFromHeaders(requestHeaders);
+
   return (
     <html
       lang="en"
@@ -87,7 +90,7 @@ export default function RootLayout({
         >
           <TRPCReactProvider>
             <PwaRegistration />
-            <PwaInstallPrompt />
+            <PwaInstallPrompt primaryLockup={brandContext.primaryLockup} />
             <Suspense fallback={null}>
               <NavigationProgress />
             </Suspense>

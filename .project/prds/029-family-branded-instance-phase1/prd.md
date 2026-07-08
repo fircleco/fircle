@@ -118,10 +118,10 @@ This decision is locked as a baseline before phase task execution.
 
 #### Tasks
 
-- [ ] Introduce host-aware manifest response route and transition static identity fields from `public/manifest.json` to dynamic generation.
-- [ ] Preserve existing icon compatibility and service worker registration behavior.
-- [ ] Update install prompt copy and alt text in `src/components/pwa/pwa-install-prompt.tsx` to use brand lockup.
-- [ ] Update service worker fallback notification title in `public/sw.js` to align with lockup policy while preserving payload-provided titles.
+- [x] Introduce host-aware manifest response route and transition static identity fields from `public/manifest.json` to dynamic generation.
+- [x] Preserve existing icon compatibility and service worker registration behavior.
+- [x] Update install prompt copy and alt text in `src/components/pwa/pwa-install-prompt.tsx` to use brand lockup.
+- [x] Update service worker fallback notification title in `public/sw.js` to align with lockup policy while preserving payload-provided titles.
 
 ### Phase 4: Email Brand Wording and Sender Behavior
 
