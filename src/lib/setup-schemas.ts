@@ -1,9 +1,16 @@
 import { z } from "zod"
 
 import { normalizeEmail } from "~/lib/email"
+import { normalizeFamilyNameInput } from "~/lib/family-name"
 
 export const firstFamilySetupInputSchema = z.object({
-  familyName: z.string().trim().min(1).max(120),
+  familyName: z
+    .string()
+    .max(120)
+    .transform(normalizeFamilyNameInput)
+    .refine((value) => value.length > 0, {
+      message: "Family name is required",
+    }),
   ownerName: z.string().trim().min(1).max(120),
   ownerNickname: z.string().trim().min(1).max(60).optional(),
   email: z.string().email().transform(normalizeEmail),

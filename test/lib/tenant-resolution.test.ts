@@ -46,7 +46,7 @@ describe("resolveTenantFromHeaders", () => {
         domain: host,
         isPrimary: true,
         verifiedAt: new Date("2030-01-01T00:00:00.000Z"),
-        family: { id: "family-1", name: "Ng Family", slug: "ng" },
+        family: { id: "family-1", name: "Ng", slug: "ng" },
       },
     ]);
     mockDb.domain.findFirst.mockResolvedValue({ domain: host });
@@ -73,7 +73,7 @@ describe("resolveTenantFromHeaders", () => {
         domain: host,
         isPrimary: false,
         verifiedAt: new Date("2030-01-01T00:00:00.000Z"),
-        family: { id: "family-2", name: "Patel Family", slug: "patel" },
+        family: { id: "family-2", name: "Patel", slug: "patel" },
       },
     ]);
     mockDb.domain.findFirst.mockResolvedValue({ domain: "patel.fircle.app" });
@@ -100,7 +100,7 @@ describe("resolveTenantFromHeaders", () => {
         domain: host,
         isPrimary: true,
         verifiedAt: null,
-        family: { id: "family-3", name: "Local Family", slug: "local-family" },
+        family: { id: "family-3", name: "Local", slug: "local-family" },
       },
     ]);
     mockDb.domain.findFirst.mockResolvedValue({ domain: host });
@@ -142,7 +142,7 @@ describe("resolveTenantFromHeaders", () => {
         domain: host,
         isPrimary: true,
         verifiedAt: null,
-        family: { id: "family-4", name: "Kim Family", slug: "kim" },
+        family: { id: "family-4", name: "Kim", slug: "kim" },
       },
     ]);
 

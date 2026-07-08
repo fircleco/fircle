@@ -630,7 +630,7 @@ describe("familyMemberRouter claim-link email delivery", () => {
         }),
       },
       family: {
-        findUnique: vi.fn().mockResolvedValue({ name: "Ng Family" }),
+        findUnique: vi.fn().mockResolvedValue({ name: "Ng" }),
       },
     } as never;
 
@@ -644,7 +644,7 @@ describe("familyMemberRouter claim-link email delivery", () => {
 
     expect(buildClaimLinkCreatedTemplate).toHaveBeenCalledWith(
       expect.objectContaining({
-        familyName: "Ng Family",
+        familyName: "Ng",
         memberName: "Grandma Mary",
         claimToken: "CLAIM_TOKEN_123",
       }),
@@ -701,7 +701,7 @@ describe("familyMemberRouter claim-link email delivery", () => {
         }),
       },
       family: {
-        findUnique: vi.fn().mockResolvedValue({ name: "Ng Family" }),
+        findUnique: vi.fn().mockResolvedValue({ name: "Ng" }),
       },
       $transaction: vi.fn(async (callback: (txArg: typeof tx) => Promise<unknown>) => callback(tx)),
     } as never;
@@ -763,7 +763,7 @@ describe("familyMemberRouter claim-link email delivery", () => {
         }),
       },
       family: {
-        findUnique: vi.fn().mockResolvedValue({ name: "Ng Family" }),
+        findUnique: vi.fn().mockResolvedValue({ name: "Ng" }),
       },
     } as never;
 
@@ -807,7 +807,7 @@ describe("familyMemberRouter claim-link email delivery", () => {
     };
     const db = {
       familyMember: { findUnique: vi.fn().mockResolvedValue({ id: "clh0000000000000000000212", familyId, userId: "user-1", role: "ADMIN" }) },
-      family: { findUnique: vi.fn().mockResolvedValue({ name: "Test Family" }) },
+      family: { findUnique: vi.fn().mockResolvedValue({ name: "Test" }) },
       $transaction: vi.fn(async (cb: (txArg: typeof tx) => Promise<unknown>) => cb(tx)),
     } as never;
 
@@ -840,7 +840,7 @@ describe("familyMemberRouter claim-link email delivery", () => {
     };
     const db = {
       familyMember: { findUnique: vi.fn().mockResolvedValue({ id: "clh0000000000000000000215", familyId, userId: "user-1", role: "ADMIN" }) },
-      family: { findUnique: vi.fn().mockResolvedValue({ name: "Test Family" }) },
+      family: { findUnique: vi.fn().mockResolvedValue({ name: "Test" }) },
       $transaction: vi.fn(async (cb: (txArg: typeof tx) => Promise<unknown>) => cb(tx)),
     } as never;
 
@@ -874,7 +874,7 @@ describe("familyMemberRouter claim-link email delivery", () => {
     };
     const db = {
       familyMember: { findUnique: vi.fn().mockResolvedValue({ id: "clh0000000000000000000218", familyId, userId: "user-1", role: "ADMIN" }) },
-      family: { findUnique: vi.fn().mockResolvedValue({ name: "Test Family" }) },
+      family: { findUnique: vi.fn().mockResolvedValue({ name: "Test" }) },
       $transaction: vi.fn(async (cb: (txArg: typeof tx) => Promise<unknown>) => cb(tx)),
     } as never;
 
@@ -924,7 +924,7 @@ describe("familyMemberRouter claim-link email delivery", () => {
         updateMany: vi.fn().mockResolvedValue({ count: 0 }),
         create: vi.fn().mockResolvedValue({ id: "clh0000000000000000007013", code: "CL_SENT_TKN", type: "EMAIL_BOUND", invitedEmail: "cl-sent@example.com", familyId, expiresAt: new Date("2031-01-01T00:00:00.000Z"), status: "PENDING" }),
       },
-      family: { findUnique: vi.fn().mockResolvedValue({ name: "Test Family" }) },
+      family: { findUnique: vi.fn().mockResolvedValue({ name: "Test" }) },
     } as never;
 
     const caller = createCaller(db);
@@ -951,7 +951,7 @@ describe("familyMemberRouter claim-link email delivery", () => {
         updateMany: vi.fn().mockResolvedValue({ count: 0 }),
         create: vi.fn().mockResolvedValue({ id: "clh0000000000000000007014", code: "CL_SKIP_TKN", type: "EMAIL_BOUND", invitedEmail: "cl-skip@example.com", familyId, expiresAt: new Date("2031-01-01T00:00:00.000Z"), status: "PENDING" }),
       },
-      family: { findUnique: vi.fn().mockResolvedValue({ name: "Test Family" }) },
+      family: { findUnique: vi.fn().mockResolvedValue({ name: "Test" }) },
     } as never;
 
     const caller = createCaller(db);
@@ -979,7 +979,7 @@ describe("familyMemberRouter claim-link email delivery", () => {
         updateMany: vi.fn().mockResolvedValue({ count: 0 }),
         create: vi.fn().mockResolvedValue({ id: "clh0000000000000000007015", code: "CL_FAIL_TKN", type: "EMAIL_BOUND", invitedEmail: "cl-fail@example.com", familyId, expiresAt: new Date("2031-01-01T00:00:00.000Z"), status: "PENDING" }),
       },
-      family: { findUnique: vi.fn().mockResolvedValue({ name: "Test Family" }) },
+      family: { findUnique: vi.fn().mockResolvedValue({ name: "Test" }) },
     } as never;
 
     const caller = createCaller(db);

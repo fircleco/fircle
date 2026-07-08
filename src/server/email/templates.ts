@@ -1,4 +1,5 @@
 import { buildClaimUrl, buildInviteUrl } from "./link-builders";
+import { formatFamilyDisplayName } from "~/lib/family-name";
 
 export type TransactionalEmailTemplate = {
   subject: string;
@@ -27,16 +28,19 @@ export type ClaimLinkCreatedTemplateInput = {
 export function buildInviteCreatedTemplate(
   input: InviteCreatedTemplateInput
 ): TransactionalEmailTemplate {
-  const familyName = sanitizeText(input.familyName);
+  const normalizedFamilyName = sanitizeText(input.familyName);
+  const familyDisplayName = normalizedFamilyName
+    ? formatFamilyDisplayName(normalizedFamilyName)
+    : "your family";
   const recipientName = sanitizeText(input.recipientName);
   const actionUrl = buildInviteUrl(input.appBaseUrl, input.inviteCode);
   const logoUrl = new URL("/icon.svg", input.appBaseUrl).toString();
   const expiryText = formatExpiryText(input.expiresAt);
   const intro = recipientName
-    ? `Hi ${recipientName}, you've been invited to join ${familyName} on Fircle.`
-    : `You've been invited to join ${familyName} on Fircle.`;
+    ? `Hi ${recipientName}, you've been invited to join ${familyDisplayName} on Fircle.`
+    : `You've been invited to join ${familyDisplayName} on Fircle.`;
 
-  const subject = `You're invited to join ${familyName} on Fircle`;
+  const subject = `You're invited to join ${familyDisplayName} on Fircle`;
   const textLines = [intro, "", "Accept your invite:", actionUrl];
   if (expiryText) {
     textLines.push("", expiryText);
@@ -65,15 +69,18 @@ export function buildInviteCreatedTemplate(
 export function buildClaimLinkCreatedTemplate(
   input: ClaimLinkCreatedTemplateInput
 ): TransactionalEmailTemplate {
-  const familyName = sanitizeText(input.familyName);
+  const normalizedFamilyName = sanitizeText(input.familyName);
+  const familyDisplayName = normalizedFamilyName
+    ? formatFamilyDisplayName(normalizedFamilyName)
+    : "your family";
   const memberName = sanitizeText(input.memberName);
   const recipientName = sanitizeText(input.recipientName);
   const actionUrl = buildClaimUrl(input.appBaseUrl, input.claimToken);
   const logoUrl = new URL("/icon.svg", input.appBaseUrl).toString();
   const expiryText = formatExpiryText(input.expiresAt);
   const intro = recipientName
-    ? `Hi ${recipientName}, claim your ${memberName} profile in ${familyName} on Fircle.`
-    : `Claim your ${memberName} profile in ${familyName} on Fircle.`;
+    ? `Hi ${recipientName}, claim your ${memberName} profile in ${familyDisplayName} on Fircle.`
+    : `Claim your ${memberName} profile in ${familyDisplayName} on Fircle.`;
 
   const subject = `Claim your ${memberName} profile on Fircle`;
   const textLines = [intro, "", "Use your claim link:", actionUrl];

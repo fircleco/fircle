@@ -491,7 +491,7 @@ export default function AddMemberPage() {
               </label>
               <Input
                 id="name"
-                placeholder="For example: Evelyn Walker"
+                placeholder="For example: Evelyn Shittabey"
                 value={memberName}
                 onChange={(event) => setMemberName(event.target.value)}
                 required

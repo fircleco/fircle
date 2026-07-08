@@ -428,7 +428,7 @@ export default function FamilySettingsPage() {
                 setSaveError(null);
                 setSaveSuccess(null);
               }}
-              placeholder="e.g. The Walker Family"
+              placeholder="e.g. Shittabey"
               disabled={isSaving || !canManageFamilyIdentity || !familyId}
               required
             />

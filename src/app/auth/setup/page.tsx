@@ -318,7 +318,7 @@ export default function FirstFamilySetupPage() {
                     name="familyName"
                     type="text"
                     autoComplete="organization"
-                    placeholder="The Shittabey Family"
+                    placeholder="Shittabey"
                     required
                     value={familyName}
                     onChange={(event) => setFamilyName(event.target.value)}

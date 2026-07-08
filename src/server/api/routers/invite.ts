@@ -26,6 +26,7 @@ import {
 import { normalizeEmail } from "~/lib/email"
 import { checkRateLimit, getClientIp } from "~/lib/rate-limit"
 import { getMemberSlugBase, resolveUniqueMemberSlug } from "~/lib/member-slug"
+import { normalizeFamilyNameInput } from "~/lib/family-name"
 import { findTenantUserByEmail } from "~/lib/tenant-users"
 import {
   buildClaimLinkCreatedTemplate,
@@ -52,7 +53,13 @@ const familyImageInputSchema = z.union([z.string().url().max(2048), internalMedi
 
 const updateFamilyIdentityInputSchema = z.object({
   familyId: z.string().cuid(),
-  name: z.string().trim().min(1).max(120),
+  name: z
+    .string()
+    .max(120)
+    .transform(normalizeFamilyNameInput)
+    .refine((value) => value.length > 0, {
+      message: "Family name is required",
+    }),
   description: z.string().trim().max(500).nullable(),
   image: familyImageInputSchema.nullable(),
 })

@@ -8,13 +8,13 @@ import {
 describe("buildInviteCreatedTemplate", () => {
   it("builds event-specific invite subject/body and action link", () => {
     const result = buildInviteCreatedTemplate({
-      familyName: "Ng Family",
+        familyName: "Ng",
       inviteCode: "INVITE_CODE_123",
       appBaseUrl: "https://fircle.example.com",
       expiresAt: new Date("2030-01-01T00:00:00.000Z"),
     });
 
-    expect(result.subject).toContain("Ng Family");
+      expect(result.subject).toContain("The Ng Family");
     expect(result.actionUrl).toBe("https://fircle.example.com/auth/invite/INVITE_CODE_123");
     expect(result.text).toContain("This link expires on Tue, 01 Jan 2030 00:00:00 GMT.");
     expect(result.html).toContain("Accept invite");
@@ -37,7 +37,7 @@ describe("buildInviteCreatedTemplate", () => {
 describe("buildClaimLinkCreatedTemplate", () => {
   it("builds event-specific claim subject/body and encoded claim link", () => {
     const result = buildClaimLinkCreatedTemplate({
-      familyName: "Ng Family",
+        familyName: "Ng",
       memberName: "Grandma Mary",
       claimToken: "token/with space",
       appBaseUrl: "https://fircle.example.com",
