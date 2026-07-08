@@ -71,6 +71,12 @@ function buildFallbackBrandContext(input: {
 export async function resolveBrandContextFromHeaders(headers: Headers): Promise<BrandContext> {
   const tenant = await resolveTenantFromHeaders(headers);
 
+  return resolveBrandContextFromTenantResolution(tenant);
+}
+
+export function resolveBrandContextFromTenantResolution(
+  tenant: TenantResolutionResult,
+): BrandContext {
   if (tenant.state === "resolved") {
     return buildResolvedBrandContext({
       state: tenant.state,

@@ -29,7 +29,7 @@ function sanitizeCallbackUrl(rawCallbackUrl: string | null) {
   return value;
 }
 
-export function SignInForm() {
+export function SignInForm({ primaryLockup }: { primaryLockup: string }) {
   const [isLoading, setIsLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const router = useRouter();
@@ -113,7 +113,7 @@ export function SignInForm() {
               Sign In
             </h1>
             <p className="text-sm text-muted-foreground sm:text-base">
-              Enter your family credentials
+              Enter your credentials for {primaryLockup}
             </p>
           </header>
 

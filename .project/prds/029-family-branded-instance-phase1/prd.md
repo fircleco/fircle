@@ -95,22 +95,22 @@ This decision is locked as a baseline before phase task execution.
 
 #### Tasks
 
-- [ ] Update `src/app/layout.tsx` metadata generation to use brand context for:
-  - [ ] title template/default
-  - [ ] `applicationName`
-  - [ ] Open Graph title/siteName/description
-  - [ ] Twitter title/description
-  - [ ] Apple web app title.
-- [ ] Ensure metadata lockups consume `brand-context` outputs only (no ad hoc name formatting in layout or page-level metadata code).
-- [ ] Replace hardcoded shell lockups in:
-  - [ ] `src/components/nav/desktop-sidebar.tsx`
-  - [ ] `src/components/nav/mobile-header.tsx`
-  - [ ] `src/components/auth/membership-guard.tsx`.
-- [ ] Update auth entry branding copy in:
-  - [ ] `src/app/auth/page.tsx`
-  - [ ] `src/app/auth/setup/page.tsx`
-  - [ ] `src/components/auth/signin-form.tsx` (where applicable for headings/supporting text).
-- [ ] Ensure UI display surfaces that need relationship-style phrasing use shared family-name formatting helpers (directly or via brand-context), not bespoke string concatenation.
+- [x] Update `src/app/layout.tsx` metadata generation to use brand context for:
+  - [x] title template/default
+  - [x] `applicationName`
+  - [x] Open Graph title/siteName/description
+  - [x] Twitter title/description
+  - [x] Apple web app title.
+- [x] Ensure metadata lockups consume `brand-context` outputs only (no ad hoc name formatting in layout or page-level metadata code).
+- [x] Replace hardcoded shell lockups in:
+  - [x] `src/components/nav/desktop-sidebar.tsx`
+  - [x] `src/components/nav/mobile-header.tsx`
+  - [x] `src/components/auth/membership-guard.tsx`.
+- [x] Update auth entry branding copy in:
+  - [x] `src/app/auth/page.tsx`
+  - [x] `src/app/auth/setup/page.tsx`
+  - [x] `src/components/auth/signin-form.tsx` (where applicable for headings/supporting text).
+- [x] Ensure UI display surfaces that need relationship-style phrasing use shared family-name formatting helpers (directly or via brand-context), not bespoke string concatenation.
 
 ### Phase 3: PWA Identity and Install Surfaces
 

@@ -38,7 +38,7 @@ function isSettingsPath(pathname: string) {
   return pathname === "/settings" || pathname.startsWith("/settings/") || pathname.startsWith("/setting/");
 }
 
-export function DesktopSidebar() {
+export function DesktopSidebar({ primaryLockup }: { primaryLockup: string }) {
   const pathname = usePathname();
   const { openComposer } = useGlobalComposer();
   const shouldPollUnread = !pathname.startsWith("/notifications");
@@ -89,9 +89,9 @@ export function DesktopSidebar() {
   return (
     <aside className="fixed top-0 left-0 hidden h-screen w-72 border-r border-border bg-background md:flex md:flex-col">
       <div className="flex h-16 items-center px-6">
-        <Link href="/" className="inline-flex items-center gap-2" aria-label="Fircle home">
+        <Link href="/" className="inline-flex items-center gap-2" aria-label={`${primaryLockup} home`}>
           <Logo className="h-6 w-auto text-foreground" aria-hidden="true" />
-          <span className="font-semibold text-2xl leading-none tracking-tight">Fircle</span>
+          <span className="font-semibold text-lg leading-none tracking-tight">{primaryLockup}</span>
         </Link>
       </div>
 

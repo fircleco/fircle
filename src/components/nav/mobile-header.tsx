@@ -45,7 +45,7 @@ function isSettingsPath(pathname: string) {
   return pathname === "/settings" || pathname.startsWith("/settings/") || pathname.startsWith("/setting/");
 }
 
-export function MobileHeader() {
+export function MobileHeader({ primaryLockup }: { primaryLockup: string }) {
   const pathname = usePathname();
   const shouldPollUnread = !pathname.startsWith("/notifications");
 
@@ -115,7 +115,7 @@ export function MobileHeader() {
             <SheetHeader className="border-b px-5 py-3 pt-[calc(0.75rem+var(--safe-area-inset-top))]">
               <SheetTitle className="inline-flex items-center gap-2 text-foreground">
                 <Logo className="h-6 w-auto shrink-0" aria-hidden="true" />
-                <span className="font-semibold text-xl leading-none tracking-tight">Fircle</span>
+                <span className="font-semibold text-base leading-none tracking-tight">{primaryLockup}</span>
               </SheetTitle>
             </SheetHeader>
             
@@ -172,7 +172,7 @@ export function MobileHeader() {
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
           <span className="inline-flex items-center gap-2 text-foreground">
             <Logo className="h-6 w-auto shrink-0" aria-hidden="true" />
-            <span className="font-semibold text-xl leading-none tracking-tight">Fircle</span>
+            <span className="font-semibold text-base leading-none tracking-tight">{primaryLockup}</span>
           </span>
         </div>
 

@@ -1,10 +1,15 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 
 import { ThemeToggle } from "~/components/theme-toggle";
 import { Button } from "~/components/ui/button";
 import { Logo } from "~/components/ui/logo";
+import { resolveBrandContextFromHeaders } from "~/lib/brand-context";
 
-export default function AuthLandingPage() {
+export default async function AuthLandingPage() {
+  const requestHeaders = await headers();
+  const brandContext = await resolveBrandContextFromHeaders(requestHeaders);
+
   return (
     <main className="relative isolate w-full max-w-md">
       <div className="fixed right-4 top-4 sm:right-6 sm:top-6">
@@ -17,11 +22,11 @@ export default function AuthLandingPage() {
               <div className="flex gap-2 items-center justify-center sm:justify-start">
                 <Logo className="h-10 w-auto text-foreground sm:h-12" aria-hidden="true" />
                 <h1 className="font-heading text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
-                  Fircle
+                  {brandContext.primaryLockup}
                 </h1>
               </div>
               <p className="text-base text-muted-foreground sm:text-lg">
-                Family memories, privately shared.
+                {brandContext.appDescription}
               </p>
             </div>
             <p className="max-w-xl text-sm leading-6 text-muted-foreground sm:text-base">

@@ -7,7 +7,13 @@ import { Logo } from "~/components/ui/logo";
 
 import { api } from "~/trpc/react";
 
-export function MembershipGuard({ children }: { children: React.ReactNode }) {
+export function MembershipGuard({
+  children,
+  primaryLockup,
+}: {
+  children: React.ReactNode;
+  primaryLockup: string;
+}) {
   const signOutTriggered = useRef(false);
 
   const managementContext = api.invite.getManagementContext.useQuery(undefined, {
@@ -29,7 +35,11 @@ export function MembershipGuard({ children }: { children: React.ReactNode }) {
   if (managementContext.isLoading || (!hasFamilyMembership && !signOutTriggered.current)) {
     return (
       <div className="flex flex-col min-h-dvh items-center px-4 text-center text-foreground text-sm">
-        <div className="flex-1 flex items-center justify-center">
+        <div className="flex-1 flex flex-col items-center justify-center gap-4">
+          <div className="flex items-center justify-center gap-2 text-foreground">
+            <Logo className="h-6 w-auto shrink-0" aria-hidden="true" />
+            <p className="font-semibold text-base leading-none tracking-tight">{primaryLockup}</p>
+          </div>
           <Loader className="size-6 animate-spin" />
         </div>
         <div className="items-end pb-6">
