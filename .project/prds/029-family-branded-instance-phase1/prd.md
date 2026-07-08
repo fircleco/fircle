@@ -48,6 +48,7 @@ Out of scope:
 
 - **No database changes in Phase 1**: Reuse existing `family.name`, `family.image`, and tenant/domain resolution outputs; no new columns or migration risk.
 - **Single lockup format**: Use `FamilyName on Fircle` across shell/auth/metadata/email to avoid fragmented naming.
+- **DRY naming foundation**: Reuse shared family-name helpers in `src/lib/family-name.ts` for normalization/display semantics; avoid duplicating name parsing or formatting rules inside brand resolver code.
 - **Shared server-side brand resolver**: Centralize host-to-brand derivation to prevent future hardcoded string drift.
 - **Preserve tenant safety first**: Branding must not bypass canonical host redirect behavior or auth isolation from existing tenant resolution.
 - **Progressive rollout scope**: Ship copy/meta/PWA/email first, then evaluate Phase 2 (themes/assets) only if needed.
@@ -67,6 +68,7 @@ This decision is locked as a baseline before phase task execution.
 - **Write-time normalization rule:** inputs are normalized at write boundaries by removing a leading `The` and trailing `Family`, and collapsing whitespace.
 - **Display formatting rule:** user-facing copy may render relationship-style names through a formatter (example default: `The {Name} Family`) while preserving canonical stored values.
 - **Brand lockup compatibility:** this naming rule coexists with the phase lockup format `FamilyName on Fircle`; lockup generation must consume normalized canonical names.
+- **Utility ownership rule (DRY):** `src/lib/family-name.ts` is the shared utility boundary for name normalization and relationship-style display formatting; brand-context utilities must compose these helpers rather than re-implementing equivalent logic.
 - **Data model impact:** no Prisma schema changes and no migration are required for this decision.
 
 ## Implementation Plan
@@ -78,10 +80,12 @@ This decision is locked as a baseline before phase task execution.
 #### Tasks
 
 - [ ] Add a shared brand utility (for example `src/lib/brand-context.ts`) that resolves:
-  - [ ] `familyDisplayName`
+  - [ ] `familyBaseName` (canonical normalized family name for lockup generation)
+  - [ ] `familyDisplayName` (resolved via shared naming utility behavior)
   - [ ] `primaryLockup` (`${familyDisplayName} on Fircle`)
   - [ ] `appDescription`
   - [ ] fallback behavior when family context is unavailable.
+- [ ] Compose `brand-context` with `src/lib/family-name.ts` helpers to keep normalization and display formatting logic centralized (no duplicate regex/string handling in brand resolver).
 - [ ] Reuse existing tenant/domain resolution inputs from `src/lib/tenant-resolution.ts` and request headers.
 - [ ] Add unit tests for mapped host, fallback host, and canonical-host scenarios.
 
@@ -97,6 +101,7 @@ This decision is locked as a baseline before phase task execution.
   - [ ] Open Graph title/siteName/description
   - [ ] Twitter title/description
   - [ ] Apple web app title.
+- [ ] Ensure metadata lockups consume `brand-context` outputs only (no ad hoc name formatting in layout or page-level metadata code).
 - [ ] Replace hardcoded shell lockups in:
   - [ ] `src/components/nav/desktop-sidebar.tsx`
   - [ ] `src/components/nav/mobile-header.tsx`
@@ -105,6 +110,7 @@ This decision is locked as a baseline before phase task execution.
   - [ ] `src/app/auth/page.tsx`
   - [ ] `src/app/auth/setup/page.tsx`
   - [ ] `src/components/auth/signin-form.tsx` (where applicable for headings/supporting text).
+- [ ] Ensure UI display surfaces that need relationship-style phrasing use shared family-name formatting helpers (directly or via brand-context), not bespoke string concatenation.
 
 ### Phase 3: PWA Identity and Install Surfaces
 
@@ -124,6 +130,7 @@ This decision is locked as a baseline before phase task execution.
 #### Tasks
 
 - [ ] Update invite/claim template copy in `src/server/email/templates.ts` to use family-branded wording (`FamilyName on Fircle`) where appropriate.
+- [ ] Keep email family naming DRY by reusing `src/lib/family-name.ts` (or `brand-context` wrappers) for any relationship-style family display text.
 - [ ] Ensure fallback sender display name logic in:
   - [ ] `src/server/api/routers/invite.ts`
   - [ ] `src/server/api/routers/family-member.ts`
