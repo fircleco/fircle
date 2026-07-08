@@ -129,13 +129,13 @@ This decision is locked as a baseline before phase task execution.
 
 #### Tasks
 
-- [ ] Update invite/claim template copy in `src/server/email/templates.ts` to use family-branded wording (`FamilyName on Fircle`) where appropriate.
-- [ ] Keep email family naming DRY by reusing `src/lib/family-name.ts` (or `brand-context` wrappers) for any relationship-style family display text.
-- [ ] Ensure fallback sender display name logic in:
-  - [ ] `src/server/api/routers/invite.ts`
-  - [ ] `src/server/api/routers/family-member.ts`
+- [x] Update invite/claim template copy in `src/server/email/templates.ts` to use family-branded wording (`FamilyName on Fircle`) where appropriate.
+- [x] Keep email family naming DRY by reusing `src/lib/family-name.ts` (or `brand-context` wrappers) for any relationship-style family display text.
+- [x] Ensure fallback sender display name logic in:
+  - [x] `src/server/api/routers/invite.ts`
+  - [x] `src/server/api/routers/family-member.ts`
   uses consistent Phase 1 brand language.
-- [ ] Update `src/app/(dev)/email-preview/page.tsx` fixtures to reflect new expected copy.
+- [x] Update `src/app/(dev)/email-preview/page.tsx` fixtures to reflect new expected copy.
 
 ### Phase 5: Validation and Regression Safety
 

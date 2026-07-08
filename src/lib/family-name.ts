@@ -23,3 +23,16 @@ export function formatFamilyDisplayName(
 
   return `${includeArticle ? "The " : ""}${normalizedName}${includeSuffix ? " Family" : ""}`;
 }
+
+export function formatFamilyLockup(value: string): string {
+  const familyName = formatFamilyDisplayName(value, {
+    includeArticle: false,
+    includeSuffix: false,
+  });
+
+  if (!familyName || familyName === "Family") {
+    return "Fircle";
+  }
+
+  return `${familyName} on Fircle`;
+}

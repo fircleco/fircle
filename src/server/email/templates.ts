@@ -1,5 +1,5 @@
 import { buildClaimUrl, buildInviteUrl } from "./link-builders";
-import { formatFamilyDisplayName } from "~/lib/family-name";
+import { formatFamilyLockup } from "~/lib/family-name";
 
 export type TransactionalEmailTemplate = {
   subject: string;
@@ -29,18 +29,18 @@ export function buildInviteCreatedTemplate(
   input: InviteCreatedTemplateInput
 ): TransactionalEmailTemplate {
   const normalizedFamilyName = sanitizeText(input.familyName);
-  const familyDisplayName = normalizedFamilyName
-    ? formatFamilyDisplayName(normalizedFamilyName)
-    : "your family";
+  const familyLockup = normalizedFamilyName
+    ? formatFamilyLockup(normalizedFamilyName)
+    : "your family on Fircle";
   const recipientName = sanitizeText(input.recipientName);
   const actionUrl = buildInviteUrl(input.appBaseUrl, input.inviteCode);
   const logoUrl = new URL("/icon.svg", input.appBaseUrl).toString();
   const expiryText = formatExpiryText(input.expiresAt);
   const intro = recipientName
-    ? `Hi ${recipientName}, you've been invited to join ${familyDisplayName} on Fircle.`
-    : `You've been invited to join ${familyDisplayName} on Fircle.`;
+    ? `Hi ${recipientName}, you've been invited to join ${familyLockup}.`
+    : `You've been invited to join ${familyLockup}.`;
 
-  const subject = `You're invited to join ${familyDisplayName} on Fircle`;
+  const subject = `You're invited to join ${familyLockup}`;
   const textLines = [intro, "", "Accept your invite:", actionUrl];
   if (expiryText) {
     textLines.push("", expiryText);
@@ -49,7 +49,7 @@ export function buildInviteCreatedTemplate(
 
   const html = renderHtmlTemplate({
     eyebrow: "Family invite",
-    title: "You are invited to join Fircle",
+    title: `You are invited to join ${familyLockup}`,
     intro,
     ctaLabel: "Accept invite",
     actionUrl,
@@ -70,19 +70,19 @@ export function buildClaimLinkCreatedTemplate(
   input: ClaimLinkCreatedTemplateInput
 ): TransactionalEmailTemplate {
   const normalizedFamilyName = sanitizeText(input.familyName);
-  const familyDisplayName = normalizedFamilyName
-    ? formatFamilyDisplayName(normalizedFamilyName)
-    : "your family";
+  const familyLockup = normalizedFamilyName
+    ? formatFamilyLockup(normalizedFamilyName)
+    : "your family on Fircle";
   const memberName = sanitizeText(input.memberName);
   const recipientName = sanitizeText(input.recipientName);
   const actionUrl = buildClaimUrl(input.appBaseUrl, input.claimToken);
   const logoUrl = new URL("/icon.svg", input.appBaseUrl).toString();
   const expiryText = formatExpiryText(input.expiresAt);
   const intro = recipientName
-    ? `Hi ${recipientName}, claim your ${memberName} profile in ${familyDisplayName} on Fircle.`
-    : `Claim your ${memberName} profile in ${familyDisplayName} on Fircle.`;
+    ? `Hi ${recipientName}, claim your ${memberName} profile in ${familyLockup}.`
+    : `Claim your ${memberName} profile in ${familyLockup}.`;
 
-  const subject = `Claim your ${memberName} profile on Fircle`;
+  const subject = `Claim your ${memberName} profile in ${familyLockup}`;
   const textLines = [intro, "", "Use your claim link:", actionUrl];
   if (expiryText) {
     textLines.push("", expiryText);
@@ -91,7 +91,7 @@ export function buildClaimLinkCreatedTemplate(
 
   const html = renderHtmlTemplate({
     eyebrow: "Profile claim",
-    title: "Your family profile is ready to claim",
+    title: `Your ${memberName} profile in ${familyLockup} is ready to claim`,
     intro,
     ctaLabel: "Claim profile",
     actionUrl,

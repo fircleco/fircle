@@ -25,6 +25,7 @@ import {
   claimMemberInputSchema,
 } from "~/lib/invite-schemas"
 import { getInviteExpiryDate } from "~/lib/invite"
+import { formatFamilyLockup } from "~/lib/family-name"
 import { checkRateLimit, getClientIp } from "~/lib/rate-limit"
 import { getMemberSlugBase, resolveUniqueMemberSlug, slugifyMemberText } from "~/lib/member-slug"
 import { findTenantUserByEmail } from "~/lib/tenant-users"
@@ -638,7 +639,6 @@ export const familyMemberRouter = createTRPCRouter({
             const emailProvider = getEmailProvider()
             const appBaseUrl = resolveAppBaseUrlFromHeaders(ctx.headers)
             const fromAddress = env.EMAIL_FROM_ADDRESS ? String(env.EMAIL_FROM_ADDRESS) : null
-            const fromName = env.EMAIL_FROM_NAME ? String(env.EMAIL_FROM_NAME) : "Fircle"
 
             if (!emailProvider) {
               console.info(
@@ -660,6 +660,9 @@ export const familyMemberRouter = createTRPCRouter({
                 where: { id: member.familyId },
                 select: { name: true },
               })
+              const fromName = env.EMAIL_FROM_NAME
+                ? String(env.EMAIL_FROM_NAME)
+                : formatFamilyLockup(family?.name ?? "")
 
               const template = buildClaimLinkCreatedTemplate({
                 familyName: family?.name ?? "your family",
@@ -922,7 +925,6 @@ export const familyMemberRouter = createTRPCRouter({
         const emailProvider = getEmailProvider()
         const appBaseUrl = resolveAppBaseUrlFromHeaders(ctx.headers)
         const fromAddress = env.EMAIL_FROM_ADDRESS ? String(env.EMAIL_FROM_ADDRESS) : null
-        const fromName = env.EMAIL_FROM_NAME ? String(env.EMAIL_FROM_NAME) : "Fircle"
 
         if (!emailProvider) {
           console.info(
@@ -944,6 +946,9 @@ export const familyMemberRouter = createTRPCRouter({
             where: { id: member.familyId },
             select: { name: true },
           })
+          const fromName = env.EMAIL_FROM_NAME
+            ? String(env.EMAIL_FROM_NAME)
+            : formatFamilyLockup(family?.name ?? "")
 
           const template = buildClaimLinkCreatedTemplate({
             familyName: family?.name ?? "your family",

@@ -24,9 +24,9 @@ import {
   retryEmailSendInputSchema,
 } from "~/lib/invite-schemas"
 import { normalizeEmail } from "~/lib/email"
+import { formatFamilyLockup, normalizeFamilyNameInput } from "~/lib/family-name"
 import { checkRateLimit, getClientIp } from "~/lib/rate-limit"
 import { getMemberSlugBase, resolveUniqueMemberSlug } from "~/lib/member-slug"
-import { normalizeFamilyNameInput } from "~/lib/family-name"
 import { findTenantUserByEmail } from "~/lib/tenant-users"
 import {
   buildClaimLinkCreatedTemplate,
@@ -593,7 +593,9 @@ export const inviteRouter = createTRPCRouter({
         const emailProvider = getEmailProvider()
         const appBaseUrl = resolveAppBaseUrlFromHeaders(ctx.headers)
         const fromAddress = env.EMAIL_FROM_ADDRESS ? String(env.EMAIL_FROM_ADDRESS) : null
-        const fromName = env.EMAIL_FROM_NAME ? String(env.EMAIL_FROM_NAME) : "Fircle"
+        const fromName = env.EMAIL_FROM_NAME
+          ? String(env.EMAIL_FROM_NAME)
+          : formatFamilyLockup(invite.family.name)
 
         if (!emailProvider) {
           console.info(
@@ -876,7 +878,9 @@ export const inviteRouter = createTRPCRouter({
       const emailProvider = getEmailProvider()
       const appBaseUrl = resolveAppBaseUrlFromHeaders(ctx.headers)
       const fromAddress = env.EMAIL_FROM_ADDRESS ? String(env.EMAIL_FROM_ADDRESS) : null
-      const fromName = env.EMAIL_FROM_NAME ? String(env.EMAIL_FROM_NAME) : "Fircle"
+      const fromName = env.EMAIL_FROM_NAME
+        ? String(env.EMAIL_FROM_NAME)
+        : formatFamilyLockup(invite.family.name)
 
       if (!emailProvider) {
         console.info(
