@@ -60,6 +60,11 @@ Out of scope:
 - **As a** self-hosted operator, **I want** host-specific branding to align with tenant mapping, **so that** custom domains feel coherent and professional.
 - **As a** maintainer, **I want** branding logic in one resolver, **so that** future features do not reintroduce global hardcoded labels.
 
+### Post-Completion Notes
+
+- **Auth footer branding decision:** Auth screens include a persistent footer under the main auth card area with `Powered by Fircle` to preserve platform attribution while lockup-specific branding remains in headings and contextual copy.
+- **Implementation location:** `src/app/auth/layout.tsx` now hosts this shared footer so all auth routes inherit the same attribution block.
+
 ## First-Pass Decision Baseline (Pre-Task)
 
 This decision is locked as a baseline before phase task execution.
@@ -110,6 +115,7 @@ This decision is locked as a baseline before phase task execution.
   - [x] `src/app/auth/page.tsx`
   - [x] `src/app/auth/setup/page.tsx`
   - [x] `src/components/auth/signin-form.tsx` (where applicable for headings/supporting text).
+- [x] Add a shared auth footer attribution block (`Powered by Fircle`) beneath auth cards in `src/app/auth/layout.tsx`.
 - [x] Ensure UI display surfaces that need relationship-style phrasing use shared family-name formatting helpers (directly or via brand-context), not bespoke string concatenation.
 
 ### Phase 3: PWA Identity and Install Surfaces
