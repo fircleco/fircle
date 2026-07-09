@@ -173,12 +173,12 @@ Prework lockup touch matrix (must be verified complete before Phase 1 implementa
 
 #### Tasks
 
-- [ ] Extend Family Settings data loading to include `brandingConfig` and provided allowlist metadata in [src/app/(app)/settings/family/page.tsx](src/app/(app)/settings/family/page.tsx).
-- [ ] Add font selector controls from the provided allowlist, with explicit default option (disable logotype) in [src/app/(app)/settings/family/page.tsx](src/app/(app)/settings/family/page.tsx).
-- [ ] Load preview font stylesheets from `api.fonts.coollabs.io` for selected allowlisted font names in [src/app/(app)/settings/family/page.tsx](src/app/(app)/settings/family/page.tsx).
-- [ ] Add live preview based on resolved selected font using existing family name context in [src/app/(app)/settings/family/page.tsx](src/app/(app)/settings/family/page.tsx).
-- [ ] Show remediation messaging when brandingConfig is invalid or fontName is not allowlisted.
-- [ ] Preserve existing settings permission and navigation behavior in [src/app/(app)/settings/layout.tsx](src/app/(app)/settings/layout.tsx).
+- [x] Extend Family Settings data loading to include `brandingConfig` and provided allowlist metadata in [src/app/(app)/settings/family/page.tsx](src/app/(app)/settings/family/page.tsx).
+- [x] Add font selector controls from the provided allowlist, with explicit default option (disable logotype) in [src/app/(app)/settings/family/page.tsx](src/app/(app)/settings/family/page.tsx).
+- [x] Load preview font stylesheets from `api.fonts.coollabs.io` for selected allowlisted font names in [src/app/(app)/settings/family/page.tsx](src/app/(app)/settings/family/page.tsx).
+- [x] Add live preview based on resolved selected font using existing family name context in [src/app/(app)/settings/family/page.tsx](src/app/(app)/settings/family/page.tsx).
+- [x] Show remediation messaging when brandingConfig is invalid or fontName is not allowlisted.
+- [x] Preserve existing settings permission and navigation behavior in [src/app/(app)/settings/layout.tsx](src/app/(app)/settings/layout.tsx).
 
 ### Phase 4: Surface Rollout Using Resolved Font
 

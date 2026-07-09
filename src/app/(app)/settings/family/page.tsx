@@ -10,6 +10,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Skeleton } from "~/components/ui/skeleton";
+import { tryParseBrandingConfig } from "~/lib/branding/branding-config";
+import {
+  LOGOTYPE_FONT_NAMES,
+  LOGOTYPE_FONT_PROVIDER,
+  buildLogotypeFontStylesheetUrl,
+  resolveLogotypeFontName,
+} from "~/lib/branding/logotype-fonts";
 import { compressImage, createInstantPreviewUrl, resolveMediaMimeType } from "~/lib/media-compression";
 import { api } from "~/trpc/react";
 
@@ -36,6 +43,7 @@ const managementContextSchema = z.object({
       name: z.string(),
       description: z.string().nullable(),
       image: z.string().nullable(),
+      brandingConfig: z.unknown().nullable().optional(),
     })
     .nullable(),
   role: z.enum(["OWNER", "ADMIN", "MEMBER"]).nullable(),
@@ -99,6 +107,7 @@ export default function FamilySettingsPage() {
   const [selectedImagePreviewUrl, setSelectedImagePreviewUrl] = useState<string | null>(null);
   const [isPreviewConverting, setIsPreviewConverting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [selectedLogotypeFontName, setSelectedLogotypeFontName] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
@@ -126,6 +135,21 @@ export default function FamilySettingsPage() {
   const familyId = managementContextData?.family?.id;
   const canManageFamilyIdentity =
     managementContextData?.role === "ADMIN" || managementContextData?.role === "OWNER";
+  const brandingConfig = managementContextData?.family?.brandingConfig ?? null;
+  const resolvedSelectedLogotypeFont =
+    resolveLogotypeFontName(selectedLogotypeFontName);
+  const resolvedExistingBrandingConfig = tryParseBrandingConfig(brandingConfig);
+  const hasInvalidBrandingConfig = brandingConfig !== null && resolvedExistingBrandingConfig === null;
+  const previewStylesheetUrl = resolvedSelectedLogotypeFont
+    ? buildLogotypeFontStylesheetUrl(resolvedSelectedLogotypeFont)
+    : null;
+  const logotypeFontMetadata = useMemo(
+    () => ({
+      provider: LOGOTYPE_FONT_PROVIDER,
+      names: [...LOGOTYPE_FONT_NAMES],
+    }),
+    [],
+  );
   const previewImage = selectedImagePreviewUrl ?? familyImageUrl;
   const previewName = familyName.trim().length > 0 ? familyName : "Family";
 
@@ -138,9 +162,42 @@ export default function FamilySettingsPage() {
     setFamilyName(family.name);
     setFamilyDescription(family.description ?? "");
     setFamilyImageUrl(family.image ?? "");
+    setSelectedLogotypeFontName(
+      resolvedExistingBrandingConfig?.logotype.enabled
+        ? (resolvedExistingBrandingConfig.logotype.fontName ?? "")
+        : "",
+    );
     setSaveError(null);
     setIsPreviewConverting(false);
-  }, [managementContextData?.family]);
+  }, [managementContextData?.family, resolvedExistingBrandingConfig]);
+
+  useEffect(() => {
+    if (!previewStylesheetUrl) {
+      return;
+    }
+
+    const preconnectSelector = "link[data-logotype-font-preconnect='1']";
+    const existingPreconnect = document.head.querySelector<HTMLLinkElement>(preconnectSelector);
+
+    if (!existingPreconnect) {
+      const preconnectLink = document.createElement("link");
+      preconnectLink.rel = "preconnect";
+      preconnectLink.href = "https://api.fonts.coollabs.io";
+      preconnectLink.crossOrigin = "anonymous";
+      preconnectLink.dataset.logotypeFontPreconnect = "1";
+      document.head.appendChild(preconnectLink);
+    }
+
+    const stylesheetLink = document.createElement("link");
+    stylesheetLink.rel = "stylesheet";
+    stylesheetLink.href = previewStylesheetUrl;
+    stylesheetLink.dataset.logotypeFontPreview = "1";
+    document.head.appendChild(stylesheetLink);
+
+    return () => {
+      stylesheetLink.remove();
+    };
+  }, [previewStylesheetUrl]);
 
   useEffect(() => {
     return () => {
@@ -296,6 +353,16 @@ export default function FamilySettingsPage() {
         description:
           normalizedFamilyDescription.length > 0 ? normalizedFamilyDescription : null,
         image: nextFamilyImageUrl.length > 0 ? nextFamilyImageUrl : null,
+        brandingConfig: resolvedSelectedLogotypeFont
+          ? {
+              version: 1,
+              logotype: {
+                enabled: true,
+                fontName: resolvedSelectedLogotypeFont,
+                fontProvider: LOGOTYPE_FONT_PROVIDER,
+              },
+            }
+          : null,
       });
 
       await trpcUtils.invite.getManagementContext.invalidate();
@@ -452,6 +519,72 @@ export default function FamilySettingsPage() {
               disabled={isSaving || !canManageFamilyIdentity || !familyId}
             />
             <p className="text-muted-foreground text-xs">{familyDescription.length}/500</p>
+          </div>
+
+          <div className="space-y-3 rounded-2xl border bg-muted/10 p-4">
+            <div className="space-y-1">
+              <p className="font-medium text-sm">Family logotype font</p>
+              <p className="text-muted-foreground text-xs">
+                Choose from {logotypeFontMetadata.names.length} allowlisted fonts served by {logotypeFontMetadata.provider}.
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
+              <label htmlFor="family-logotype-font" className="text-sm font-medium">
+                Logotype style
+              </label>
+              <select
+                id="family-logotype-font"
+                value={selectedLogotypeFontName}
+                onChange={(event) => {
+                  setSelectedLogotypeFontName(event.target.value);
+                  setSaveError(null);
+                  setSaveSuccess(null);
+                }}
+                className="block h-10 w-full rounded-2xl border border-input bg-background px-3 text-sm text-foreground shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={isSaving || !canManageFamilyIdentity || !familyId}
+              >
+                <option value="">Use default Fircle lockup (disable custom logotype)</option>
+                {logotypeFontMetadata.names.map((fontName) => (
+                  <option key={fontName} value={fontName}>
+                    {fontName}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-2 rounded-xl border bg-card/80 p-3">
+              <p className="text-muted-foreground text-xs">Live preview</p>
+              {resolvedSelectedLogotypeFont ? (
+                <div className="relative inline-flex min-h-20 min-w-64 items-center justify-center px-8 py-5">
+                  <span className="absolute left-1 top-1 text-[11px] text-muted-foreground">The</span>
+                  <span
+                    className="text-3xl leading-none"
+                    style={{ fontFamily: `"${resolvedSelectedLogotypeFont}", cursive` }}
+                  >
+                    {previewName}
+                  </span>
+                  <span className="absolute bottom-1 right-1 text-[11px] text-muted-foreground">Fircle</span>
+                </div>
+              ) : (
+                <div className="inline-flex items-center gap-2 rounded-lg border bg-background px-3 py-2 text-sm">
+                  <span className="font-semibold">Fircle</span>
+                  <span className="text-muted-foreground text-xs">Default fallback preview</span>
+                </div>
+              )}
+            </div>
+
+            {hasInvalidBrandingConfig ? (
+              <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-amber-700 text-xs dark:text-amber-200">
+                Your saved logotype configuration is invalid or uses a font outside the allowlist. Choose a new allowlisted font and save to fix it.
+              </p>
+            ) : null}
+
+            {!resolvedSelectedLogotypeFont ? (
+              <p className="text-muted-foreground text-xs">
+                Custom logotype is disabled. Navigation surfaces will use the fallback Fircle lockup.
+              </p>
+            ) : null}
           </div>
 
           {saveError ? (
