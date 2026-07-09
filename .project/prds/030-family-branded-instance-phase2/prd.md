@@ -11,6 +11,9 @@ references:
   - type: prd
     url: .project/prds/004-family-identity-static-ui/prd.md
     description: "Family identity settings ownership and user-facing family profile foundations"
+  - type: pr
+    url: https://github.com/fircle-app/fircle/pull/50
+    description: "Implementation pull request - feat(branding): family logotype personalization"
 ---
 
 > **Instructions for AI Agents:**
