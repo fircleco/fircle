@@ -119,7 +119,7 @@ export function MobileHeader({ primaryLockup: _primaryLockup }: { primaryLockup:
           </SheetTrigger>
 
           <SheetContent side="left" showCloseButton={false} className="w-[84vw] max-w-sm p-0">
-            <SheetHeader className="border-b p-5 py-3 pt-[calc(0.75rem+var(--safe-area-inset-top))]">
+            <SheetHeader className="border-b p-5 py-1.5 pt-[calc(0.5rem+var(--safe-area-inset-top))]">
               <SheetTitle className="inline-flex items-center gap-2 text-foreground">
                 {selectedLogotypeFontName ? (
                   <FamilyLogotypeLockup
