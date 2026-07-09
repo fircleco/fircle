@@ -157,17 +157,19 @@ export default function FamilySettingsPage() {
       return;
     }
 
+    const hydratedBrandingConfig = tryParseBrandingConfig(family.brandingConfig ?? null);
+
     setFamilyName(family.name);
     setFamilyDescription(family.description ?? "");
     setFamilyImageUrl(family.image ?? "");
     setSelectedLogotypeFontName(
-      resolvedExistingBrandingConfig?.logotype.enabled
-        ? (resolvedExistingBrandingConfig.logotype.fontName ?? "")
+      hydratedBrandingConfig?.logotype.enabled
+        ? (hydratedBrandingConfig.logotype.fontName ?? "")
         : "",
     );
     setSaveError(null);
     setIsPreviewConverting(false);
-  }, [managementContextData?.family, resolvedExistingBrandingConfig]);
+  }, [managementContextData?.family]);
 
   useEffect(() => {
     return () => {
