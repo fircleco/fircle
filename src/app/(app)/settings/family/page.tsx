@@ -553,23 +553,31 @@ export default function FamilySettingsPage() {
               </select>
             </div>
 
-            <div className="space-y-2 rounded-xl border bg-card/80 p-3">
+            <div className="space-y-2 rounded-xl border bg-card/80 p-4">
               <p className="text-muted-foreground text-xs">Live preview</p>
               {resolvedSelectedLogotypeFont ? (
-                <div className="relative inline-flex min-h-20 min-w-64 items-center justify-center px-8 py-5">
-                  <span className="absolute left-1 top-1 text-[11px] text-muted-foreground">The</span>
+                <div className="relative inline-flex min-h-36 items-center justify-center px-6 py-8">
                   <span
-                    className="text-3xl leading-none"
+                    className="font-medium pointer-events-none absolute left-0 top-1/2 -translate-x-[28%] -translate-y-[98%] logo-parts-stroke text-base leading-none"
+                  >
+                    The
+                  </span>
+                  <span
+                    className="text-7xl leading-none"
                     style={{ fontFamily: `"${resolvedSelectedLogotypeFont}", cursive` }}
                   >
                     {previewName}
                   </span>
-                  <span className="absolute bottom-1 right-1 text-[11px] text-muted-foreground">Fircle</span>
+                  <span
+                    className="font-medium pointer-events-none absolute right-0 top-1/2 translate-x-[-2%] translate-y-[95%] logo-parts-stroke text-base leading-none"
+                  >
+                    Fircle
+                  </span>
                 </div>
               ) : (
-                <div className="inline-flex items-center gap-2 rounded-lg border bg-background px-3 py-2 text-sm">
-                  <span className="font-semibold">Fircle</span>
-                  <span className="text-muted-foreground text-xs">Default fallback preview</span>
+                <div className="inline-flex items-center gap-3 rounded-lg border bg-background px-5 py-4 text-lg">
+                  <span className="font-semibold text-2xl">Fircle</span>
+                  <span className="text-muted-foreground text-base">Default fallback preview</span>
                 </div>
               )}
             </div>

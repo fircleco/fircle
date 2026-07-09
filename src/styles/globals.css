@@ -205,3 +205,8 @@
   transform: rotate(3deg) translate(0, -4px);
   /* box-shadow: 0 0 10px var(--primary), 0 0 5px var(--primary); */
 }
+
+.logo-parts-stroke {
+  -webkit-text-stroke: 0.05px var(--color-background);
+  text-stroke: 0.05px var(--color-background);
+}
