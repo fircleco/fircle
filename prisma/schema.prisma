@@ -83,22 +83,23 @@ enum NotificationDeliveryStatus {
 }
 
 model Family {
-  id          String         @id @default(cuid())
-  name        String
-  slug        String         @unique
-  image       String?
-  description String?
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-  users       User[]
-  members     FamilyMember[]
-  invites     Invite[]
-  domains     Domain[]
-  features    Ffeature[]
+  id                     String                    @id @default(cuid())
+  name                   String
+  slug                   String                    @unique
+  image                  String?
+  description            String?
+  brandingConfig         Json?
+  createdAt              DateTime                  @default(now())
+  updatedAt              DateTime                  @updatedAt
+  users                  User[]
+  members                FamilyMember[]
+  invites                Invite[]
+  domains                Domain[]
+  features               Ffeature[]
   integrationCredentials IntegrationCredential[]
-  notifications Notification[]
+  notifications          Notification[]
   notificationPreferences NotificationPreference[]
-  pushSubscriptions PushSubscription[]
+  pushSubscriptions      PushSubscription[]
 }
 
 model Domain {

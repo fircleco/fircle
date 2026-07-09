@@ -149,11 +149,11 @@ Prework lockup touch matrix (must be verified complete before Phase 1 implementa
 
 #### Tasks
 
-- [ ] Add nullable `brandingConfig` field to `Family` model in [prisma/schema.prisma](prisma/schema.prisma) using JSON type.
-- [ ] Create and apply additive migration for new `brandingConfig` field under [prisma/migrations](prisma/migrations).
-- [ ] Add typed branding schema validator (zod) for `brandingConfig` in [src/lib/branding/branding-config.ts](src/lib/branding/branding-config.ts).
-- [ ] Add a provided font-list config module (font names + normalization helpers) in [src/lib/branding/logotype-fonts.ts](src/lib/branding/logotype-fonts.ts).
-- [ ] Add helper to generate safe `api.fonts.coollabs.io` stylesheet URLs for selected allowlisted fonts in [src/lib/branding/logotype-fonts.ts](src/lib/branding/logotype-fonts.ts).
+- [x] Add nullable `brandingConfig` field to `Family` model in [prisma/schema.prisma](prisma/schema.prisma) using JSON type.
+- [x] Create and apply additive migration for new `brandingConfig` field under [prisma/migrations](prisma/migrations).
+- [x] Add typed branding schema validator (zod) for `brandingConfig` in [src/lib/branding/branding-config.ts](src/lib/branding/branding-config.ts).
+- [x] Add a provided font-list config module (font names + normalization helpers) in [src/lib/branding/logotype-fonts.ts](src/lib/branding/logotype-fonts.ts).
+- [x] Add helper to generate safe `api.fonts.coollabs.io` stylesheet URLs for selected allowlisted fonts in [src/lib/branding/logotype-fonts.ts](src/lib/branding/logotype-fonts.ts).
 
 ### Phase 2: Owner/Admin Family Branding API
 
@@ -205,7 +205,8 @@ Prework lockup touch matrix (must be verified complete before Phase 1 implementa
 - [ ] Add or extend brand-context/rendering tests for fallback lockup continuity when no logotype font is active in [test/lib/brand-context.test.ts](test/lib/brand-context.test.ts).
 - [ ] Add router-level tests for owner/admin mutation authorization and family scoping in [test/server/api/routers/invite.test.ts](test/server/api/routers/invite.test.ts).
 - [ ] Add tests for brandingConfig validation, normalization, and fallback behavior in [test/server/api/routers/invite.test.ts](test/server/api/routers/invite.test.ts).
-- [ ] Run `pnpm lint`, `pnpm typecheck`, and targeted tests for touched modules.
+- [x] Run `pnpm typecheck` and targeted tests for touched modules.
+- [ ] Run `pnpm lint`.
 - [ ] Perform manual checks for desktop/mobile shell placements and loading state rendering.
 
 ## Acceptance Criteria
