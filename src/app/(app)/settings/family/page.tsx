@@ -9,6 +9,7 @@ import { AlertCircle, Camera, Loader } from "~/components/ui/icons";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import { Logo } from "~/components/ui/logo";
 import { Skeleton } from "~/components/ui/skeleton";
 import { tryParseBrandingConfig } from "~/lib/branding/branding-config";
 import {
@@ -555,8 +556,9 @@ export default function FamilySettingsPage() {
 
             <div className="space-y-2 rounded-xl border bg-card/80 p-4">
               <p className="text-muted-foreground text-xs">Live preview</p>
+              <div className="inline-flex items-center gap-3 rounded-lg border bg-background px-5 py-4 text-lg">
               {resolvedSelectedLogotypeFont ? (
-                <div className="relative inline-flex min-h-36 items-center justify-center px-6 py-8">
+                <div className="relative inline-flex items-center justify-center px-6">
                   <span
                     className="font-medium pointer-events-none absolute left-0 top-1/2 -translate-x-[28%] -translate-y-[98%] logo-parts-stroke text-base leading-none"
                   >
@@ -575,11 +577,15 @@ export default function FamilySettingsPage() {
                   </span>
                 </div>
               ) : (
-                <div className="inline-flex items-center gap-3 rounded-lg border bg-background px-5 py-4 text-lg">
-                  <span className="font-semibold text-2xl">Fircle</span>
-                  <span className="text-muted-foreground text-base">Default fallback preview</span>
-                </div>
-              )}
+                <>
+                  <span className="flex items-center gap-4">
+                    <Logo className="h-8 w-auto text-foreground" aria-hidden="true" />
+                    <span className="font-semibold text-2xl leading-none tracking-tight">Fircle</span>
+                  </span>
+                  <span className="text-muted-foreground text-sm">Default fallback preview</span>
+                </>
+                )}
+              </div>
             </div>
 
             {hasInvalidBrandingConfig ? (
