@@ -495,15 +495,15 @@ export default function FamilySettingsPage() {
 
           <div className="space-y-3 rounded-2xl border bg-muted/10 p-4">
             <div className="space-y-1">
-              <p className="font-medium text-sm">Family logotype font</p>
+              <p className="font-medium text-sm">Family logotype</p>
               <p className="text-muted-foreground text-xs">
-                Choose from {logotypeFontMetadata.names.length} allowlisted fonts served by {logotypeFontMetadata.provider}.
+                Choose a style for how your family name appears across your space.
               </p>
             </div>
 
             <div className="space-y-1.5">
               <label htmlFor="family-logotype-font" className="text-sm font-medium">
-                Logotype style
+                Style
               </label>
               <select
                 id="family-logotype-font"
