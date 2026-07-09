@@ -55,6 +55,37 @@ describe("resolveBrandContextFromHeaders", () => {
     expect(context.appDescription).toContain("The Ng Fircle");
   });
 
+  it("keeps fallback lockup continuity when family name normalizes to empty", async () => {
+    resolveTenantFromHeadersMock.mockResolvedValue({
+      state: "resolved",
+      host: "family.fircle.app",
+      canonicalHost: "family.fircle.app",
+      domain: {
+        id: "domain-3",
+        familyId: "family-3",
+        domain: "family.fircle.app",
+        isPrimary: true,
+        verifiedAt: new Date("2030-01-01T00:00:00.000Z"),
+      },
+      family: {
+        id: "family-3",
+        name: "The Family",
+        slug: "family",
+      },
+    });
+
+    const context = await resolveBrandContextFromHeaders(new Headers({ host: "family.fircle.app" }));
+
+    expect(context.familyBaseName).toBe("Family");
+    expect(context.familyDisplayName).toBe("Family");
+    expect(context.primaryLockup).toBe("The Family Fircle");
+    expect(context.primaryLockupParts).toEqual({
+      leading: "The",
+      familyName: "Family",
+      trailing: "Fircle",
+    });
+  });
+
   it("returns fallback context when tenant is not found", async () => {
     resolveTenantFromHeadersMock.mockResolvedValue({
       state: "not-found",

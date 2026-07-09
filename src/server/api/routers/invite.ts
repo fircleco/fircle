@@ -456,9 +456,7 @@ export const inviteRouter = createTRPCRouter({
       const brandingConfigUpdateValue =
         input.brandingConfig === undefined
           ? undefined
-          : input.brandingConfig === null
-            ? Prisma.JsonNull
-            : input.brandingConfig
+          : (input.brandingConfig ?? Prisma.JsonNull)
 
       const updatedFamily = await ctx.db.family.update({
         where: { id: input.familyId },

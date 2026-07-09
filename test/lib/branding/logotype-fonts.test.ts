@@ -27,6 +27,25 @@ describe("logotype font allowlist", () => {
       "https://api.fonts.coollabs.io/css2?family=Manufacturing+Consent&display=swap",
     );
   });
+
+  it("normalizes and safely encodes stylesheet URL font names", () => {
+    expect(buildLogotypeFontStylesheetUrl("  Mr   De   Haviland ")).toBe(
+      "https://api.fonts.coollabs.io/css2?family=Mr+De+Haviland&display=swap",
+    );
+  });
+
+  it("accepts disabled logotype configs without fontName", () => {
+    const parsed = brandingConfigSchema.parse({
+      version: 1,
+      logotype: {
+        enabled: false,
+        fontProvider: "api.fonts.coollabs.io",
+      },
+    });
+
+    expect(parsed.logotype.enabled).toBe(false);
+    expect(getBrandingConfigFontStylesheetUrl(parsed)).toBeNull();
+  });
 });
 
 describe("brandingConfig schema", () => {

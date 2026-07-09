@@ -595,7 +595,7 @@ describe("inviteRouter.updateFamilyIdentity brandingConfig", () => {
   const memberId = "clh0000000000000000000602";
 
   it("stores normalized brandingConfig for owners and admins", async () => {
-    const update = vi.fn().mockResolvedValue({
+    const update = vi.fn(async () => ({
       id: familyId,
       name: "Ng",
       description: "Private family space",
@@ -608,7 +608,7 @@ describe("inviteRouter.updateFamilyIdentity brandingConfig", () => {
           fontProvider: "api.fonts.coollabs.io",
         },
       },
-    });
+    }));
 
     const db = {
       familyMember: {
@@ -625,7 +625,7 @@ describe("inviteRouter.updateFamilyIdentity brandingConfig", () => {
 
     const caller = createCaller(db);
 
-    const result = await caller.updateFamilyIdentity({
+    const updateCall = caller.updateFamilyIdentity({
       familyId,
       name: "Ng",
       description: "Private family space",
@@ -640,21 +640,21 @@ describe("inviteRouter.updateFamilyIdentity brandingConfig", () => {
       },
     });
 
-    expect(update).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({
-          brandingConfig: {
-            version: 1,
-            logotype: {
-              enabled: true,
-              fontName: "Manufacturing Consent",
-              fontProvider: "api.fonts.coollabs.io",
-            },
-          },
-        }),
-      }),
-    );
-    expect(result.brandingConfig).toEqual({
+    await expect(updateCall).resolves.toMatchObject({
+      brandingConfig: {
+        version: 1,
+        logotype: {
+          enabled: true,
+          fontName: "Manufacturing Consent",
+          fontProvider: "api.fonts.coollabs.io",
+        },
+      },
+    });
+
+    const firstUpdateCallArgs = update.mock.calls[0] as [{ data?: { brandingConfig?: unknown } }] | undefined;
+    const firstUpdateCall = firstUpdateCallArgs?.[0];
+
+    expect(firstUpdateCall?.data?.brandingConfig).toEqual({
       version: 1,
       logotype: {
         enabled: true,
@@ -662,6 +662,60 @@ describe("inviteRouter.updateFamilyIdentity brandingConfig", () => {
         fontProvider: "api.fonts.coollabs.io",
       },
     });
+  });
+
+  it("throws FORBIDDEN for non-admin members", async () => {
+    const db = {
+      familyMember: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: memberId,
+          familyId,
+          role: "MEMBER",
+        }),
+      },
+      family: {
+        update: vi.fn(),
+      },
+    } as never;
+
+    const caller = createCaller(db);
+
+    await expect(
+      caller.updateFamilyIdentity({
+        familyId,
+        name: "Ng",
+        description: null,
+        image: null,
+        brandingConfig: null,
+      }),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+
+    expect((db as { family: { update: ReturnType<typeof vi.fn> } }).family.update).not.toHaveBeenCalled();
+  });
+
+  it("throws FORBIDDEN when caller is not scoped to target family", async () => {
+    const db = {
+      familyMember: {
+        findUnique: vi.fn().mockResolvedValue(null),
+      },
+      family: {
+        update: vi.fn(),
+      },
+    } as never;
+
+    const caller = createCaller(db);
+
+    await expect(
+      caller.updateFamilyIdentity({
+        familyId,
+        name: "Ng",
+        description: null,
+        image: null,
+        brandingConfig: null,
+      }),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+
+    expect((db as { family: { update: ReturnType<typeof vi.fn> } }).family.update).not.toHaveBeenCalled();
   });
 
   it("rejects non-allowlisted branding font names before save", async () => {

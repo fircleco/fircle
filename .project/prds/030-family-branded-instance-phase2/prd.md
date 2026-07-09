@@ -1,6 +1,6 @@
 ---
 title: "Family Branded Instance Phase 2 - Logotype Fonts via Family brandingConfig"
-status: in-progress
+status: completed
 references:
   - type: doc
     url: .project/brief.md
@@ -201,29 +201,28 @@ Prework lockup touch matrix (must be verified complete before Phase 1 implementa
 
 #### Tasks
 
-- [ ] Add tests for allowlist validation and `api.fonts.coollabs.io` URL generation in [test/lib/branding/logotype-fonts.test.ts](test/lib/branding/logotype-fonts.test.ts).
-- [ ] Add or extend brand-context/rendering tests for fallback lockup continuity when no logotype font is active in [test/lib/brand-context.test.ts](test/lib/brand-context.test.ts).
-- [ ] Add router-level tests for owner/admin mutation authorization and family scoping in [test/server/api/routers/invite.test.ts](test/server/api/routers/invite.test.ts).
+- [x] Add tests for allowlist validation and `api.fonts.coollabs.io` URL generation in [test/lib/branding/logotype-fonts.test.ts](test/lib/branding/logotype-fonts.test.ts).
+- [x] Add or extend brand-context/rendering tests for fallback lockup continuity when no logotype font is active in [test/lib/brand-context.test.ts](test/lib/brand-context.test.ts).
 - [x] Add router-level tests for owner/admin mutation authorization and family scoping in [test/server/api/routers/invite.test.ts](test/server/api/routers/invite.test.ts).
 - [x] Add tests for brandingConfig validation, normalization, and fallback behavior in [test/server/api/routers/invite.test.ts](test/server/api/routers/invite.test.ts).
 - [x] Run `pnpm typecheck` and targeted tests for touched modules.
-- [ ] Run `pnpm lint`.
-- [ ] Perform manual checks for desktop/mobile shell placements and loading state rendering.
+- [x] Run `pnpm lint`.
+- [x] Perform manual checks for desktop/mobile shell placements and loading state rendering.
 
 ## Acceptance Criteria
 
-- [ ] Prework lockup alignment is completed: family lockup baseline reads `The FamilyName Fircle`.
-- [ ] Metadata lockup outputs that use family lockup text are updated to `The FamilyName Fircle`.
-- [ ] Manifest generator lockup outputs that use family lockup text are updated to `The FamilyName Fircle`.
-- [ ] Email lockup outputs that use family lockup text are updated to `The FamilyName Fircle`.
-- [ ] In logotype-enabled state, lockup composition is exact: `The` (small sans, top-left), `FamilyName` (selected custom font), `Fircle` (small sans, bottom-right).
-- [ ] Logotype personalization is represented through `Family.brandingConfig` only.
-- [ ] The font choices available to families are limited to a provided allowlist of font names loaded via `api.fonts.coollabs.io`.
-- [ ] Owner/admin users can manage logotype enablement and font selection through Family Settings and Family identity APIs.
-- [ ] Desktop sidebar, mobile header center, mobile menu sheet header, and membership loading footer apply resolved selected-font styling when active.
-- [ ] When logotype is not enabled, nav surfaces fall back to `Fircle` text with favicon.
-- [ ] When logotype is not enabled, membership guard loading area renders no logo mark while leaving `Powered by Fircle` untouched.
-- [ ] Unset, invalid, or conflicting font-selection states preserve fallback behavior and show remediation where applicable.
-- [ ] Existing Phase 1 host-aware metadata, PWA, and email branding behavior remains unaffected.
-- [ ] A single additive migration adds nullable `Family.brandingConfig` with no destructive schema changes.
-- [ ] Lint, typecheck, and targeted tests pass for touched areas.
+- [x] Prework lockup alignment is completed: family lockup baseline reads `The FamilyName Fircle`.
+- [x] Metadata lockup outputs that use family lockup text are updated to `The FamilyName Fircle`.
+- [x] Manifest generator lockup outputs that use family lockup text are updated to `The FamilyName Fircle`.
+- [x] Email lockup outputs that use family lockup text are updated to `The FamilyName Fircle`.
+- [x] In logotype-enabled state, lockup composition is exact: `The` (small sans, top-left), `FamilyName` (selected custom font), `Fircle` (small sans, bottom-right).
+- [x] Logotype personalization is represented through `Family.brandingConfig` only.
+- [x] The font choices available to families are limited to a provided allowlist of font names loaded via `api.fonts.coollabs.io`.
+- [x] Owner/admin users can manage logotype enablement and font selection through Family Settings and Family identity APIs.
+- [x] Desktop sidebar, mobile header center, mobile menu sheet header, and membership loading footer apply resolved selected-font styling when active.
+- [x] When logotype is not enabled, nav surfaces fall back to `Fircle` text with favicon.
+- [x] When logotype is not enabled, membership guard loading area renders no logo mark while leaving `Powered by Fircle` untouched.
+- [x] Unset, invalid, or conflicting font-selection states preserve fallback behavior and show remediation where applicable.
+- [x] Existing Phase 1 host-aware metadata, PWA, and email branding behavior remains unaffected.
+- [x] A single additive migration adds nullable `Family.brandingConfig` with no destructive schema changes.
+- [x] Lint, typecheck, and targeted tests pass for touched areas.

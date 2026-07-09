@@ -48,7 +48,7 @@ function isSettingsPath(pathname: string) {
   return pathname === "/settings" || pathname.startsWith("/settings/") || pathname.startsWith("/setting/");
 }
 
-export function MobileHeader({ primaryLockup }: { primaryLockup: string }) {
+export function MobileHeader({ primaryLockup: _primaryLockup }: { primaryLockup: string }) {
   const pathname = usePathname();
   const shouldPollUnread = !pathname.startsWith("/notifications");
 
