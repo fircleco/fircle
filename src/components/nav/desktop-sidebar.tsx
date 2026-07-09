@@ -95,7 +95,7 @@ export function DesktopSidebar({ primaryLockup }: { primaryLockup: string }) {
 
   return (
     <aside className="fixed top-0 left-0 hidden h-screen w-72 border-r border-border bg-background md:flex md:flex-col">
-      <div className={`flex h-16 items-center px-6 ${selectedLogotypeFontName && "ml-5"}`}>
+      <div className={`flex h-16 items-center px-6 ${selectedLogotypeFontName && "ml-2"}`}>
         <Link href="/" className="inline-flex items-center gap-2" aria-label={`${primaryLockup} home`}>
           {selectedLogotypeFontName ? (
             <FamilyLogotypeLockup
@@ -115,7 +115,7 @@ export function DesktopSidebar({ primaryLockup }: { primaryLockup: string }) {
         </Link>
       </div>
 
-      <nav className="mt-4 flex flex-1 flex-col gap-2 px-4">
+      <nav className="mt-2 flex flex-1 flex-col gap-2 px-4">
         {items.map((item) => {
           const active = isActivePath(pathname, item.href);
           const Icon = item.icon;
