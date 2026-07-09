@@ -34,5 +34,5 @@ export function formatFamilyLockup(value: string): string {
     return "Fircle";
   }
 
-  return `${familyName} on Fircle`;
+  return `The ${familyName} Fircle`;
 }

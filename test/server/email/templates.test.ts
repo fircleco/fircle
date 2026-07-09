@@ -14,8 +14,8 @@ describe("buildInviteCreatedTemplate", () => {
       expiresAt: new Date("2030-01-01T00:00:00.000Z"),
     });
 
-    expect(result.subject).toContain("Ng on Fircle");
-    expect(result.text).toContain("join Ng on Fircle.");
+    expect(result.subject).toContain("The Ng Fircle");
+    expect(result.text).toContain("join The Ng Fircle.");
     expect(result.actionUrl).toBe("https://fircle.example.com/auth/invite/INVITE_CODE_123");
     expect(result.text).toContain("This link expires on Tue, 01 Jan 2030 00:00:00 GMT.");
     expect(result.html).toContain("Accept invite");
@@ -45,8 +45,8 @@ describe("buildClaimLinkCreatedTemplate", () => {
       expiresAt: new Date("2031-02-03T04:05:06.000Z"),
     });
 
-    expect(result.subject).toContain("Grandma Mary profile in Ng on Fircle");
-    expect(result.text).toContain("profile in Ng on Fircle.");
+    expect(result.subject).toContain("Grandma Mary profile in The Ng Fircle");
+    expect(result.text).toContain("profile in The Ng Fircle.");
     expect(result.actionUrl).toBe("https://fircle.example.com/auth/claim/token%2Fwith%20space");
     expect(result.text).toContain("This link expires on Mon, 03 Feb 2031 04:05:06 GMT.");
     expect(result.html).toContain("Claim profile");

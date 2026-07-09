@@ -53,16 +53,21 @@ describe("Phase 5 metadata and manifest branding", () => {
       shouldRedirectToCanonical: false,
       familyBaseName: "Ng",
       familyDisplayName: "Ng",
-      primaryLockup: "Ng on Fircle",
-      appDescription: "Ng on Fircle: a private family space for sharing updates, photos, and memories.",
+      primaryLockup: "The Ng Fircle",
+      primaryLockupParts: {
+        leading: "The",
+        familyName: "Ng",
+        trailing: "Fircle",
+      },
+      appDescription: "The Ng Fircle: a private family space for sharing updates, photos, and memories.",
     });
 
     const manifestResponse = await manifestGet();
     const manifest = (await manifestResponse.json()) as ManifestPayload;
 
-    expect(manifest.name).toBe("Ng on Fircle");
+    expect(manifest.name).toBe("The Ng Fircle");
     expect(manifest.short_name).toBe("Ng");
-    expect(manifest.description).toContain("Ng on Fircle");
+    expect(manifest.description).toContain("The Ng Fircle");
   });
 
   it("returns fallback manifest values for an unknown host", async () => {
@@ -74,6 +79,7 @@ describe("Phase 5 metadata and manifest branding", () => {
       familyBaseName: null,
       familyDisplayName: "Family",
       primaryLockup: "Fircle",
+      primaryLockupParts: null,
       appDescription: "A private family space for sharing updates, photos, and memories.",
     });
 

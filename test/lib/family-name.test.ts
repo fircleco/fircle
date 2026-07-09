@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatFamilyDisplayName, normalizeFamilyNameInput } from "~/lib/family-name";
+import { formatFamilyDisplayName, formatFamilyLockup, normalizeFamilyNameInput } from "~/lib/family-name";
 
 describe("normalizeFamilyNameInput", () => {
   it("removes leading article and trailing family suffix", () => {
@@ -22,5 +22,16 @@ describe("formatFamilyDisplayName", () => {
   it("supports formatting options", () => {
     expect(formatFamilyDisplayName("Walker", { includeArticle: false })).toBe("Walker Family");
     expect(formatFamilyDisplayName("Walker", { includeSuffix: false })).toBe("The Walker");
+  });
+});
+
+describe("formatFamilyLockup", () => {
+  it("formats the family lockup baseline", () => {
+    expect(formatFamilyLockup("Walker")).toBe("The Walker Fircle");
+    expect(formatFamilyLockup("The Walker Family")).toBe("The Walker Fircle");
+  });
+
+  it("falls back for empty family names", () => {
+    expect(formatFamilyLockup("   ")).toBe("Fircle");
   });
 });

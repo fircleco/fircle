@@ -1,6 +1,6 @@
 ---
 title: "Family Branded Instance Phase 2 - Logotype Fonts via Family brandingConfig"
-status: draft
+status: in-progress
 references:
   - type: doc
     url: .project/brief.md
@@ -117,21 +117,21 @@ Lockup composition specification (must be implemented exactly):
 - `The` and `Fircle` must not inherit the selected custom logotype font.
 
 Prework tasks:
-- [ ] Update brand lockup resolver output in [src/lib/brand-context.ts](src/lib/brand-context.ts) to emit `The FamilyName Fircle` for family lockup contexts.
-- [ ] Update canonical lockup formatter behavior in [src/lib/family-name.ts](src/lib/family-name.ts) to emit `The FamilyName Fircle` where family lockup text is generated.
-- [ ] Update existing lockup assertions in [test/lib/brand-context.test.ts](test/lib/brand-context.test.ts) to match the new wording.
-- [ ] Add lockup composition helper/component API that separates `the`, `familyName`, and `fircle` segments for structured rendering in [src/lib/brand-context.ts](src/lib/brand-context.ts) and/or [src/components/nav](src/components/nav).
-- [ ] Update metadata lockup outputs to use `The FamilyName Fircle` where family lockup text is used in [src/app/layout.tsx](src/app/layout.tsx).
-- [ ] Update manifest generator lockup outputs to use `The FamilyName Fircle` where family lockup text is used in [src/app/manifest.json/route.ts](src/app/manifest.json/route.ts).
-- [ ] Update transactional email lockup wording/templates to use `The FamilyName Fircle` where family lockup text is used in [src/server/email/templates.ts](src/server/email/templates.ts).
-- [ ] Update auth route lockup usage to reflect the prework wording in [src/app/auth/page.tsx](src/app/auth/page.tsx), [src/app/auth/signin/page.tsx](src/app/auth/signin/page.tsx), and [src/app/auth/setup/page.tsx](src/app/auth/setup/page.tsx).
-- [ ] Update auth UI components receiving `primaryLockup` to reflect the prework wording in [src/components/auth/signin-form.tsx](src/components/auth/signin-form.tsx) and [src/components/auth/first-family-setup-form.tsx](src/components/auth/first-family-setup-form.tsx).
-- [ ] Update PWA install prompt lockup usage to reflect the prework wording in [src/components/pwa/pwa-install-prompt.tsx](src/components/pwa/pwa-install-prompt.tsx).
-- [ ] Update router-level lockup/fallback copy usage in [src/server/api/routers/invite.ts](src/server/api/routers/invite.ts) and [src/server/api/routers/family-member.ts](src/server/api/routers/family-member.ts).
-- [ ] Add/adjust metadata assertions for lockup wording in [test/app/layout-metadata.test.ts](test/app/layout-metadata.test.ts).
-- [ ] Add/adjust manifest assertions for lockup wording in [test/app/brand-route-wiring.test.ts](test/app/brand-route-wiring.test.ts).
-- [ ] Add/adjust email template assertions for lockup wording in [test/server/email/templates.test.ts](test/server/email/templates.test.ts).
-- [ ] Add/adjust auth and install prompt assertions for lockup wording in [test/app/brand-route-wiring.test.ts](test/app/brand-route-wiring.test.ts).
+- [x] Update brand lockup resolver output in [src/lib/brand-context.ts](src/lib/brand-context.ts) to emit `The FamilyName Fircle` for family lockup contexts.
+- [x] Update canonical lockup formatter behavior in [src/lib/family-name.ts](src/lib/family-name.ts) to emit `The FamilyName Fircle` where family lockup text is generated.
+- [x] Update existing lockup assertions in [test/lib/brand-context.test.ts](test/lib/brand-context.test.ts) to match the new wording.
+- [x] Add lockup composition helper/component API that separates `the`, `familyName`, and `fircle` segments for structured rendering in [src/lib/brand-context.ts](src/lib/brand-context.ts) and/or [src/components/nav](src/components/nav).
+- [x] Update metadata lockup outputs to use `The FamilyName Fircle` where family lockup text is used in [src/app/layout.tsx](src/app/layout.tsx).
+- [x] Update manifest generator lockup outputs to use `The FamilyName Fircle` where family lockup text is used in [src/app/manifest.json/route.ts](src/app/manifest.json/route.ts).
+- [x] Update transactional email lockup wording/templates to use `The FamilyName Fircle` where family lockup text is used in [src/server/email/templates.ts](src/server/email/templates.ts).
+- [x] Update auth route lockup usage to reflect the prework wording in [src/app/auth/page.tsx](src/app/auth/page.tsx), [src/app/auth/signin/page.tsx](src/app/auth/signin/page.tsx), and [src/app/auth/setup/page.tsx](src/app/auth/setup/page.tsx).
+- [x] Update auth UI components receiving `primaryLockup` to reflect the prework wording in [src/components/auth/signin-form.tsx](src/components/auth/signin-form.tsx) and [src/components/auth/first-family-setup-form.tsx](src/components/auth/first-family-setup-form.tsx).
+- [x] Update PWA install prompt lockup usage to reflect the prework wording in [src/components/pwa/pwa-install-prompt.tsx](src/components/pwa/pwa-install-prompt.tsx).
+- [x] Update router-level lockup/fallback copy usage in [src/server/api/routers/invite.ts](src/server/api/routers/invite.ts) and [src/server/api/routers/family-member.ts](src/server/api/routers/family-member.ts).
+- [x] Add/adjust metadata assertions for lockup wording in [test/app/layout-metadata.test.ts](test/app/layout-metadata.test.ts).
+- [x] Add/adjust manifest assertions for lockup wording in [test/app/brand-route-wiring.test.ts](test/app/brand-route-wiring.test.ts).
+- [x] Add/adjust email template assertions for lockup wording in [test/server/email/templates.test.ts](test/server/email/templates.test.ts).
+- [x] Add/adjust auth and install prompt assertions for lockup wording in [test/app/brand-route-wiring.test.ts](test/app/brand-route-wiring.test.ts).
 
 Prework lockup touch matrix (must be verified complete before Phase 1 implementation):
 - Core lockup logic: [src/lib/brand-context.ts](src/lib/brand-context.ts), [src/lib/family-name.ts](src/lib/family-name.ts)

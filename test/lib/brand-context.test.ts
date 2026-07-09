@@ -45,9 +45,14 @@ describe("resolveBrandContextFromHeaders", () => {
       shouldRedirectToCanonical: false,
       familyBaseName: "Ng",
       familyDisplayName: "Ng",
-      primaryLockup: "Ng on Fircle",
+      primaryLockup: "The Ng Fircle",
+      primaryLockupParts: {
+        leading: "The",
+        familyName: "Ng",
+        trailing: "Fircle",
+      },
     });
-    expect(context.appDescription).toContain("Ng on Fircle");
+    expect(context.appDescription).toContain("The Ng Fircle");
   });
 
   it("returns fallback context when tenant is not found", async () => {
@@ -68,6 +73,7 @@ describe("resolveBrandContextFromHeaders", () => {
       familyBaseName: null,
       familyDisplayName: "Family",
       primaryLockup: "Fircle",
+      primaryLockupParts: null,
       appDescription: "A private family space for sharing updates, photos, and memories.",
     });
   });
@@ -98,6 +104,11 @@ describe("resolveBrandContextFromHeaders", () => {
     expect(context.shouldRedirectToCanonical).toBe(true);
     expect(context.host).toBe("family.example.com");
     expect(context.canonicalHost).toBe("ng.fircle.app");
-    expect(context.primaryLockup).toBe("Ng on Fircle");
+    expect(context.primaryLockup).toBe("The Ng Fircle");
+    expect(context.primaryLockupParts).toEqual({
+      leading: "The",
+      familyName: "Ng",
+      trailing: "Fircle",
+    });
   });
 });

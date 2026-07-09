@@ -29,10 +29,12 @@ describe("Phase 5 brand lockup wiring", () => {
     const signinPage = readWorkspaceFile("src/app/auth/signin/page.tsx");
     const signinForm = readWorkspaceFile("src/components/auth/signin-form.tsx");
     const setupPage = readWorkspaceFile("src/app/auth/setup/page.tsx");
+    const pwaPrompt = readWorkspaceFile("src/components/pwa/pwa-install-prompt.tsx");
 
     expect(authLanding).toContain("{brandContext.primaryLockup}");
     expect(signinPage).toContain("<SignInForm primaryLockup={brandContext.primaryLockup} />");
     expect(signinForm).toContain("Enter your credentials for {primaryLockup}");
     expect(setupPage).toContain("<FirstFamilySetupForm primaryLockup={brandContext.primaryLockup} />");
+    expect(pwaPrompt).toContain("Install {primaryLockup}");
   });
 });

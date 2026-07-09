@@ -13,6 +13,11 @@ export type BrandContext = {
   familyBaseName: string | null;
   familyDisplayName: string;
   primaryLockup: string;
+  primaryLockupParts: {
+    leading: string;
+    familyName: string;
+    trailing: string;
+  } | null;
   appDescription: string;
 };
 
@@ -38,7 +43,7 @@ function buildResolvedBrandContext(input: {
     includeArticle: false,
     includeSuffix: false,
   });
-  const primaryLockup = `${familyDisplayName} on Fircle`;
+  const primaryLockup = `The ${familyDisplayName} Fircle`;
 
   return {
     state: input.state,
@@ -48,7 +53,12 @@ function buildResolvedBrandContext(input: {
     familyBaseName,
     familyDisplayName,
     primaryLockup,
-    appDescription: `${familyDisplayName} on Fircle: a private family space for sharing updates, photos, and memories.`,
+    primaryLockupParts: {
+      leading: "The",
+      familyName: familyDisplayName,
+      trailing: "Fircle",
+    },
+    appDescription: `${primaryLockup}: a private family space for sharing updates, photos, and memories.`,
   };
 }
 
@@ -64,6 +74,7 @@ function buildFallbackBrandContext(input: {
     familyBaseName: null,
     familyDisplayName: "Family",
     primaryLockup: FALLBACK_LOCKUP,
+    primaryLockupParts: null,
     appDescription: FALLBACK_APP_DESCRIPTION,
   };
 }
