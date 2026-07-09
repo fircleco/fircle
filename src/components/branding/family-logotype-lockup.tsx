@@ -1,8 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
-
-import { buildLogotypeFontStylesheetUrl } from "~/lib/branding/logotype-fonts";
+import { useLogotypeFontStylesheet } from "~/lib/branding/font-loader";
 import { cn } from "~/lib/utils";
 
 type FamilyLogotypeLockupProps = {
@@ -22,32 +20,7 @@ export function FamilyLogotypeLockup({
   leadingClassName,
   trailingClassName,
 }: FamilyLogotypeLockupProps) {
-  const stylesheetUrl = buildLogotypeFontStylesheetUrl(fontName);
-
-  useEffect(() => {
-    if (!document.head.querySelector("link[data-logotype-font-preconnect='1']")) {
-      const preconnectLink = document.createElement("link");
-      preconnectLink.rel = "preconnect";
-      preconnectLink.href = "https://api.fonts.coollabs.io";
-      preconnectLink.crossOrigin = "anonymous";
-      preconnectLink.dataset.logotypeFontPreconnect = "1";
-      document.head.appendChild(preconnectLink);
-    }
-
-    if (
-      document.head.querySelector(
-        `link[data-logotype-font-stylesheet='1'][href='${stylesheetUrl}']`,
-      )
-    ) {
-      return;
-    }
-
-    const stylesheetLink = document.createElement("link");
-    stylesheetLink.rel = "stylesheet";
-    stylesheetLink.href = stylesheetUrl;
-    stylesheetLink.dataset.logotypeFontStylesheet = "1";
-    document.head.appendChild(stylesheetLink);
-  }, [stylesheetUrl]);
+  useLogotypeFontStylesheet(fontName);
 
   return (
     <span
