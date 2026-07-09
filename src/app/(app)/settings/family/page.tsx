@@ -7,6 +7,7 @@ import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { AlertCircle, Camera, Loader } from "~/components/ui/icons";
 
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
+import { FamilyLogotypeLockup } from "~/components/branding/family-logotype-lockup";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Logo } from "~/components/ui/logo";
@@ -15,7 +16,6 @@ import { tryParseBrandingConfig } from "~/lib/branding/branding-config";
 import {
   LOGOTYPE_FONT_NAMES,
   LOGOTYPE_FONT_PROVIDER,
-  buildLogotypeFontStylesheetUrl,
   resolveLogotypeFontName,
 } from "~/lib/branding/logotype-fonts";
 import { compressImage, createInstantPreviewUrl, resolveMediaMimeType } from "~/lib/media-compression";
@@ -141,9 +141,6 @@ export default function FamilySettingsPage() {
     resolveLogotypeFontName(selectedLogotypeFontName);
   const resolvedExistingBrandingConfig = tryParseBrandingConfig(brandingConfig);
   const hasInvalidBrandingConfig = brandingConfig !== null && resolvedExistingBrandingConfig === null;
-  const previewStylesheetUrl = resolvedSelectedLogotypeFont
-    ? buildLogotypeFontStylesheetUrl(resolvedSelectedLogotypeFont)
-    : null;
   const logotypeFontMetadata = useMemo(
     () => ({
       provider: LOGOTYPE_FONT_PROVIDER,
@@ -171,34 +168,6 @@ export default function FamilySettingsPage() {
     setSaveError(null);
     setIsPreviewConverting(false);
   }, [managementContextData?.family, resolvedExistingBrandingConfig]);
-
-  useEffect(() => {
-    if (!previewStylesheetUrl) {
-      return;
-    }
-
-    const preconnectSelector = "link[data-logotype-font-preconnect='1']";
-    const existingPreconnect = document.head.querySelector<HTMLLinkElement>(preconnectSelector);
-
-    if (!existingPreconnect) {
-      const preconnectLink = document.createElement("link");
-      preconnectLink.rel = "preconnect";
-      preconnectLink.href = "https://api.fonts.coollabs.io";
-      preconnectLink.crossOrigin = "anonymous";
-      preconnectLink.dataset.logotypeFontPreconnect = "1";
-      document.head.appendChild(preconnectLink);
-    }
-
-    const stylesheetLink = document.createElement("link");
-    stylesheetLink.rel = "stylesheet";
-    stylesheetLink.href = previewStylesheetUrl;
-    stylesheetLink.dataset.logotypeFontPreview = "1";
-    document.head.appendChild(stylesheetLink);
-
-    return () => {
-      stylesheetLink.remove();
-    };
-  }, [previewStylesheetUrl]);
 
   useEffect(() => {
     return () => {
@@ -558,24 +527,10 @@ export default function FamilySettingsPage() {
               <p className="text-muted-foreground text-xs">Live preview</p>
               <div className="inline-flex items-center gap-3 rounded-lg border bg-background px-5 py-4 text-lg">
               {resolvedSelectedLogotypeFont ? (
-                <div className="relative inline-flex items-center justify-center px-6">
-                  <span
-                    className="font-medium pointer-events-none absolute left-0 top-1/2 -translate-x-[28%] -translate-y-[98%] logo-parts-stroke text-base leading-none"
-                  >
-                    The
-                  </span>
-                  <span
-                    className="text-7xl leading-none"
-                    style={{ fontFamily: `"${resolvedSelectedLogotypeFont}", cursive` }}
-                  >
-                    {previewName}
-                  </span>
-                  <span
-                    className="font-medium pointer-events-none absolute right-0 top-1/2 translate-x-[-2%] translate-y-[95%] logo-parts-stroke text-base leading-none"
-                  >
-                    Fircle
-                  </span>
-                </div>
+                <FamilyLogotypeLockup
+                  familyName={previewName}
+                  fontName={resolvedSelectedLogotypeFont}
+                />
               ) : (
                 <>
                   <span className="flex items-center gap-4">

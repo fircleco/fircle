@@ -5,11 +5,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Bell, House, Image, Plus, Settings, Sparkles, User, Users } from "~/components/ui/icons";
 
+import { FamilyLogotypeLockup } from "~/components/branding/family-logotype-lockup";
 import { useGlobalComposer } from "~/components/feed/global-composer-provider";
 import { formatUnreadBadgeCount } from "~/components/nav/unread-badge";
 import { ThemeToggle } from "~/components/theme-toggle";
 import { Button } from "~/components/ui/button";
 import { getFeatureNavigationMetadata } from "~/lib/ffeatures/activation";
+import { tryParseBrandingConfig } from "~/lib/branding/branding-config";
+import { normalizeFamilyNameInput } from "~/lib/family-name";
 import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
 import { Logo } from "~/components/ui/logo";
@@ -49,6 +52,10 @@ export function DesktopSidebar({ primaryLockup }: { primaryLockup: string }) {
   });
 
   const familyId = managementContext.data?.family?.id;
+  const parsedBrandingConfig = tryParseBrandingConfig(managementContext.data?.family?.brandingConfig ?? null);
+  const selectedLogotypeFontName =
+    parsedBrandingConfig?.logotype.enabled ? (parsedBrandingConfig.logotype.fontName ?? null) : null;
+  const selectedFamilyName = normalizeFamilyNameInput(managementContext.data?.family?.name ?? "") || "Family";
   const unreadCountQuery = api.notification.getUnreadCount.useQuery(
     {
       familyId: familyId ?? "",
@@ -88,10 +95,23 @@ export function DesktopSidebar({ primaryLockup }: { primaryLockup: string }) {
 
   return (
     <aside className="fixed top-0 left-0 hidden h-screen w-72 border-r border-border bg-background md:flex md:flex-col">
-      <div className="flex h-16 items-center px-6">
+      <div className={`flex h-16 items-center px-6 ${selectedLogotypeFontName && "ml-5"}`}>
         <Link href="/" className="inline-flex items-center gap-2" aria-label={`${primaryLockup} home`}>
-          <Logo className="h-6 w-auto text-foreground" aria-hidden="true" />
-          <span className="font-semibold text-lg leading-none tracking-tight">{primaryLockup}</span>
+          {selectedLogotypeFontName ? (
+            <FamilyLogotypeLockup
+              familyName={selectedFamilyName}
+              fontName={selectedLogotypeFontName}
+              className="px-4"
+              familyNameClassName="text-[40px]"
+              leadingClassName="text-xs"
+              trailingClassName="text-xs translate-y-[90%]"
+            />
+          ) : (
+            <>
+              <Logo className="h-6 w-auto text-foreground" aria-hidden="true" />
+              <span className="font-semibold text-2xl leading-none tracking-tight">Fircle</span>
+            </>
+          )}
         </Link>
       </div>
 

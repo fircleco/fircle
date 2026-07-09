@@ -186,14 +186,14 @@ Prework lockup touch matrix (must be verified complete before Phase 1 implementa
 
 #### Tasks
 
-- [ ] Wire resolved selected font from `brandingConfig` into desktop sidebar brand rendering in [src/components/nav/desktop-sidebar.tsx](src/components/nav/desktop-sidebar.tsx).
-- [ ] Wire resolved selected font from `brandingConfig` into mobile center header and menu sheet header brand rendering in [src/components/nav/mobile-header.tsx](src/components/nav/mobile-header.tsx).
-- [ ] Wire resolved selected font from `brandingConfig` into membership loading footer brand rendering in [src/components/auth/membership-guard.tsx](src/components/auth/membership-guard.tsx).
-- [ ] Implement lockup layout rules in nav/membership logotype views: `The` top-left small sans, `FamilyName` custom font, `Fircle` bottom-right small sans.
-- [ ] Enforce nav fallback when logotype is not enabled: show `Fircle` text with favicon in [src/components/nav/desktop-sidebar.tsx](src/components/nav/desktop-sidebar.tsx) and [src/components/nav/mobile-header.tsx](src/components/nav/mobile-header.tsx).
-- [ ] Enforce membership guard fallback when logotype is not enabled: no logo mark is rendered while `Powered by Fircle` remains unchanged in [src/components/auth/membership-guard.tsx](src/components/auth/membership-guard.tsx).
-- [ ] Keep host-aware family lockup fallback behavior sourced from existing brand context where applicable in [src/lib/brand-context.ts](src/lib/brand-context.ts).
-- [ ] Ensure no branding reads depend on ffeatures paths for logotype selection.
+- [x] Wire resolved selected font from `brandingConfig` into desktop sidebar brand rendering in [src/components/nav/desktop-sidebar.tsx](src/components/nav/desktop-sidebar.tsx).
+- [x] Wire resolved selected font from `brandingConfig` into mobile center header and menu sheet header brand rendering in [src/components/nav/mobile-header.tsx](src/components/nav/mobile-header.tsx).
+- [x] Wire resolved selected font from `brandingConfig` into membership loading footer brand rendering in [src/components/auth/membership-guard.tsx](src/components/auth/membership-guard.tsx).
+- [x] Implement lockup layout rules in nav/membership logotype views: `The` top-left small sans, `FamilyName` custom font, `Fircle` bottom-right small sans.
+- [x] Enforce nav fallback when logotype is not enabled: show `Fircle` text with favicon in [src/components/nav/desktop-sidebar.tsx](src/components/nav/desktop-sidebar.tsx) and [src/components/nav/mobile-header.tsx](src/components/nav/mobile-header.tsx).
+- [x] Enforce membership guard fallback when logotype is not enabled: no logo mark is rendered while `Powered by Fircle` remains unchanged in [src/components/auth/membership-guard.tsx](src/components/auth/membership-guard.tsx).
+- [x] Keep host-aware family lockup fallback behavior sourced from existing brand context where applicable in [src/lib/brand-context.ts](src/lib/brand-context.ts).
+- [x] Ensure no branding reads depend on ffeatures paths for logotype selection.
 
 ### Phase 5: Verification and Regression Safety
 

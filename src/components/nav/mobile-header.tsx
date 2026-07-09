@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Bell, House, Image, Menu, Settings, Sparkles, User, Users } from "~/components/ui/icons";
 
+import { FamilyLogotypeLockup } from "~/components/branding/family-logotype-lockup";
 import { formatUnreadBadgeCount } from "~/components/nav/unread-badge";
 import { ThemeToggle } from "~/components/theme-toggle";
 import { Button } from "~/components/ui/button";
@@ -19,6 +20,8 @@ import {
   SheetTrigger,
 } from "~/components/ui/sheet";
 import { getFeatureNavigationMetadata } from "~/lib/ffeatures/activation";
+import { tryParseBrandingConfig } from "~/lib/branding/branding-config";
+import { normalizeFamilyNameInput } from "~/lib/family-name";
 import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
 
@@ -55,6 +58,10 @@ export function MobileHeader({ primaryLockup }: { primaryLockup: string }) {
   });
 
   const familyId = managementContext.data?.family?.id;
+  const parsedBrandingConfig = tryParseBrandingConfig(managementContext.data?.family?.brandingConfig ?? null);
+  const selectedLogotypeFontName =
+    parsedBrandingConfig?.logotype.enabled ? (parsedBrandingConfig.logotype.fontName ?? null) : null;
+  const selectedFamilyName = normalizeFamilyNameInput(managementContext.data?.family?.name ?? "") || "Family";
   const unreadCountQuery = api.notification.getUnreadCount.useQuery(
     {
       familyId: familyId ?? "",
@@ -112,10 +119,23 @@ export function MobileHeader({ primaryLockup }: { primaryLockup: string }) {
           </SheetTrigger>
 
           <SheetContent side="left" showCloseButton={false} className="w-[84vw] max-w-sm p-0">
-            <SheetHeader className="border-b px-5 py-3 pt-[calc(0.75rem+var(--safe-area-inset-top))]">
+            <SheetHeader className="border-b p-5 py-3 pt-[calc(0.75rem+var(--safe-area-inset-top))]">
               <SheetTitle className="inline-flex items-center gap-2 text-foreground">
-                <Logo className="h-6 w-auto shrink-0" aria-hidden="true" />
-                <span className="font-semibold text-base leading-none tracking-tight">{primaryLockup}</span>
+                {selectedLogotypeFontName ? (
+                  <FamilyLogotypeLockup
+                    familyName={selectedFamilyName}
+                    fontName={selectedLogotypeFontName}
+                    className="px-4"
+                    familyNameClassName="text-4xl"
+                    leadingClassName="text-[8px]"
+                    trailingClassName="text-[8px]"
+                  />
+                ) : (
+                  <>
+                    <Logo className="h-5.5 w-auto shrink-0" aria-hidden="true" />
+                    <span className="font-semibold text-xl leading-none tracking-tight">Fircle</span>
+                  </>
+                )}
               </SheetTitle>
             </SheetHeader>
             
@@ -170,10 +190,21 @@ export function MobileHeader({ primaryLockup }: { primaryLockup: string }) {
         </Sheet>
 
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <span className="inline-flex items-center gap-2 text-foreground">
-            <Logo className="h-6 w-auto shrink-0" aria-hidden="true" />
-            <span className="font-semibold text-base leading-none tracking-tight">{primaryLockup}</span>
-          </span>
+          {selectedLogotypeFontName ? (
+            <FamilyLogotypeLockup
+              familyName={selectedFamilyName}
+              fontName={selectedLogotypeFontName}
+              className="px-4"
+              familyNameClassName="text-4xl"
+              leadingClassName="text-[8px]"
+              trailingClassName="text-[8px]"
+            />
+          ) : (
+            <span className="inline-flex items-center gap-2 text-foreground">
+              <Logo className="h-5.5 w-auto shrink-0" aria-hidden="true" />
+              <span className="font-semibold text-xl leading-none tracking-tight">Fircle</span>
+            </span>
+          )}
         </div>
 
         <div className="ml-auto flex items-center gap-2">
