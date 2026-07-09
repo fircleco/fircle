@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs"
 import { TRPCError } from "@trpc/server"
-import { type Prisma } from "../../../../generated/prisma"
+import { Prisma } from "../../../../generated/prisma"
 import { z } from "zod"
 
 import { env } from "~/env"
@@ -25,6 +25,7 @@ import {
 } from "~/lib/invite-schemas"
 import { normalizeEmail } from "~/lib/email"
 import { formatFamilyLockup, normalizeFamilyNameInput } from "~/lib/family-name"
+import { brandingConfigSchema } from "~/lib/branding/branding-config"
 import { checkRateLimit, getClientIp } from "~/lib/rate-limit"
 import { getMemberSlugBase, resolveUniqueMemberSlug } from "~/lib/member-slug"
 import { findTenantUserByEmail } from "~/lib/tenant-users"
@@ -62,7 +63,14 @@ const updateFamilyIdentityInputSchema = z.object({
     }),
   description: z.string().trim().max(500).nullable(),
   image: familyImageInputSchema.nullable(),
+    brandingConfig: brandingConfigSchema.nullable().optional(),
 })
+
+  function resolveBrandingConfigOutput(value: unknown) {
+    const parsed = brandingConfigSchema.safeParse(value)
+
+    return parsed.success ? parsed.data : null
+  }
 
 export const inviteRouter = createTRPCRouter({
   /**
@@ -401,6 +409,7 @@ export const inviteRouter = createTRPCRouter({
             name: true,
             description: true,
             image: true,
+            brandingConfig: true,
           },
         })
       : null
@@ -412,6 +421,7 @@ export const inviteRouter = createTRPCRouter({
             name: selectedFamily.name,
             description: selectedFamily.description,
             image: selectedFamily.image,
+            brandingConfig: resolveBrandingConfigOutput(selectedFamily.brandingConfig),
           }
         : null,
       role: selectedMembership?.role ?? null,
@@ -443,22 +453,36 @@ export const inviteRouter = createTRPCRouter({
         })
       }
 
+      const brandingConfigUpdateValue =
+        input.brandingConfig === undefined
+          ? undefined
+          : input.brandingConfig === null
+            ? Prisma.JsonNull
+            : input.brandingConfig
+
       const updatedFamily = await ctx.db.family.update({
         where: { id: input.familyId },
         data: {
           name: input.name,
           description: input.description,
           image: input.image,
+          ...(brandingConfigUpdateValue === undefined
+            ? {}
+            : { brandingConfig: brandingConfigUpdateValue }),
         },
         select: {
           id: true,
           name: true,
           description: true,
           image: true,
+          brandingConfig: true,
         },
       })
 
-      return updatedFamily
+      return {
+        ...updatedFamily,
+        brandingConfig: resolveBrandingConfigOutput(updatedFamily.brandingConfig),
+      }
     }),
 
   /**

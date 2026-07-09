@@ -161,11 +161,11 @@ Prework lockup touch matrix (must be verified complete before Phase 1 implementa
 
 #### Tasks
 
-- [ ] Extend Family identity input/output schemas in [src/server/api/routers/invite.ts](src/server/api/routers/invite.ts) to include `brandingConfig`.
-- [ ] Validate `brandingConfig.logotype.fontName` against provided allowlist before save.
-- [ ] Reuse existing family membership role checks (OWNER or ADMIN) for branding writes.
-- [ ] Update management context response to include normalized brandingConfig output for consumers.
-- [ ] Ensure invalid payloads are rejected with clear validation errors.
+- [x] Extend Family identity input/output schemas in [src/server/api/routers/invite.ts](src/server/api/routers/invite.ts) to include `brandingConfig`.
+- [x] Validate `brandingConfig.logotype.fontName` against provided allowlist before save.
+- [x] Reuse existing family membership role checks (OWNER or ADMIN) for branding writes.
+- [x] Update management context response to include normalized brandingConfig output for consumers.
+- [x] Ensure invalid payloads are rejected with clear validation errors.
 
 ### Phase 3: Family Settings Management UI
 
@@ -204,7 +204,8 @@ Prework lockup touch matrix (must be verified complete before Phase 1 implementa
 - [ ] Add tests for allowlist validation and `api.fonts.coollabs.io` URL generation in [test/lib/branding/logotype-fonts.test.ts](test/lib/branding/logotype-fonts.test.ts).
 - [ ] Add or extend brand-context/rendering tests for fallback lockup continuity when no logotype font is active in [test/lib/brand-context.test.ts](test/lib/brand-context.test.ts).
 - [ ] Add router-level tests for owner/admin mutation authorization and family scoping in [test/server/api/routers/invite.test.ts](test/server/api/routers/invite.test.ts).
-- [ ] Add tests for brandingConfig validation, normalization, and fallback behavior in [test/server/api/routers/invite.test.ts](test/server/api/routers/invite.test.ts).
+- [x] Add router-level tests for owner/admin mutation authorization and family scoping in [test/server/api/routers/invite.test.ts](test/server/api/routers/invite.test.ts).
+- [x] Add tests for brandingConfig validation, normalization, and fallback behavior in [test/server/api/routers/invite.test.ts](test/server/api/routers/invite.test.ts).
 - [x] Run `pnpm typecheck` and targeted tests for touched modules.
 - [ ] Run `pnpm lint`.
 - [ ] Perform manual checks for desktop/mobile shell placements and loading state rendering.
