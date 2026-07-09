@@ -527,19 +527,23 @@ export default function FamilySettingsPage() {
 
             <div className="space-y-2 rounded-xl border bg-card/80 p-4">
               <p className="text-muted-foreground text-xs">Live preview</p>
-              <div className="inline-flex items-center gap-3 rounded-lg border bg-background px-5 py-4 text-lg">
+              <div className="inline-flex max-w-full items-center gap-2 rounded-lg border bg-background px-3 py-3 text-base sm:gap-3 sm:px-5 sm:py-4 sm:text-lg">
               {resolvedSelectedLogotypeFont ? (
                 <FamilyLogotypeLockup
                   familyName={previewName}
                   fontName={resolvedSelectedLogotypeFont}
+                  className="px-3 sm:px-6"
+                  familyNameClassName="text-5xl sm:text-7xl"
+                  leadingClassName="text-sm sm:text-base"
+                  trailingClassName="text-sm sm:text-base translate-y-[70%] sm:translate-y-[95%]"
                 />
               ) : (
                 <>
-                  <span className="flex items-center gap-4">
-                    <Logo className="h-8 w-auto text-foreground" aria-hidden="true" />
-                    <span className="font-semibold text-2xl leading-none tracking-tight">Fircle</span>
+                  <span className="flex items-center gap-3 sm:gap-4">
+                    <Logo className="h-6 w-auto text-foreground sm:h-8" aria-hidden="true" />
+                    <span className="font-semibold text-xl leading-none tracking-tight sm:text-2xl">Fircle</span>
                   </span>
-                  <span className="text-muted-foreground text-sm">Default fallback preview</span>
+                  <span className="text-muted-foreground text-xs sm:text-sm">Default fallback preview</span>
                 </>
                 )}
               </div>
