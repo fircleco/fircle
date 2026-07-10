@@ -6,7 +6,14 @@ import { usePathname, useRouter } from "next/navigation";
 
 import { beginNavigationProgress } from "~/components/nav/navigation-progress";
 import { LogoutButton } from "~/components/auth/logout-button";
-import { Logout } from "~/components/ui/icons";
+import { Button } from "~/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
+import { Logout, More } from "~/components/ui/icons";
 import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
 
@@ -93,6 +100,19 @@ export default function SettingsLayout({
     return true;
   });
 
+  const activeSettingsHref =
+    visibleSettingsNav.find((item) => isActivePath(pathname, item.href))?.href ??
+    visibleSettingsNav[0]?.href ??
+    "/settings";
+  const activeSettingsLabel =
+    visibleSettingsNav.find((item) => item.href === activeSettingsHref)?.label ?? "Settings";
+
+  function navigateToSettings(href: string) {
+    if (href === pathname) return;
+    beginNavigationProgress();
+    router.push(href);
+  }
+
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
@@ -104,17 +124,42 @@ export default function SettingsLayout({
       </div>
 
       <div className="flex flex-col gap-6 md:flex-row">
-        {/* Settings side nav — desktop */}
-        <nav
-          aria-label="Settings navigation"
-          className="shrink-0 md:w-52"
-        >
-          {/* Mobile: horizontal tab strip */}
-          <ul className="flex gap-1 overflow-x-auto rounded-xl border bg-card/60 p-1 md:flex-col md:overflow-x-visible">
+        <div className="md:hidden">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                className="text-sm w-full justify-between rounded-xl border bg-card/60 text-foreground"
+                aria-label="Settings navigation"
+              >
+                <span className="truncate">{activeSettingsLabel}</span>
+                <More aria-hidden className="size-4 shrink-0 text-muted-foreground" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-(--radix-dropdown-menu-trigger-width) rounded-xl" align="start">
+              {visibleSettingsNav.map((item) => {
+                const active = item.href === activeSettingsHref;
+                return (
+                  <DropdownMenuItem
+                    key={item.href}
+                    className={cn("cursor-pointer", active && "bg-muted text-foreground")}
+                    onSelect={() => navigateToSettings(item.href)}
+                  >
+                    {item.label}
+                  </DropdownMenuItem>
+                );
+              })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        <nav aria-label="Settings navigation" className="hidden shrink-0 md:block md:w-52">
+          <ul className="flex gap-1 rounded-xl border bg-card/60 p-1 md:flex-col">
             {visibleSettingsNav.map((item) => {
               const active = isActivePath(pathname, item.href);
               return (
-                <li key={item.href} className="min-w-0 flex-1 md:flex-none">
+                <li key={item.href} className="min-w-0 md:flex-none">
                   <Link
                     href={item.href}
                     aria-current={active ? "page" : undefined}
@@ -125,7 +170,7 @@ export default function SettingsLayout({
                         : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
                     )}
                   >
-                    <span className="block truncate whitespace-nowrap">{item.label}</span>
+                    <span className="block truncate">{item.label}</span>
                   </Link>
                 </li>
               );
