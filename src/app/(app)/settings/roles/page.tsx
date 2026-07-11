@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { MemberStatusBadge } from "~/components/members/member-status-badge";
+import { MemberStatusBadge } from "~/components/members/member-badge";
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Badge } from "~/components/ui/badge";

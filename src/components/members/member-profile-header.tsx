@@ -1,7 +1,7 @@
 import type { FamilyMemberProfile } from "~/lib/mocks/family-members";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 
-import { MemberStatusBadge } from "./member-status-badge";
+import { MemberRoleBadge, MemberStatusBadge } from "./member-badge";
 
 type MemberProfileHeaderProps = {
   member: FamilyMemberProfile;
@@ -31,7 +31,8 @@ export function MemberProfileHeader({ member, showStatus = true }: MemberProfile
       <div className="space-y-1.5">
         <h1 className="font-semibold text-2xl tracking-tight sm:text-3xl">{member.name}</h1>
         {showStatus ? (
-          <div className="flex justify-center">
+          <div className="flex flex-wrap justify-center gap-2">
+            <MemberRoleBadge role={member.role} />
             <MemberStatusBadge
               status={member.status}
               hasPendingClaimInvite={hasPendingClaimInvite}

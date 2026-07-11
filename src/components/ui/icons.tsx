@@ -70,6 +70,7 @@ export const Settings = createIcon("Settings03Icon");
 export const Share = createIcon("LinkForwardIcon");
 export const ShieldAlert = createIcon("Shield01Icon");
 export const ShieldCheck = createIcon("Shield02Icon");
+export const ShieldAdmin = createIcon("ShieldUserIcon");
 export const Sparkles = createIcon("SparklesIcon");
 export const Sun = createIcon("Sun02Icon");
 export const Tag = createIcon("Tag01Icon");
