@@ -131,7 +131,6 @@ export default function ProfilePage() {
         status: memberQuery.data.status,
         role: memberQuery.data.role.toLowerCase() as "owner" | "admin" | "member",
         avatarUrl: memberQuery.data.image ?? undefined,
-        addedByName: "Family organizer",
         addedAtLabel: "Profile in family",
         recentActivity: [],
       } satisfies FamilyMemberProfile)

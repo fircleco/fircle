@@ -150,7 +150,6 @@ export default function MemberProfilePage() {
         status: memberProfileQuery.data.status,
         role: memberProfileQuery.data.role.toLowerCase() as "owner" | "admin" | "member",
         avatarUrl: memberProfileQuery.data.image ?? undefined,
-        addedByName: "Family organizer",
         addedAtLabel: "Profile in family",
         pendingClaimInvite: memberProfileQuery.data.pendingClaimInvite
           ? {

@@ -41,9 +41,7 @@ export function MemberCard({ member }: MemberCardProps) {
             />
           </div>
 
-          <p className="text-xs text-muted-foreground">
-            Added by {member.addedByName} · {member.addedAtLabel}
-          </p>
+          <p className="text-xs text-muted-foreground">{member.addedAtLabel}</p>
         </div>
       </article>
     </Link>

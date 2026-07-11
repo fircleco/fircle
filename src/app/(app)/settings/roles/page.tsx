@@ -96,7 +96,6 @@ export default function RolesPage() {
       hasPendingClaimInvite: member.hasPendingClaimInvite,
       role: member.role.toLowerCase() as MemberRole,
       avatarUrl: member.image ?? undefined,
-      addedByName: "",
       addedAtLabel: "",
     }));
   }, [listMembersQuery.data]);

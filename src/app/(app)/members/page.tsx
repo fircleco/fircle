@@ -9,7 +9,6 @@ import { MemberCard } from "~/components/members/member-card";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Skeleton } from "~/components/ui/skeleton";
-import { formatFamilyDisplayName } from "~/lib/family-name";
 import type { FamilyMemberStatus } from "~/lib/mocks/family-members";
 import { api } from "~/trpc/react";
 
@@ -46,23 +45,33 @@ export default function MembersPage() {
   );
 
   const members = useMemo(() => {
-    const familyDisplayName = managementContext.data?.family?.name
-      ? formatFamilyDisplayName(managementContext.data.family.name)
-      : "Family";
+    return (membersQuery.data ?? []).map((member) => {
+      const joinedAt = member.acceptedInviteAt
+        ? new Date(member.acceptedInviteAt)
+        : new Date(member.createdAt);
+      const invitedAt = member.latestPendingInviteAt
+        ? new Date(member.latestPendingInviteAt)
+        : null;
+      const addedAt = new Date(member.createdAt);
 
-    return (membersQuery.data ?? []).map((member) => ({
-      id: member.id,
-      slug: member.slug,
-      name: member.name,
-      nickname: member.nickname ?? undefined,
-      status: member.status,
-      hasPendingClaimInvite: member.hasPendingClaimInvite,
-      role: member.role.toLowerCase() as "owner" | "admin" | "member",
-      avatarUrl: member.image ?? undefined,
-      addedByName: familyDisplayName,
-      addedAtLabel: `Added ${formatDistanceToNow(new Date(member.createdAt), { addSuffix: true })}`,
-    }));
-  }, [managementContext.data?.family?.name, membersQuery.data]);
+      return {
+        id: member.id,
+        slug: member.slug,
+        name: member.name,
+        nickname: member.nickname ?? undefined,
+        status: member.status,
+        hasPendingClaimInvite: member.hasPendingClaimInvite,
+        role: member.role.toLowerCase() as "owner" | "admin" | "member",
+        avatarUrl: member.image ?? undefined,
+        addedAtLabel:
+          member.status === "claimed"
+            ? `Joined ${formatDistanceToNow(joinedAt, { addSuffix: true })}`
+            : member.hasPendingClaimInvite && invitedAt
+              ? `Invited ${formatDistanceToNow(invitedAt, { addSuffix: true })}`
+              : `Added ${formatDistanceToNow(addedAt, { addSuffix: true })}`,
+      }
+    });
+  }, [membersQuery.data]);
 
   const filteredMembers = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -72,9 +81,7 @@ export default function MembersPage() {
       const matchesQuery =
         normalizedQuery.length === 0
           ? true
-          : `${member.name} ${member.addedByName}`
-              .toLowerCase()
-              .includes(normalizedQuery);
+          : member.name.toLowerCase().includes(normalizedQuery);
 
       return matchesFilter && matchesQuery;
     });
@@ -100,29 +107,31 @@ export default function MembersPage() {
         ) : null}
       </header>
 
-      <section className="space-y-4 rounded-3xl border bg-card/80 p-4 sm:p-5">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <Input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search by name or who added them"
-            aria-label="Search family members"
-            className="sm:max-w-md"
-          />
-        </div>
+      <section className="space-y-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap gap-2">
+            {memberFilters.map((item) => (
+              <Button
+                key={item.value}
+                type="button"
+                size="sm"
+                variant={filter === item.value ? "default" : "outline"}
+                onClick={() => setFilter(item.value)}
+              >
+                {item.label}
+              </Button>
+            ))}
+          </div>
 
-        <div className="flex flex-wrap gap-2">
-          {memberFilters.map((item) => (
-            <Button
-              key={item.value}
-              type="button"
-              size="sm"
-              variant={filter === item.value ? "default" : "outline"}
-              onClick={() => setFilter(item.value)}
-            >
-              {item.label}
-            </Button>
-          ))}
+          <div className="w-full sm:w-auto">
+            <Input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search family members by name"
+              aria-label="Search family members"
+              className="w-full sm:w-80"
+            />
+          </div>
         </div>
 
         {isLoading ? (

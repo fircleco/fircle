@@ -423,6 +423,8 @@ export const familyMemberRouter = createTRPCRouter({
       }),
     )
     .query(async ({ ctx, input }) => {
+      const now = new Date()
+
       const membership = await ctx.db.familyMember.findUnique({
         where: {
           familyId_userId: {
@@ -452,18 +454,58 @@ export const familyMemberRouter = createTRPCRouter({
           role: true,
           userId: true,
           createdAt: true,
-          claimInvites: {
-            where: {
-              status: "PENDING",
-              claimedAt: null,
-              revokedAt: null,
-              expiresAt: { gt: new Date() },
-            },
-            select: { id: true },
-            take: 1,
-          },
         },
       })
+
+      const memberIds = members.map((member) => member.id)
+
+      const invites =
+        memberIds.length === 0
+          ? []
+          : await ctx.db.invite.findMany({
+              where: {
+                familyId: input.familyId,
+                claimMemberId: { in: memberIds },
+              },
+              select: {
+                claimMemberId: true,
+                status: true,
+                createdAt: true,
+                claimedAt: true,
+                revokedAt: true,
+                expiresAt: true,
+              },
+            })
+
+      const latestPendingInviteAtByMemberId = new Map<string, Date>()
+      const latestAcceptedInviteAtByMemberId = new Map<string, Date>()
+
+      for (const invite of invites) {
+        const memberId = invite.claimMemberId
+        if (!memberId) {
+          continue
+        }
+
+        const isActivePendingInvite =
+          invite.status === "PENDING" &&
+          invite.claimedAt === null &&
+          invite.revokedAt === null &&
+          invite.expiresAt > now
+
+        if (isActivePendingInvite) {
+          const currentPending = latestPendingInviteAtByMemberId.get(memberId)
+          if (!currentPending || invite.createdAt > currentPending) {
+            latestPendingInviteAtByMemberId.set(memberId, invite.createdAt)
+          }
+        }
+
+        if (invite.claimedAt) {
+          const currentAccepted = latestAcceptedInviteAtByMemberId.get(memberId)
+          if (!currentAccepted || invite.claimedAt > currentAccepted) {
+            latestAcceptedInviteAtByMemberId.set(memberId, invite.claimedAt)
+          }
+        }
+      }
 
       return members.map((member) => ({
         id: member.id,
@@ -473,7 +515,9 @@ export const familyMemberRouter = createTRPCRouter({
         image: member.image,
         role: member.role,
         status: member.userId ? ("claimed" as const) : ("unclaimed" as const),
-        hasPendingClaimInvite: member.claimInvites.length > 0,
+        hasPendingClaimInvite: latestPendingInviteAtByMemberId.has(member.id),
+        latestPendingInviteAt: latestPendingInviteAtByMemberId.get(member.id) ?? null,
+        acceptedInviteAt: latestAcceptedInviteAtByMemberId.get(member.id) ?? null,
         createdAt: member.createdAt,
       }))
     }),

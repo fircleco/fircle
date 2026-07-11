@@ -11,7 +11,6 @@ export type FamilyMemberSummary = {
   hasPendingClaimInvite?: boolean;
   role: MemberRole;
   avatarUrl?: string;
-  addedByName: string;
   addedAtLabel: string;
 };
 
@@ -44,8 +43,7 @@ export const familyMembers: FamilyMemberSummary[] = [
     role: "owner",
     avatarUrl:
       "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=240&h=240&fit=crop",
-    addedByName: "System",
-    addedAtLabel: "Joined 1y ago",
+    addedAtLabel: "Joined recently",
   },
   {
     id: "member-noah-shittabey",
@@ -55,8 +53,7 @@ export const familyMembers: FamilyMemberSummary[] = [
     role: "admin",
     avatarUrl:
       "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=240&h=240&fit=crop",
-    addedByName: "System",
-    addedAtLabel: "Joined 1y ago",
+    addedAtLabel: "Joined recently",
   },
   {
     id: "member-lily-shittabey",
@@ -66,8 +63,7 @@ export const familyMembers: FamilyMemberSummary[] = [
     role: "member",
     avatarUrl:
       "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=240&h=240&fit=crop",
-    addedByName: "Emma Shittabey",
-    addedAtLabel: "Joined 8mo ago",
+    addedAtLabel: "Joined recently",
   },
   {
     id: "member-evelyn-shittabey",
@@ -78,8 +74,7 @@ export const familyMembers: FamilyMemberSummary[] = [
     role: "member",
     avatarUrl:
       "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=240&h=240&fit=crop",
-    addedByName: "Noah Shittabey",
-    addedAtLabel: "Added 3mo ago",
+    addedAtLabel: "Added recently",
   },
   {
     id: "member-logan-ross",
@@ -89,8 +84,7 @@ export const familyMembers: FamilyMemberSummary[] = [
     role: "member",
     avatarUrl:
       "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=240&h=240&fit=crop",
-    addedByName: "Emma Shittabey",
-    addedAtLabel: "Joined 6mo ago",
+    addedAtLabel: "Joined recently",
   },
   {
     id: "member-nina-ross",
@@ -98,8 +92,7 @@ export const familyMembers: FamilyMemberSummary[] = [
     slug: "nina-ross",
     status: "unclaimed",
     role: "member",
-    addedByName: "Logan Ross",
-    addedAtLabel: "Added 2mo ago",
+    addedAtLabel: "Added recently",
   },
   {
     id: "member-ben-harper",
@@ -109,8 +102,7 @@ export const familyMembers: FamilyMemberSummary[] = [
     role: "member",
     avatarUrl:
       "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?w=240&h=240&fit=crop",
-    addedByName: "Noah Shittabey",
-    addedAtLabel: "Added 1mo ago",
+    addedAtLabel: "Added recently",
   },
   {
     id: "member-ava-kim",
@@ -121,8 +113,7 @@ export const familyMembers: FamilyMemberSummary[] = [
     role: "member",
     avatarUrl:
       "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=240&h=240&fit=crop",
-    addedByName: "Emma Shittabey",
-    addedAtLabel: "Joined 4mo ago",
+    addedAtLabel: "Joined recently",
   },
 ];
 
