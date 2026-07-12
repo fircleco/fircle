@@ -28,14 +28,24 @@ vi.mock("~/server/notifications", () => ({
   getClaimedMemberIds: vi
     .fn()
     .mockImplementation(async (_tx: unknown, _familyId: string, memberIds: string[]) => memberIds),
+  resolveClaimedMentionRecipientIds: vi
+    .fn()
+    .mockImplementation(async (_tx: unknown, input: { actorMemberId: string; directMemberIds: string[] }) =>
+      input.directMemberIds.filter((memberId) => memberId !== input.actorMemberId),
+    ),
   getClaimedAdminMemberIds: vi.fn().mockResolvedValue([]),
 }));
 
 import { createPostInputSchema, postRouter } from "~/server/api/routers/post";
-import { createNotifications, dispatchPushForNotifications } from "~/server/notifications";
+import {
+  createNotifications,
+  dispatchPushForNotifications,
+  resolveClaimedMentionRecipientIds,
+} from "~/server/notifications";
 
 const createNotificationsMock = vi.mocked(createNotifications);
 const dispatchPushForNotificationsMock = vi.mocked(dispatchPushForNotifications);
+const resolveClaimedMentionRecipientIdsMock = vi.mocked(resolveClaimedMentionRecipientIds);
 
 describe("createPostInputSchema", () => {
   it("rejects text posts with media", () => {
@@ -383,12 +393,14 @@ describe("postRouter.create", () => {
     expect(postMentionCreateMany).toHaveBeenCalledWith({
       data: [
         {
+          kind: "MEMBER",
           postId: "post-mentions-1",
           mentionedMemberId: "clh0000000000000000000011",
           start: 6,
           end: 17,
         },
         {
+          kind: "MEMBER",
           postId: "post-mentions-1",
           mentionedMemberId: "clh0000000000000000000012",
           start: 18,
@@ -399,6 +411,7 @@ describe("postRouter.create", () => {
     expect(result.mentions).toMatchObject([
       {
         id: "mention-1",
+        kind: "MEMBER",
         start: 6,
         end: 17,
         member: {
@@ -408,12 +421,22 @@ describe("postRouter.create", () => {
       },
       {
         id: "mention-2",
+        kind: "MEMBER",
         member: {
           id: "clh0000000000000000000012",
           avatarUrl: "https://example.com/child-one.jpg",
         },
       },
     ]);
+    expect(resolveClaimedMentionRecipientIdsMock).toHaveBeenCalledWith(
+      tx,
+      expect.objectContaining({
+        familyId,
+        actorMemberId: "member-1",
+        directMemberIds: ["clh0000000000000000000011", "clh0000000000000000000012"],
+        includeAll: false,
+      }),
+    );
     expect(createNotificationsMock).toHaveBeenCalledWith(
       tx,
       expect.arrayContaining([
@@ -1182,6 +1205,7 @@ describe("postRouter comments", () => {
       data: [
         {
           commentId,
+          kind: "MEMBER",
           mentionedMemberId: "clh0000000000000000000011",
           start: 3,
           end: 14,
@@ -1191,6 +1215,7 @@ describe("postRouter comments", () => {
     expect(result.mentions).toMatchObject([
       {
         id: "comment-mention-1",
+        kind: "MEMBER",
         start: 3,
         end: 14,
         member: {
@@ -1370,6 +1395,254 @@ describe("postRouter comments", () => {
     expect(commentMentionCreateMany).toHaveBeenCalledTimes(1);
     expect(updatedWithMention.mentions).toHaveLength(1);
     expect(updatedWithoutMentions.mentions).toHaveLength(0);
+    expect(resolveClaimedMentionRecipientIdsMock).toHaveBeenCalledWith(
+      tx,
+      expect.objectContaining({
+        familyId,
+        actorMemberId: "member-1",
+        directMemberIds: ["clh0000000000000000000012"],
+        includeAll: false,
+      }),
+    );
+  });
+
+  it("rejects @all mentions from non-admin members", async () => {
+    vi.spyOn(rateLimit, "checkRateLimit").mockReturnValue({ ok: true });
+
+    const db = {
+      familyMember: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: "member-1",
+          familyId,
+          name: "Member One",
+          image: null,
+          role: "MEMBER",
+        }),
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      post: {
+        findFirst: vi.fn().mockResolvedValue({ id: postId, authorMemberId: "member-2" }),
+      },
+      comment: {
+        findFirst: vi.fn().mockResolvedValue({ id: "parent-1", authorMemberId: "member-2" }),
+      },
+      $transaction: vi.fn(),
+    } as never;
+
+    const caller = postRouter.createCaller({
+      db,
+      session: {
+        user: { id: "user-1" },
+      },
+      headers: new Headers(),
+    } as never);
+
+    await expect(
+      caller.createComment({
+        familyId,
+        postId,
+        content: "Ping @all",
+        mentions: [
+          {
+            kind: "ALL",
+            start: 5,
+            end: 9,
+          },
+        ],
+      }),
+    ).rejects.toMatchObject({
+      code: "FORBIDDEN",
+    });
+  });
+
+  it("rejects duplicate @all mentions in a single payload", async () => {
+    vi.spyOn(rateLimit, "checkRateLimit").mockReturnValue({ ok: true });
+
+    const db = {
+      familyMember: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: "member-1",
+          familyId,
+          name: "Owner One",
+          image: null,
+          role: "OWNER",
+        }),
+      },
+      post: {
+        findFirst: vi.fn(),
+      },
+      comment: {
+        findFirst: vi.fn(),
+      },
+      $transaction: vi.fn(),
+    } as never;
+
+    const caller = postRouter.createCaller({
+      db,
+      session: {
+        user: { id: "user-1" },
+      },
+      headers: new Headers(),
+    } as never);
+
+    await expect(
+      caller.createComment({
+        familyId,
+        postId,
+        content: "@all hi @all",
+        mentions: [
+          {
+            kind: "ALL",
+            start: 0,
+            end: 4,
+          },
+          {
+            kind: "ALL",
+            start: 8,
+            end: 12,
+          },
+        ],
+      }),
+    ).rejects.toMatchObject({
+      code: "BAD_REQUEST",
+    });
+  });
+
+  it("creates mention notifications for @all with deduped claimed recipients", async () => {
+    vi.spyOn(rateLimit, "checkRateLimit").mockReturnValue({ ok: true });
+
+    const commentMentionCreateMany = vi.fn().mockResolvedValue({ count: 2 });
+
+    const tx = {
+      comment: {
+        create: vi.fn().mockResolvedValue({ id: commentId }),
+        findUnique: vi.fn().mockResolvedValue({
+          id: commentId,
+          postId,
+          parentCommentId: null,
+          content: "@all hi @Parent One",
+          createdAt: new Date("2030-01-01T00:00:00.000Z"),
+          updatedAt: new Date("2030-01-01T00:00:00.000Z"),
+          authorMember: {
+            id: "member-1",
+            name: "Owner One",
+            slug: "owner-one",
+            image: null,
+          },
+          mentions: [
+            {
+              id: "comment-mention-all",
+              kind: "ALL",
+              commentId,
+              mentionedMemberId: null,
+              start: 0,
+              end: 4,
+              createdAt: new Date("2030-01-01T00:00:00.000Z"),
+              mentionedMember: null,
+            },
+            {
+              id: "comment-mention-member",
+              kind: "MEMBER",
+              commentId,
+              mentionedMemberId: "clh0000000000000000000011",
+              start: 8,
+              end: 19,
+              createdAt: new Date("2030-01-01T00:00:00.000Z"),
+              mentionedMember: {
+                id: "clh0000000000000000000011",
+                name: "Parent One",
+                slug: "parent-one",
+                image: null,
+              },
+            },
+          ],
+          likes: [],
+          _count: {
+            likes: 0,
+            replies: 0,
+          },
+        }),
+      },
+      commentMention: {
+        createMany: commentMentionCreateMany,
+      },
+    };
+
+    resolveClaimedMentionRecipientIdsMock.mockResolvedValueOnce([
+      "clh0000000000000000000011",
+      "clh0000000000000000000013",
+    ]);
+
+    const db = {
+      familyMember: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: "member-1",
+          familyId,
+          name: "Owner One",
+          image: null,
+          role: "OWNER",
+        }),
+        findMany: vi.fn().mockResolvedValue([{ id: "clh0000000000000000000011" }]),
+      },
+      post: {
+        findFirst: vi.fn().mockResolvedValue({ id: postId, authorMemberId: "clh0000000000000000000011" }),
+      },
+      comment: {
+        findFirst: vi.fn(),
+      },
+      $transaction: vi.fn(async (callback: (txArg: typeof tx) => Promise<unknown>) => callback(tx)),
+    } as never;
+
+    const caller = postRouter.createCaller({
+      db,
+      session: {
+        user: { id: "user-1" },
+      },
+      headers: new Headers(),
+    } as never);
+
+    await caller.createComment({
+      familyId,
+      postId,
+      content: "@all hi @Parent One",
+      mentions: [
+        {
+          kind: "ALL",
+          start: 0,
+          end: 4,
+        },
+        {
+          kind: "MEMBER",
+          memberId: "clh0000000000000000000011",
+          start: 8,
+          end: 19,
+        },
+      ],
+    });
+
+    expect(resolveClaimedMentionRecipientIdsMock).toHaveBeenCalledWith(
+      tx,
+      expect.objectContaining({
+        familyId,
+        actorMemberId: "member-1",
+        directMemberIds: ["clh0000000000000000000011"],
+        includeAll: true,
+      }),
+    );
+
+    expect(createNotificationsMock).toHaveBeenCalledWith(
+      tx,
+      expect.arrayContaining([
+        expect.objectContaining({
+          recipientMemberId: "clh0000000000000000000011",
+          eventType: "COMMENT_MENTION_CREATED",
+        }),
+        expect.objectContaining({
+          recipientMemberId: "clh0000000000000000000013",
+          eventType: "COMMENT_MENTION_CREATED",
+        }),
+      ]),
+    );
   });
 });
 

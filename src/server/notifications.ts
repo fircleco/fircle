@@ -446,3 +446,46 @@ export async function getClaimedAdminMemberIds(
 
   return members.map((member) => member.id)
 }
+
+export async function resolveClaimedMentionRecipientIds(
+  tx: NotificationTx,
+  input: {
+    familyId: string
+    actorMemberId: string
+    directMemberIds: string[]
+    includeAll: boolean
+  },
+) {
+  const recipientIds = new Set<string>()
+
+  if (input.includeAll) {
+    const claimedFamilyMembers = await tx.familyMember.findMany({
+      where: {
+        familyId: input.familyId,
+        userId: { not: null },
+        id: { not: input.actorMemberId },
+      },
+      select: {
+        id: true,
+      },
+    })
+
+    for (const member of claimedFamilyMembers) {
+      recipientIds.add(member.id)
+    }
+  }
+
+  const claimedDirectMemberIds = await getClaimedMemberIds(
+    tx,
+    input.familyId,
+    input.directMemberIds,
+  )
+
+  for (const memberId of claimedDirectMemberIds) {
+    if (memberId !== input.actorMemberId) {
+      recipientIds.add(memberId)
+    }
+  }
+
+  return [...recipientIds]
+}

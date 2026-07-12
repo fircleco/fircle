@@ -4,7 +4,12 @@ import type { StorageProvider } from "~/server/storage";
 import { getStorageProvider, tryGetStorageProvider } from "~/server/storage";
 import { checkRateLimit } from "~/lib/rate-limit";
 import type { db as appDb } from "~/server/db";
-import { createNotifications, getClaimedMemberIds, dispatchPushForNotifications } from "~/server/notifications";
+import {
+  createNotifications,
+  getClaimedMemberIds,
+  dispatchPushForNotifications,
+  resolveClaimedMentionRecipientIds,
+} from "~/server/notifications";
 
 import {
   createTRPCRouter,
@@ -85,6 +90,12 @@ export const createPostInputSchema = z
       .default([]),
   })
   .superRefine((input, ctx) => {
+    validateAllMentionUsage({
+      mentions: input.mentions,
+      ctx,
+      path: ["mentions"],
+    });
+
     validateMentionRanges({
       text: input.caption?.trim() ?? "",
       mentions: input.mentions,
@@ -171,6 +182,12 @@ export const createCommentInputSchema = z
     parentCommentId: z.string().cuid().optional(),
   })
   .superRefine((input, ctx) => {
+    validateAllMentionUsage({
+      mentions: input.mentions,
+      ctx,
+      path: ["mentions"],
+    });
+
     validateMentionRanges({
       text: input.content,
       mentions: input.mentions,
@@ -195,6 +212,12 @@ export const updateCommentInputSchema = z
     mentions: z.array(mentionInputSchema).max(MAX_MENTIONS_PER_ENTITY).default([]),
   })
   .superRefine((input, ctx) => {
+    validateAllMentionUsage({
+      mentions: input.mentions,
+      ctx,
+      path: ["mentions"],
+    });
+
     validateMentionRanges({
       text: input.content,
       mentions: input.mentions,
@@ -258,10 +281,54 @@ function validateMentionRanges(input: {
   }
 }
 
+function validateAllMentionUsage(input: {
+  mentions: MentionInput[];
+  ctx: z.RefinementCtx;
+  path: (string | number)[];
+}) {
+  const allMentionIndexes = input.mentions
+    .map((mention, index) => ({ mention, index }))
+    .filter((item) => item.mention.kind === "ALL")
+    .map((item) => item.index);
+
+  if (allMentionIndexes.length <= 1) {
+    return;
+  }
+
+  for (const index of allMentionIndexes.slice(1)) {
+    input.ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: [...input.path, index, "kind"],
+      message: "Only one @all mention is allowed per post or comment",
+    });
+  }
+}
+
 function getMentionedMemberIds(mentions: MentionInput[]) {
   return mentions
     .filter((mention): mention is Extract<MentionInput, { kind: "MEMBER" }> => mention.kind === "MEMBER")
     .map((mention) => mention.memberId);
+}
+
+function hasAllMention(mentions: MentionInput[]) {
+  return mentions.some((mention) => mention.kind === "ALL");
+}
+
+function assertAllMentionPermission(input: {
+  mentions: MentionInput[];
+  role?: "OWNER" | "ADMIN" | "MEMBER";
+}) {
+  if (!hasAllMention(input.mentions)) {
+    return;
+  }
+
+  const isOwnerOrAdmin = input.role === "OWNER" || input.role === "ADMIN";
+  if (!isOwnerOrAdmin) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Only owners and admins can use @all mentions",
+    });
+  }
 }
 
 function parseCursor(cursor?: string) {
@@ -862,6 +929,7 @@ async function requireFamilyMembership(familyId: string, userId: string, db: typ
       familyId: true,
       name: true,
       image: true,
+      role: true,
     },
   });
 
@@ -890,6 +958,11 @@ export const postRouter = createTRPCRouter({
         db: ctx.db,
         familyId: input.familyId,
         mentions: input.mentions,
+      });
+
+      assertAllMentionPermission({
+        mentions: input.mentions,
+        role: membership.role,
       });
 
       const { result, createdNotifications } = await ctx.db.$transaction(async (tx) => {
@@ -934,14 +1007,14 @@ export const postRouter = createTRPCRouter({
             })),
           });
 
-          const claimedMentionedMemberIds = await getClaimedMemberIds(
-            tx,
-            input.familyId,
-            getMentionedMemberIds(input.mentions),
-          );
+          const mentionRecipientIds = await resolveClaimedMentionRecipientIds(tx, {
+            familyId: input.familyId,
+            actorMemberId: membership.id,
+            directMemberIds: getMentionedMemberIds(input.mentions),
+            includeAll: hasAllMention(input.mentions),
+          });
 
-          const mentionSeeds = claimedMentionedMemberIds
-            .filter((memberId) => memberId !== membership.id)
+          const mentionSeeds = mentionRecipientIds
             .map((memberId) => ({
               familyId: input.familyId,
               recipientMemberId: memberId,
@@ -1250,6 +1323,11 @@ export const postRouter = createTRPCRouter({
         mentions: input.mentions,
       });
 
+      assertAllMentionPermission({
+        mentions: input.mentions,
+        role: membership.role,
+      });
+
       const rateLimit = checkRateLimit(`comment:create:${membership.id}`, 50, 60_000);
       if (!rateLimit.ok) {
         throw new TRPCError({
@@ -1344,16 +1422,14 @@ export const postRouter = createTRPCRouter({
               body: string;
             }> = [];
 
-            const claimedMentionedMemberIds = await getClaimedMemberIds(
-              tx,
-              input.familyId,
-              getMentionedMemberIds(input.mentions),
-            );
+            const mentionRecipientIds = await resolveClaimedMentionRecipientIds(tx, {
+              familyId: input.familyId,
+              actorMemberId: membership.id,
+              directMemberIds: getMentionedMemberIds(input.mentions),
+              includeAll: hasAllMention(input.mentions),
+            });
 
-            for (const memberId of claimedMentionedMemberIds) {
-              if (memberId === membership.id) {
-                continue;
-              }
+            for (const memberId of mentionRecipientIds) {
 
               notificationSeeds.push({
                 familyId: input.familyId,
@@ -1610,6 +1686,11 @@ export const postRouter = createTRPCRouter({
         mentions: input.mentions,
       });
 
+      assertAllMentionPermission({
+        mentions: input.mentions,
+        role: membership.role,
+      });
+
       const comment = await ctx.db.comment.findFirst({
         where: {
           id: input.commentId,
@@ -1671,14 +1752,14 @@ export const postRouter = createTRPCRouter({
             })),
           });
 
-          const claimedMentionedMemberIds = await getClaimedMemberIds(
-            tx,
-            input.familyId,
-            getMentionedMemberIds(input.mentions),
-          );
+          const mentionRecipientIds = await resolveClaimedMentionRecipientIds(tx, {
+            familyId: input.familyId,
+            actorMemberId: membership.id,
+            directMemberIds: getMentionedMemberIds(input.mentions),
+            includeAll: hasAllMention(input.mentions),
+          });
 
-          const mentionSeeds = claimedMentionedMemberIds
-            .filter((memberId) => memberId !== membership.id)
+          const mentionSeeds = mentionRecipientIds
             .map((memberId) => ({
               familyId: input.familyId,
               recipientMemberId: memberId,

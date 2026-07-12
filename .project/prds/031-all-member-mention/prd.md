@@ -99,13 +99,13 @@ Out of scope for this PRD:
 
 #### Tasks
 
-- [ ] Extend post and comment mention input schemas in [src/server/api/routers/post.ts](src/server/api/routers/post.ts) to accept the special `@all` mention variant.
-- [ ] Keep range validation rules unchanged for ordering, overlap prevention, and bounds checks while adding `@all`-specific validation for uniqueness within one entity.
-- [ ] Split mention validation so direct member mentions must belong to the active family, while `@all` is validated as a family-scoped special token.
-- [ ] Enforce OWNER/ADMIN authorization in [src/server/api/routers/post.ts](src/server/api/routers/post.ts) so non-privileged members cannot submit `@all` even if they bypass the client.
-- [ ] Add or extract a helper in [src/server/notifications.ts](src/server/notifications.ts) to resolve all claimed family member IDs for a family, excluding the actor and deduplicating against directly mentioned claimed recipients.
-- [ ] Use the claimed-recipient expansion helper in post creation, comment creation, and comment update mention producers inside [src/server/api/routers/post.ts](src/server/api/routers/post.ts).
-- [ ] Ensure notification creation continues using the existing mention event types and current push preference filtering rules.
+- [x] Extend post and comment mention input schemas in [src/server/api/routers/post.ts](src/server/api/routers/post.ts) to accept the special `@all` mention variant.
+- [x] Keep range validation rules unchanged for ordering, overlap prevention, and bounds checks while adding `@all`-specific validation for uniqueness within one entity.
+- [x] Split mention validation so direct member mentions must belong to the active family, while `@all` is validated as a family-scoped special token.
+- [x] Enforce OWNER/ADMIN authorization in [src/server/api/routers/post.ts](src/server/api/routers/post.ts) so non-privileged members cannot submit `@all` even if they bypass the client.
+- [x] Add or extract a helper in [src/server/notifications.ts](src/server/notifications.ts) to resolve all claimed family member IDs for a family, excluding the actor and deduplicating against directly mentioned claimed recipients.
+- [x] Use the claimed-recipient expansion helper in post creation, comment creation, and comment update mention producers inside [src/server/api/routers/post.ts](src/server/api/routers/post.ts).
+- [x] Ensure notification creation continues using the existing mention event types and current push preference filtering rules.
 
 ### Phase 4: Rendering and Read-Path Compatibility
 
@@ -124,11 +124,11 @@ Out of scope for this PRD:
 
 #### Tasks
 
-- [ ] Extend [test/components/feed/mention-helpers.test.ts](test/components/feed/mention-helpers.test.ts) for `@all` suggestion filtering, insertion, range preservation, and submit normalization.
-- [ ] Extend [test/server/api/routers/post.test.ts](test/server/api/routers/post.test.ts) for post/comment/comment-edit scenarios that include `@all`.
-- [ ] Add tests covering claimed-recipient fan-out semantics: actor exclusion, unclaimed-member exclusion, direct-mention plus `@all` deduplication, duplicate-`@all` rejection, and OWNER/ADMIN-only authorization.
+- [x] Extend [test/components/feed/mention-helpers.test.ts](test/components/feed/mention-helpers.test.ts) for `@all` suggestion filtering, insertion, range preservation, and submit normalization.
+- [x] Extend [test/server/api/routers/post.test.ts](test/server/api/routers/post.test.ts) for post/comment/comment-edit scenarios that include `@all`.
+- [x] Add tests covering claimed-recipient fan-out semantics: actor exclusion, unclaimed-member exclusion, direct-mention plus `@all` deduplication, duplicate-`@all` rejection, and OWNER/ADMIN-only authorization.
 - [ ] Add or extend notification-focused tests in [test/server/notifications.test.ts](test/server/notifications.test.ts) or [test/server/api/routers/notification.test.ts](test/server/api/routers/notification.test.ts) if helper extraction introduces new server-notification logic.
-- [ ] Run the relevant validation commands from [package.json](package.json), including targeted tests for mention helpers and post/notification routers.
+- [x] Run the relevant validation commands from [package.json](package.json), including targeted tests for mention helpers and post/notification routers.
 - [ ] Perform manual QA on desktop and mobile for post mentions, comments, replies, edits, notification inbox entries, and push delivery behavior when mention notifications are enabled.
 
 ## Acceptance Criteria

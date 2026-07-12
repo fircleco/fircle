@@ -34,7 +34,6 @@ export async function generateMetadata(): Promise<Metadata> {
     description: brandContext.appDescription,
     applicationName: brandContext.primaryLockup,
     manifest: "/manifest.json",
-    themeColor: "#0a0a0a",
     appleWebApp: {
       capable: true,
       statusBarStyle: "black-translucent",
