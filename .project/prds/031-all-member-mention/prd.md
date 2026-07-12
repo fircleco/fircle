@@ -1,6 +1,6 @@
 ---
 title: "@all Member Mention"
-status: in-progress
+status: completed
 references:
   - type: doc
     url: .project/brief.md
@@ -127,25 +127,25 @@ Out of scope for this PRD:
 - [x] Extend [test/components/feed/mention-helpers.test.ts](test/components/feed/mention-helpers.test.ts) for `@all` suggestion filtering, insertion, range preservation, and submit normalization.
 - [x] Extend [test/server/api/routers/post.test.ts](test/server/api/routers/post.test.ts) for post/comment/comment-edit scenarios that include `@all`.
 - [x] Add tests covering claimed-recipient fan-out semantics: actor exclusion, unclaimed-member exclusion, direct-mention plus `@all` deduplication, duplicate-`@all` rejection, and OWNER/ADMIN-only authorization.
-- [ ] Add or extend notification-focused tests in [test/server/notifications.test.ts](test/server/notifications.test.ts) or [test/server/api/routers/notification.test.ts](test/server/api/routers/notification.test.ts) if helper extraction introduces new server-notification logic.
+- [x] Add or extend notification-focused tests in [test/server/notifications.test.ts](test/server/notifications.test.ts) or [test/server/api/routers/notification.test.ts](test/server/api/routers/notification.test.ts) if helper extraction introduces new server-notification logic.
 - [x] Run the relevant validation commands from [package.json](package.json), including targeted tests for mention helpers and post/notification routers.
 - [x] Perform manual QA on desktop and mobile for post mentions, comments, replies, edits, notification inbox entries, and push delivery behavior when mention notifications are enabled.
 
 ## Acceptance Criteria
 
-- [ ] Typing `@` in post captions and comment inputs can surface `@all` as a suggestion alongside direct member mentions for OWNER and ADMIN users only.
-- [ ] OWNER and ADMIN users can insert `@all` using the same keyboard and pointer interactions used for normal mentions.
-- [ ] Regular MEMBER users do not see `@all` in mention suggestions and cannot successfully submit it through the API.
-- [ ] Published post and comment content keeps the literal `@all` token visible instead of rewriting authored text.
-- [ ] `@all` is persisted as structured mention metadata, not as plain text requiring regex-only interpretation.
-- [ ] A post containing `@all` creates mention notifications for every claimed family member except the author.
-- [ ] A comment or reply containing `@all` creates mention notifications for every claimed family member except the author.
-- [ ] Editing a comment to include `@all` updates persisted mention metadata and creates the expected mention notifications without duplicate fan-out.
-- [ ] Members who are directly mentioned and also covered by `@all` receive only one mention notification for the same source event.
-- [ ] Unclaimed family members do not receive `@all` notifications.
-- [ ] Existing mention notification settings and push preference behavior continue to govern `@all` notifications with no new preference surface required.
-- [ ] Existing direct member mentions in posts and comments continue to work with no regression in rendering, linking, or notification delivery.
-- [ ] Targeted tests for helper logic, router behavior, and notification fan-out pass.
+- [x] Typing `@` in post captions and comment inputs can surface `@all` as a suggestion alongside direct member mentions for OWNER and ADMIN users only.
+- [x] OWNER and ADMIN users can insert `@all` using the same keyboard and pointer interactions used for normal mentions.
+- [x] Regular MEMBER users do not see `@all` in mention suggestions and cannot successfully submit it through the API.
+- [x] Published post and comment content keeps the literal `@all` token visible instead of rewriting authored text.
+- [x] `@all` is persisted as structured mention metadata, not as plain text requiring regex-only interpretation.
+- [x] A post containing `@all` creates mention notifications for every claimed family member except the author.
+- [x] A comment or reply containing `@all` creates mention notifications for every claimed family member except the author.
+- [x] Editing a comment to include `@all` updates persisted mention metadata and creates the expected mention notifications without duplicate fan-out.
+- [x] Members who are directly mentioned and also covered by `@all` receive only one mention notification for the same source event.
+- [x] Unclaimed family members do not receive `@all` notifications.
+- [x] Existing mention notification settings and push preference behavior continue to govern `@all` notifications with no new preference surface required.
+- [x] Existing direct member mentions in posts and comments continue to work with no regression in rendering, linking, or notification delivery.
+- [x] Targeted tests for helper logic, router behavior, and notification fan-out pass.
 
 ## Further Considerations
 

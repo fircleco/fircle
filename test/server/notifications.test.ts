@@ -37,6 +37,7 @@ vi.mock("~/server/push", () => ({
 import {
   createNotifications,
   dispatchPushForNotifications,
+  resolveClaimedMentionRecipientIds,
   type NotificationSeed,
 } from "~/server/notifications";
 
@@ -267,5 +268,57 @@ describe("notifications module", () => {
       status: "SKIPPED",
       errorMessage: "Terminal error: 410 Gone",
     });
+  });
+
+  it("resolves claimed mention recipients with @all, actor exclusion, and deduplication", async () => {
+    const tx = {
+      familyMember: {
+        findMany: vi
+          .fn()
+          .mockResolvedValueOnce([
+            { id: "clh0000000000000000000302" },
+            { id: "clh0000000000000000000303" },
+          ])
+          .mockResolvedValueOnce([{ id: "clh0000000000000000000303" }]),
+      },
+    };
+
+    const recipients = await resolveClaimedMentionRecipientIds(tx as never, {
+      familyId: "clh0000000000000000000002",
+      actorMemberId: "clh0000000000000000000301",
+      directMemberIds: [
+        "clh0000000000000000000303",
+        "clh0000000000000000000304",
+      ],
+      includeAll: true,
+    });
+
+    expect(tx.familyMember.findMany).toHaveBeenCalledTimes(2);
+    expect(recipients.sort()).toEqual([
+      "clh0000000000000000000302",
+      "clh0000000000000000000303",
+    ]);
+  });
+
+  it("resolves direct mentions only when @all is absent and excludes actor/unclaimed", async () => {
+    const tx = {
+      familyMember: {
+        findMany: vi.fn().mockResolvedValue([{ id: "clh0000000000000000000302" }]),
+      },
+    };
+
+    const recipients = await resolveClaimedMentionRecipientIds(tx as never, {
+      familyId: "clh0000000000000000000002",
+      actorMemberId: "clh0000000000000000000301",
+      directMemberIds: [
+        "clh0000000000000000000301",
+        "clh0000000000000000000302",
+        "clh0000000000000000000305",
+      ],
+      includeAll: false,
+    });
+
+    expect(tx.familyMember.findMany).toHaveBeenCalledTimes(1);
+    expect(recipients).toEqual(["clh0000000000000000000302"]);
   });
 });
