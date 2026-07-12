@@ -49,7 +49,7 @@ export function MentionText({ text, mentions, currentMemberSlug, className }: Me
   const normalizedMentions = normalizeMentions(text, mentions);
 
   if (normalizedMentions.length === 0) {
-    return <>{text}</>;
+    return <span className={className}>{text}</span>;
   }
 
   const parts: React.ReactNode[] = [];

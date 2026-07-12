@@ -113,10 +113,10 @@ Out of scope for this PRD:
 
 #### Tasks
 
-- [ ] Update [src/components/feed/mention-text.tsx](src/components/feed/mention-text.tsx) so `@all` renders as a special inline mention token without trying to navigate to a member profile.
-- [ ] Verify post rendering in [src/components/feed/post-card.tsx](src/components/feed/post-card.tsx) and comment rendering in [src/components/feed/comment-card.tsx](src/components/feed/comment-card.tsx) handle mixed direct mentions plus `@all` consistently.
-- [ ] Keep existing direct-member mention chips and navigation behavior unchanged for ordinary mentions.
-- [ ] Confirm all post-mapping surfaces continue to consume mention metadata correctly, including [src/app/(app)/page.tsx](src/app/(app)/page.tsx), [src/app/(app)/profile/page.tsx](src/app/(app)/profile/page.tsx), and [src/app/(app)/member/[slug]/page.tsx](src/app/(app)/member/[slug]/page.tsx).
+- [x] Update [src/components/feed/mention-text.tsx](src/components/feed/mention-text.tsx) so `@all` renders as a special inline mention token without trying to navigate to a member profile.
+- [x] Verify post rendering in [src/components/feed/post-card.tsx](src/components/feed/post-card.tsx) and comment rendering in [src/components/feed/comment-card.tsx](src/components/feed/comment-card.tsx) handle mixed direct mentions plus `@all` consistently.
+- [x] Keep existing direct-member mention chips and navigation behavior unchanged for ordinary mentions.
+- [x] Confirm all post-mapping surfaces continue to consume mention metadata correctly, including [src/app/(app)/page.tsx](src/app/(app)/page.tsx), [src/app/(app)/profile/page.tsx](src/app/(app)/profile/page.tsx), and [src/app/(app)/member/[slug]/page.tsx](src/app/(app)/member/[slug]/page.tsx).
 
 ### Phase 5: Tests, QA, and Delivery Confidence
 
@@ -129,7 +129,7 @@ Out of scope for this PRD:
 - [x] Add tests covering claimed-recipient fan-out semantics: actor exclusion, unclaimed-member exclusion, direct-mention plus `@all` deduplication, duplicate-`@all` rejection, and OWNER/ADMIN-only authorization.
 - [ ] Add or extend notification-focused tests in [test/server/notifications.test.ts](test/server/notifications.test.ts) or [test/server/api/routers/notification.test.ts](test/server/api/routers/notification.test.ts) if helper extraction introduces new server-notification logic.
 - [x] Run the relevant validation commands from [package.json](package.json), including targeted tests for mention helpers and post/notification routers.
-- [ ] Perform manual QA on desktop and mobile for post mentions, comments, replies, edits, notification inbox entries, and push delivery behavior when mention notifications are enabled.
+- [x] Perform manual QA on desktop and mobile for post mentions, comments, replies, edits, notification inbox entries, and push delivery behavior when mention notifications are enabled.
 
 ## Acceptance Criteria
 
