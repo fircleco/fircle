@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import { canPublishComposerPost } from "~/components/feed/post-composer-logic";
 import {
+  createAllMentionMember,
   filterMentionMembers,
   getMentionPopoverAnchor,
   getActiveMentionQuery,
@@ -97,6 +98,7 @@ type ComposerEntryProps = {
     avatarUrl?: string;
   };
   familyId?: string;
+  allowAllMention?: boolean;
 };
 
 function logUploadError(context: string, error: unknown) {
@@ -159,7 +161,7 @@ function getInitials(name: string) {
     .join("");
 }
 
-export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
+export function ComposerEntry({ user, familyId, allowAllMention = false }: ComposerEntryProps) {
   const [caption, setCaption] = useState("");
   const [captionMentions, setCaptionMentions] = useState<MentionDraft[]>([]);
   const [isTextareaExpanded, setIsTextareaExpanded] = useState(false);
@@ -186,13 +188,16 @@ export function ComposerEntry({ user, familyId }: ComposerEntryProps) {
   );
 
   const mentionMembers = useMemo<MentionableMember[]>(
-    () =>
-      (familyMembersQuery.data ?? []).map((member) => ({
+    () => {
+      const members = (familyMembersQuery.data ?? []).map((member) => ({
         id: member.id,
         name: member.name,
         avatarUrl: member.image ?? "",
-      })),
-    [familyMembersQuery.data],
+      }));
+
+      return allowAllMention ? [createAllMentionMember(), ...members] : members;
+    },
+    [allowAllMention, familyMembersQuery.data],
   );
 
   const activeMentionQuery =

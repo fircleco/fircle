@@ -9,6 +9,7 @@ import { Button } from "~/components/ui/button";
 import type { ComposerOpenMode } from "./composer-entry";
 import { canPublishComposerPost } from "./post-composer-logic";
 import {
+  createAllMentionMember,
   filterMentionMembers,
   getMentionPopoverAnchor,
   getActiveMentionQuery,
@@ -49,6 +50,7 @@ type PostComposerDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   familyId?: string;
+  allowAllMention?: boolean;
   initialMode?: ComposerOpenMode;
 };
 
@@ -116,6 +118,7 @@ export function PostComposerDialog({
   open,
   onOpenChange,
   familyId,
+  allowAllMention = false,
   initialMode,
 }: PostComposerDialogProps) {
   const [caption, setCaption] = useState("");
@@ -145,13 +148,16 @@ export function PostComposerDialog({
   );
 
   const mentionMembers = useMemo<MentionableMember[]>(
-    () =>
-      (familyMembersQuery.data ?? []).map((member) => ({
+    () => {
+      const members = (familyMembersQuery.data ?? []).map((member) => ({
         id: member.id,
         name: member.name,
         avatarUrl: member.image ?? "",
-      })),
-    [familyMembersQuery.data],
+      }));
+
+      return allowAllMention ? [createAllMentionMember(), ...members] : members;
+    },
+    [allowAllMention, familyMembersQuery.data],
   );
 
   const activeMentionQuery =

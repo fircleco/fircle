@@ -60,11 +60,19 @@ export function MentionSuggestionsPopover({
                   onSelect(member);
                 }}
               >
-                <Avatar className="size-6 shrink-0">
-                  <AvatarImage src={member.avatarUrl} alt={member.name} />
-                  <AvatarFallback className="text-[10px]">{getInitials(member.name)}</AvatarFallback>
-                </Avatar>
-                <span className="truncate font-medium text-foreground">{member.name}</span>
+                {member.kind === "ALL" ? (
+                  <span className="flex size-6 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-[11px] font-semibold text-foreground">
+                    @
+                  </span>
+                ) : (
+                  <Avatar className="size-6 shrink-0">
+                    <AvatarImage src={member.avatarUrl} alt={member.name} />
+                    <AvatarFallback className="text-[10px]">{getInitials(member.name)}</AvatarFallback>
+                  </Avatar>
+                )}
+                <span className="truncate font-medium text-foreground">
+                  {member.kind === "ALL" ? "all members" : member.name}
+                </span>
               </button>
             </li>
           ))}

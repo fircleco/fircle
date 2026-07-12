@@ -85,13 +85,13 @@ Out of scope for this PRD:
 
 #### Tasks
 
-- [ ] Add `@all` to suggestion generation in [src/components/feed/mention-helpers.ts](src/components/feed/mention-helpers.ts) so it appears naturally when eligible OWNER/ADMIN users type `@` or a matching prefix.
-- [ ] Update the suggestion popover UI in [src/components/feed/mention-suggestions-popover.tsx](src/components/feed/mention-suggestions-popover.tsx) to render the `@all` option intentionally rather than assuming every suggestion is a regular member.
-- [ ] Wire `@all` support through post-caption mention authoring in [src/components/feed/post-composer-dialog.tsx](src/components/feed/post-composer-dialog.tsx).
-- [ ] Wire the same support through the alternate composer in [src/components/feed/composer-entry.tsx](src/components/feed/composer-entry.tsx) if that flow remains active.
-- [ ] Wire `@all` support through comment creation, replies, and edits in [src/components/feed/comment-input.tsx](src/components/feed/comment-input.tsx) and [src/app/(app)/post/[postId]/page.tsx](src/app/(app)/post/[postId]/page.tsx).
-- [ ] Ensure non-admin/non-owner members never see the `@all` suggestion and cannot insert it through the normal authoring UI.
-- [ ] Preserve existing keyboard and pointer behavior for mention suggestion navigation, selection, and cancellation.
+- [x] Add `@all` to suggestion generation in [src/components/feed/mention-helpers.ts](src/components/feed/mention-helpers.ts) so it appears naturally when eligible OWNER/ADMIN users type `@` or a matching prefix.
+- [x] Update the suggestion popover UI in [src/components/feed/mention-suggestions-popover.tsx](src/components/feed/mention-suggestions-popover.tsx) to render the `@all` option intentionally rather than assuming every suggestion is a regular member.
+- [x] Wire `@all` support through post-caption mention authoring in [src/components/feed/post-composer-dialog.tsx](src/components/feed/post-composer-dialog.tsx).
+- [x] Wire the same support through the alternate composer in [src/components/feed/composer-entry.tsx](src/components/feed/composer-entry.tsx) if that flow remains active.
+- [x] Wire `@all` support through comment creation, replies, and edits in [src/components/feed/comment-input.tsx](src/components/feed/comment-input.tsx) and [src/app/(app)/post/[postId]/page.tsx](src/app/(app)/post/[postId]/page.tsx).
+- [x] Ensure non-admin/non-owner members never see the `@all` suggestion and cannot insert it through the normal authoring UI.
+- [x] Preserve existing keyboard and pointer behavior for mention suggestion navigation, selection, and cancellation.
 
 ### Phase 3: Server Validation and Notification Fan-out
 

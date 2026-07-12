@@ -12,6 +12,7 @@ import { ArrowLeft } from "~/components/ui/icons";
 import { Skeleton } from "~/components/ui/skeleton";
 import { api } from "~/trpc/react";
 import {
+  createAllMentionMember,
   normalizeMentionsForSubmit,
   type MentionDraft,
   type MentionableMember,
@@ -292,13 +293,16 @@ export default function SinglePostPage() {
   );
 
   const mentionMembers = useMemo<MentionableMember[]>(
-    () =>
-      (familyMembersQuery.data ?? []).map((member) => ({
+    () => {
+      const members = (familyMembersQuery.data ?? []).map((member) => ({
         id: member.id,
         name: member.name,
         avatarUrl: member.image ?? "",
-      })),
-    [familyMembersQuery.data],
+      }));
+
+      return isAdmin ? [createAllMentionMember(), ...members] : members;
+    },
+    [familyMembersQuery.data, isAdmin],
   );
 
   const postQuery = api.post.getById.useQuery(

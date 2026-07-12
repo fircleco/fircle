@@ -22,6 +22,8 @@ export function GlobalComposerProvider({ children }: { children: React.ReactNode
   });
 
   const familyId = managementContext.data?.family?.id;
+  const canUseAllMention =
+    managementContext.data?.role === "OWNER" || managementContext.data?.role === "ADMIN";
 
   const contextValue = useMemo<GlobalComposerContextValue>(
     () => ({
@@ -40,6 +42,7 @@ export function GlobalComposerProvider({ children }: { children: React.ReactNode
         open={composerOpen}
         onOpenChange={setComposerOpen}
         familyId={familyId}
+        allowAllMention={canUseAllMention}
         initialMode={composerMode}
       />
     </GlobalComposerContext.Provider>

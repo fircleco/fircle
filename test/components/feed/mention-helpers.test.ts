@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  createAllMentionMember,
   filterMentionMembers,
   getActiveMentionQuery,
   insertMentionAtQuery,
@@ -178,5 +179,31 @@ describe("filterMentionMembers", () => {
     });
 
     expect(result).toEqual([]);
+  });
+
+  it("includes the ALL mention option when query matches", () => {
+    const result = filterMentionMembers({
+      members: [createAllMentionMember(), ...members],
+      activeQuery: {
+        tokenStart: 0,
+        tokenEnd: 3,
+        query: "all",
+      },
+    });
+
+    expect(result[0]).toMatchObject({ kind: "ALL", name: "all" });
+  });
+
+  it("returns the ALL mention option when query is empty", () => {
+    const result = filterMentionMembers({
+      members: [createAllMentionMember(), ...members],
+      activeQuery: {
+        tokenStart: 0,
+        tokenEnd: 1,
+        query: "",
+      },
+    });
+
+    expect(result[0]).toMatchObject({ kind: "ALL", name: "all" });
   });
 });

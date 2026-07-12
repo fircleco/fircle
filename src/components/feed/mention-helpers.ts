@@ -18,6 +18,17 @@ export type MentionableMember = {
   avatarUrl: string;
 };
 
+export const ALL_MENTION_MEMBER_ID = "__all__";
+
+export function createAllMentionMember(): MentionableMember {
+  return {
+    kind: "ALL",
+    id: ALL_MENTION_MEMBER_ID,
+    name: "all",
+    avatarUrl: "",
+  };
+}
+
 export type ActiveMentionQuery = {
   tokenStart: number;
   tokenEnd: number;
