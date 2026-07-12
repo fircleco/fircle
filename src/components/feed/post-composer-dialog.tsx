@@ -14,7 +14,7 @@ import {
   getMentionPopoverAnchor,
   getActiveMentionQuery,
   insertMentionAtQuery,
-  normalizeMentionsForSubmit,
+  normalizeMentionsForSubmitWithFallback,
   reconcileMentionsOnTextChange,
   type MentionDraft,
   type MentionableMember,
@@ -342,9 +342,10 @@ export function PostComposerDialog({
     setIsUploading(selectedMedia.length > 0);
 
     try {
-      const normalizedCaption = normalizeMentionsForSubmit({
+      const normalizedCaption = normalizeMentionsForSubmitWithFallback({
         text: caption,
         mentions: captionMentions,
+        members: mentionMembers,
       });
 
       const uploadedMedia: Array<{

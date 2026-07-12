@@ -42,7 +42,7 @@ export function MembershipGuard({
 
   if (managementContext.isLoading || (!hasFamilyMembership && !signOutTriggered.current)) {
     return (
-      <div className="flex flex-col min-h-dvh items-center px-4 text-center text-foreground text-sm">
+      <div className="flex flex-col h-dvh max-h-dvh items-center px-4 text-center text-foreground text-sm">
         <div className="flex-1 flex flex-col items-center justify-center gap-4">
           {selectedLogotypeFontName ? (
             <FamilyLogotypeLockup

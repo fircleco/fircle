@@ -13,7 +13,7 @@ import {
   getMentionPopoverAnchor,
   getActiveMentionQuery,
   insertMentionAtQuery,
-  normalizeMentionsForSubmit,
+  normalizeMentionsForSubmitWithFallback,
   reconcileMentionsOnTextChange,
   type MentionDraft,
   type MentionableMember,
@@ -361,9 +361,10 @@ export function ComposerEntry({ user, familyId, allowAllMention = false }: Compo
     setIsProcessingVideo(false);
 
     try {
-      const normalizedCaption = normalizeMentionsForSubmit({
+      const normalizedCaption = normalizeMentionsForSubmitWithFallback({
         text: caption,
         mentions: captionMentions,
+        members: mentionMembers,
       });
 
       const uploadedMediaById = new Map<

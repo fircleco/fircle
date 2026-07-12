@@ -6,6 +6,7 @@ import {
   getActiveMentionQuery,
   insertMentionAtQuery,
   normalizeMentionsForSubmit,
+  normalizeMentionsForSubmitWithFallback,
   reconcileMentionsOnTextChange,
   type MentionDraft,
 } from "~/components/feed/mention-helpers";
@@ -149,6 +150,52 @@ describe("normalizeMentionsForSubmit", () => {
         end: 11,
       },
     ]);
+  });
+});
+
+describe("normalizeMentionsForSubmitWithFallback", () => {
+  it("infers member mentions from typed text when no structured mention was selected", () => {
+    const normalized = normalizeMentionsForSubmitWithFallback({
+      text: "Hello @Parent One",
+      mentions: [],
+      members: [{ id: "member-1", name: "Parent One", avatarUrl: "" }],
+    });
+
+    expect(normalized.text).toBe("Hello @Parent One");
+    expect(normalized.mentions).toEqual([
+      {
+        kind: "MEMBER",
+        memberId: "member-1",
+        start: 6,
+        end: 17,
+      },
+    ]);
+  });
+
+  it("infers the ALL mention from typed @all token", () => {
+    const normalized = normalizeMentionsForSubmitWithFallback({
+      text: "Ping @all please",
+      mentions: [],
+      members: [createAllMentionMember(), { id: "member-1", name: "Parent One", avatarUrl: "" }],
+    });
+
+    expect(normalized.mentions).toEqual([
+      {
+        kind: "ALL",
+        start: 5,
+        end: 9,
+      },
+    ]);
+  });
+
+  it("does not infer partial matches inside larger tokens", () => {
+    const normalized = normalizeMentionsForSubmitWithFallback({
+      text: "Email me at test@parent one",
+      mentions: [],
+      members: [{ id: "member-1", name: "Parent", avatarUrl: "" }],
+    });
+
+    expect(normalized.mentions).toEqual([]);
   });
 });
 

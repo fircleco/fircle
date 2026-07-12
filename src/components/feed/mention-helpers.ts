@@ -194,6 +194,32 @@ export function normalizeMentionsForSubmit(input: { text: string; mentions: Ment
   };
 }
 
+export function normalizeMentionsForSubmitWithFallback(input: {
+  text: string;
+  mentions: MentionDraft[];
+  members: MentionableMember[];
+}) {
+  const normalized = normalizeMentionsForSubmit({
+    text: input.text,
+    mentions: input.mentions,
+  });
+
+  if (normalized.text.length === 0 || input.members.length === 0) {
+    return normalized;
+  }
+
+  const inferredMentions = inferMentionsFromTypedText({
+    text: normalized.text,
+    members: input.members,
+    existingMentions: normalized.mentions,
+  });
+
+  return {
+    text: normalized.text,
+    mentions: sortAndDedupeMentions([...normalized.mentions, ...inferredMentions]),
+  };
+}
+
 export function filterMentionMembers(input: {
   members: MentionableMember[];
   activeQuery: ActiveMentionQuery | null;
@@ -304,4 +330,87 @@ function sortAndDedupeMentions(mentions: MentionDraft[]) {
   }
 
   return deduped;
+}
+
+function inferMentionsFromTypedText(input: {
+  text: string;
+  members: MentionableMember[];
+  existingMentions: MentionDraft[];
+}) {
+  const normalizedMemberNames = new Map<string, MentionableMember[]>();
+
+  for (const member of input.members) {
+    const normalizedName = member.name.trim().toLowerCase();
+    if (!normalizedName) {
+      continue;
+    }
+
+    const existing = normalizedMemberNames.get(normalizedName) ?? [];
+    existing.push(member);
+    normalizedMemberNames.set(normalizedName, existing);
+  }
+
+  const uniqueMembers = Array.from(normalizedMemberNames.entries())
+    .filter(([, members]) => members.length === 1)
+    .map(([, members]) => members[0]!);
+
+  if (uniqueMembers.length === 0) {
+    return [] as MentionDraft[];
+  }
+
+  const textLower = input.text.toLowerCase();
+  const inferred: MentionDraft[] = [];
+
+  for (const member of uniqueMembers) {
+    const mentionToken = `@${member.name.trim().toLowerCase()}`;
+    if (!mentionToken || mentionToken === "@") {
+      continue;
+    }
+
+    let searchFrom = 0;
+    while (searchFrom < textLower.length) {
+      const tokenIndex = textLower.indexOf(mentionToken, searchFrom);
+      if (tokenIndex === -1) {
+        break;
+      }
+
+      const tokenEnd = tokenIndex + mentionToken.length;
+      const hasValidLeftBoundary = tokenIndex === 0 || isMentionBoundaryChar(textLower[tokenIndex - 1]!);
+      const hasValidRightBoundary = tokenEnd >= textLower.length || isMentionBoundaryChar(textLower[tokenEnd]!);
+
+      if (hasValidLeftBoundary && hasValidRightBoundary) {
+        inferred.push(
+          member.kind === "ALL"
+            ? {
+                kind: "ALL",
+                start: tokenIndex,
+                end: tokenEnd,
+              }
+            : {
+                kind: "MEMBER",
+                memberId: member.id,
+                start: tokenIndex,
+                end: tokenEnd,
+              },
+        );
+      }
+
+      searchFrom = tokenIndex + 1;
+    }
+  }
+
+  if (inferred.length === 0) {
+    return inferred;
+  }
+
+  const existingSorted = sortAndDedupeMentions(input.existingMentions);
+  return sortAndDedupeMentions(
+    inferred.filter((candidate) =>
+      existingSorted.every((existing) => candidate.end <= existing.start || candidate.start >= existing.end),
+    ),
+  );
+}
+
+function isMentionBoundaryChar(char: string) {
+  return /\s|[()\[\]{}"'`.,!?;:<>/\\-]/.test(char);
 }

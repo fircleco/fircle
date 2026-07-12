@@ -13,7 +13,7 @@ import { Skeleton } from "~/components/ui/skeleton";
 import { api } from "~/trpc/react";
 import {
   createAllMentionMember,
-  normalizeMentionsForSubmit,
+  normalizeMentionsForSubmitWithFallback,
   type MentionDraft,
   type MentionableMember,
 } from "~/components/feed/mention-helpers";
@@ -531,9 +531,10 @@ export default function SinglePostPage() {
   function handleSubmitTopLevelComment() {
     if (!commentsInput || !memberProfileQuery.data) return;
 
-    const normalized = normalizeMentionsForSubmit({
+    const normalized = normalizeMentionsForSubmitWithFallback({
       text: topLevelDraft,
       mentions: topLevelMentions,
+      members: mentionMembers,
     });
     if (!normalized.text) return;
 
@@ -690,9 +691,10 @@ export default function SinglePostPage() {
     const parentComment = findParentTopLevelComment(activeReplyCommentId);
     if (!parentComment) return;
 
-    const normalized = normalizeMentionsForSubmit({
+    const normalized = normalizeMentionsForSubmitWithFallback({
       text: replyDraft,
       mentions: replyMentions,
+      members: mentionMembers,
     });
     if (!normalized.text) return;
 
@@ -746,9 +748,10 @@ export default function SinglePostPage() {
   function handleSubmitEdit(commentId: string) {
     if (!commentsInput) return;
 
-    const normalized = normalizeMentionsForSubmit({
+    const normalized = normalizeMentionsForSubmitWithFallback({
       text: editDraft,
       mentions: editMentions,
+      members: mentionMembers,
     });
     if (!normalized.text) return;
 
