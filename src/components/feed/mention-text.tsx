@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 
 type MentionEntity = {
   id: string;
+  kind: "MEMBER" | "ALL";
   start: number;
   end: number;
   member: {
@@ -11,7 +12,7 @@ type MentionEntity = {
     name: string;
     slug: string;
     avatarUrl: string;
-  };
+  } | null;
 };
 
 type MentionTextProps = {
@@ -60,6 +61,20 @@ export function MentionText({ text, mentions, currentMemberSlug, className }: Me
     }
 
     const mentionToken = text.slice(mention.start, mention.end);
+    if (!mention.member || mention.kind === "ALL") {
+      parts.push(
+        <span
+          key={mention.id}
+          className="relative -top-0.5 inline-flex items-center gap-1 align-middle whitespace-nowrap rounded-full bg-muted/60 px-2 py-0.5 font-medium leading-none text-foreground"
+        >
+          {mentionToken}
+        </span>,
+      );
+
+      cursor = mention.end;
+      continue;
+    }
+
     const href = mention.member.slug === currentMemberSlug ? "/profile" : `/member/${mention.member.slug}`;
 
     parts.push(

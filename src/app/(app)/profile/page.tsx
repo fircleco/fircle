@@ -36,6 +36,7 @@ function mapApiPostToPostCardData(item: {
   caption: string | null;
   mentions?: Array<{
     id: string;
+    kind: "MEMBER" | "ALL";
     start: number;
     end: number;
     member: {
@@ -43,7 +44,7 @@ function mapApiPostToPostCardData(item: {
       name: string;
       slug: string;
       avatarUrl: string;
-    };
+    } | null;
   }>;
   likedByCurrentUser?: boolean;
   reactionCount?: number;

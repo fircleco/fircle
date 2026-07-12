@@ -1,6 +1,6 @@
 ---
 title: "@all Member Mention"
-status: draft
+status: in-progress
 references:
   - type: doc
     url: .project/brief.md
@@ -73,11 +73,11 @@ Out of scope for this PRD:
 
 #### Tasks
 
-- [ ] Update the mention draft/client helper model in [src/components/feed/mention-helpers.ts](src/components/feed/mention-helpers.ts) so mention entries can represent either a concrete family member or the special `@all` token.
-- [ ] Introduce an explicit special-mention identifier/kind contract in server input handling within [src/server/api/routers/post.ts](src/server/api/routers/post.ts) instead of overloading `memberId` with an unsafe fake value.
-- [ ] Evaluate and implement the minimal Prisma schema evolution in [prisma/schema.prisma](prisma/schema.prisma) needed to persist `@all` mention ranges alongside current mention records while preserving existing member mention behavior.
-- [ ] Create and apply the Prisma migration under [prisma/migrations](prisma/migrations) and regenerate the Prisma client in [generated/prisma](generated/prisma).
-- [ ] Extend post/comment response mapping in [src/server/api/routers/post.ts](src/server/api/routers/post.ts) so returned mention metadata can distinguish direct member mentions from `@all`.
+- [x] Update the mention draft/client helper model in [src/components/feed/mention-helpers.ts](src/components/feed/mention-helpers.ts) so mention entries can represent either a concrete family member or the special `@all` token.
+- [x] Introduce an explicit special-mention identifier/kind contract in server input handling within [src/server/api/routers/post.ts](src/server/api/routers/post.ts) instead of overloading `memberId` with an unsafe fake value.
+- [x] Evaluate and implement the minimal Prisma schema evolution in [prisma/schema.prisma](prisma/schema.prisma) needed to persist `@all` mention ranges alongside current mention records while preserving existing member mention behavior.
+- [x] Create and apply the Prisma migration under [prisma/migrations](prisma/migrations) and regenerate the Prisma client in [generated/prisma](generated/prisma).
+- [x] Extend post/comment response mapping in [src/server/api/routers/post.ts](src/server/api/routers/post.ts) so returned mention metadata can distinguish direct member mentions from `@all`.
 
 ### Phase 2: Authoring UX for Post and Comment Surfaces
 

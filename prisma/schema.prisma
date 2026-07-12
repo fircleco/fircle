@@ -46,6 +46,11 @@ enum PostMediaType {
   VIDEO
 }
 
+enum MentionKind {
+  MEMBER
+  ALL
+}
+
 enum NotificationCategory {
   TAG
   MENTION
@@ -289,14 +294,15 @@ model PostLike {
 model PostMention {
   id                String       @id @default(cuid())
   postId            String
-  mentionedMemberId String
+  kind              MentionKind  @default(MEMBER)
+  mentionedMemberId String?
   start             Int
   end               Int
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
 
   post              Post         @relation(fields: [postId], references: [id], onDelete: Cascade)
-  mentionedMember   FamilyMember @relation("PostMentionedMember", fields: [mentionedMemberId], references: [id], onDelete: Cascade)
+  mentionedMember   FamilyMember? @relation("PostMentionedMember", fields: [mentionedMemberId], references: [id], onDelete: Cascade)
 
   @@unique([postId, start, end])
   @@unique([postId, mentionedMemberId, start, end])
@@ -345,14 +351,15 @@ model CommentLike {
 model CommentMention {
   id                String       @id @default(cuid())
   commentId         String
-  mentionedMemberId String
+  kind              MentionKind  @default(MEMBER)
+  mentionedMemberId String?
   start             Int
   end               Int
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
 
   comment           Comment      @relation(fields: [commentId], references: [id], onDelete: Cascade)
-  mentionedMember   FamilyMember @relation("CommentMentionedMember", fields: [mentionedMemberId], references: [id], onDelete: Cascade)
+  mentionedMember   FamilyMember? @relation("CommentMentionedMember", fields: [mentionedMemberId], references: [id], onDelete: Cascade)
 
   @@unique([commentId, start, end])
   @@unique([commentId, mentionedMemberId, start, end])

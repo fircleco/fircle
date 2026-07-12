@@ -50,6 +50,7 @@ export type PostCardData = {
   body: string;
   mentions: Array<{
     id: string;
+    kind: "MEMBER" | "ALL";
     start: number;
     end: number;
     member: {
@@ -57,7 +58,7 @@ export type PostCardData = {
       name: string;
       slug: string;
       avatarUrl: string;
-    };
+    } | null;
   }>;
   mediaItems: PostMediaItem[];
   taggedMembers: { name: string; avatarUrl: string }[];

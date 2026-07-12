@@ -59,6 +59,7 @@ function mapPostToPostCardData(item: {
   caption: string | null;
   mentions?: Array<{
     id: string;
+    kind: "MEMBER" | "ALL";
     start: number;
     end: number;
     member: {
@@ -66,7 +67,7 @@ function mapPostToPostCardData(item: {
       name: string;
       slug: string;
       avatarUrl: string;
-    };
+    } | null;
   }>;
   likedByCurrentUser?: boolean;
   reactionCount?: number;
@@ -150,6 +151,7 @@ type CommentApiItem = {
   };
   mentions: Array<{
     id: string;
+    kind: "MEMBER" | "ALL";
     start: number;
     end: number;
     member: {
@@ -157,7 +159,7 @@ type CommentApiItem = {
       name: string;
       slug: string;
       avatarUrl: string;
-    };
+    } | null;
   }>;
   likedByCurrentUser: boolean;
   likeCount: number;
@@ -652,11 +654,29 @@ export default function SinglePostPage() {
     setActiveEditCommentId(commentId);
     setEditDraft(target.content);
     setEditMentions(
-      (target.mentions ?? []).map((mention) => ({
-        memberId: mention.member.id,
-        start: mention.start,
-        end: mention.end,
-      })),
+      (target.mentions ?? []).reduce<MentionDraft[]>((acc, mention) => {
+        if (mention.kind === "ALL") {
+          acc.push({
+            kind: "ALL",
+            start: mention.start,
+            end: mention.end,
+          });
+          return acc;
+        }
+
+        if (!mention.member) {
+          return acc;
+        }
+
+        acc.push({
+          kind: "MEMBER",
+          memberId: mention.member.id,
+          start: mention.start,
+          end: mention.end,
+        });
+
+        return acc;
+      }, []),
     );
   }
 

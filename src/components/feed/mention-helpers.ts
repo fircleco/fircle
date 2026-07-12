@@ -1,10 +1,18 @@
-export type MentionDraft = {
-  memberId: string;
-  start: number;
-  end: number;
-};
+export type MentionDraft =
+  | {
+      kind?: "MEMBER";
+      memberId: string;
+      start: number;
+      end: number;
+    }
+  | {
+      kind: "ALL";
+      start: number;
+      end: number;
+    };
 
 export type MentionableMember = {
+  kind?: "MEMBER" | "ALL";
   id: string;
   name: string;
   avatarUrl: string;
@@ -126,11 +134,18 @@ export function insertMentionAtQuery(input: {
 
   const nextMentions = sortAndDedupeMentions([
     ...shiftedMentions,
-    {
-      memberId: input.member.id,
-      start: mentionStart,
-      end: mentionEnd,
-    },
+    input.member.kind === "ALL"
+      ? {
+          kind: "ALL",
+          start: mentionStart,
+          end: mentionEnd,
+        }
+      : {
+          kind: "MEMBER",
+          memberId: input.member.id,
+          start: mentionStart,
+          end: mentionEnd,
+        },
   ]);
 
   const nextCaret = mentionEnd + (needsSpace ? 1 : 0);
@@ -253,14 +268,17 @@ export function getMentionPopoverAnchor(input: {
 }
 
 function sortAndDedupeMentions(mentions: MentionDraft[]) {
+  const mentionIdentity = (mention: MentionDraft) =>
+    mention.kind === "ALL" ? "ALL" : mention.memberId;
+
   const sorted = [...mentions]
-    .sort((a, b) => a.start - b.start || a.end - b.end || a.memberId.localeCompare(b.memberId));
+    .sort((a, b) => a.start - b.start || a.end - b.end || mentionIdentity(a).localeCompare(mentionIdentity(b)));
 
   const deduped: MentionDraft[] = [];
   const seen = new Set<string>();
 
   for (const mention of sorted) {
-    const key = `${mention.memberId}:${mention.start}:${mention.end}`;
+    const key = `${mentionIdentity(mention)}:${mention.start}:${mention.end}`;
     if (seen.has(key)) {
       continue;
     }

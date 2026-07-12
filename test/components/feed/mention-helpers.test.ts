@@ -89,12 +89,41 @@ describe("insertMentionAtQuery", () => {
     expect(inserted.text).toBe("Hi @Parent One there");
     expect(inserted.mentions).toEqual([
       {
+        kind: "MEMBER",
         memberId: "member-1",
         start: 3,
         end: 14,
       },
     ]);
     expect(inserted.caret).toBe(14);
+  });
+
+  it("supports inserting special ALL mentions", () => {
+    const inserted = insertMentionAtQuery({
+      text: "Ping @al team",
+      mentions: [],
+      activeQuery: {
+        tokenStart: 5,
+        tokenEnd: 8,
+        query: "al",
+      },
+      member: {
+        kind: "ALL",
+        id: "all",
+        name: "all",
+        avatarUrl: "",
+      },
+    });
+
+    expect(inserted.text).toBe("Ping @all team");
+    expect(inserted.mentions).toEqual([
+      {
+        kind: "ALL",
+        start: 5,
+        end: 9,
+      },
+    ]);
+    expect(inserted.caret).toBe(9);
   });
 });
 
