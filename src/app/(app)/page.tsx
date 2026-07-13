@@ -6,6 +6,7 @@ import { useMemo } from "react";
 
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { ComposerEntry } from "~/components/feed/composer-entry";
+import { useGlobalComposer } from "~/components/feed/global-composer-provider";
 import { PostCard } from "~/components/feed/post-card";
 import type { PostCardData } from "~/components/feed/post-card";
 import { Skeleton } from "~/components/ui/skeleton";
@@ -101,7 +102,7 @@ function mapFeedItemToPostCardData(item: {
   };
 }
 
-function FeedEmptyState() {
+function FeedEmptyState({ onCreateFirstMemory }: { onCreateFirstMemory: () => void }) {
   return (
     <section className="rounded-3xl border border-dashed border-border/80 bg-card/70 px-6 py-10 text-center">
       <div className="mx-auto flex size-12 items-center justify-center rounded-full border border-border bg-muted">
@@ -111,7 +112,7 @@ function FeedEmptyState() {
       <p className="mx-auto mt-2 max-w-sm text-muted-foreground text-sm sm:text-base">
         Start your family timeline by creating the first memory post.
       </p>
-      <Button type="button" className="mt-5" size="lg">
+      <Button type="button" className="mt-5" size="lg" onClick={onCreateFirstMemory}>
         Create first memory
       </Button>
     </section>
@@ -170,6 +171,7 @@ function FeedSkeletonList() {
 }
 
 export default function FeedPage() {
+  const { openComposer } = useGlobalComposer();
   const managementContext = api.family.getManagementContext.useQuery(undefined, {
     retry: false,
     refetchOnWindowFocus: false,
@@ -291,7 +293,7 @@ export default function FeedPage() {
               isAdmin={isAdmin}
             />
           ) : (
-            <FeedEmptyState />
+            <FeedEmptyState onCreateFirstMemory={() => openComposer()} />
           )}
         </div>
       </section>
