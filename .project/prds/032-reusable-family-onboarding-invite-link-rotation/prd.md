@@ -159,11 +159,11 @@ Out of scope:
 
 #### Tasks
 
-- [ ] Update invite page status/error mapping in `src/app/auth/invite/[code]/page.tsx`
-- [ ] Avoid already-used messaging for reusable invites
-- [ ] Preserve revoked/invalid messaging for reusable links and existing expired messaging for single-use invites
-- [ ] Preserve successful accept and sign-in flow
-- [ ] Verify no regressions for email-bound single-use invites
+- [x] Update invite page status/error mapping in `src/app/auth/invite/[code]/page.tsx`
+- [x] Avoid already-used messaging for reusable invites
+- [x] Preserve revoked/invalid messaging for reusable links and existing expired messaging for single-use invites
+- [x] Preserve successful accept and sign-in flow
+- [x] Verify no regressions for email-bound single-use invites
 
 ### Phase 6: Testing, QA, and Rollout Safety
 
