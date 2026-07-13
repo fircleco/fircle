@@ -6,7 +6,7 @@ import {
   INVITE_TYPES,
   INVITE_STATUSES,
   CLAIM_DEFAULT_TTL_DAYS,
-} from "~/lib/invite"
+} from "~/lib/invite-constants"
 
 export const inviteCodeSchema = z
   .string()
