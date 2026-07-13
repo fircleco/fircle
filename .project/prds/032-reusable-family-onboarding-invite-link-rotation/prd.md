@@ -1,6 +1,6 @@
 ---
 title: "Reusable Family Onboarding Invite Link with Reset Rotation"
-status: draft
+status: in-progress
 references:
   - type: doc
     url: .project/brief.md
@@ -85,14 +85,14 @@ Out of scope:
 #### Tasks
 
 - [ ] Update Invite model in `prisma/schema.prisma` with reusable-link support fields:
-- [ ] Add `isReusable` boolean (default false)
-- [ ] Add `rotatedFromInviteId` nullable self-reference (recommended)
-- [ ] Add `useCount` integer default 0 (recommended)
-- [ ] Add `lastUsedAt` nullable timestamp (recommended)
-- [ ] Add optional `createdAt`-based rotation reminder support (for example UI threshold at 90 days)
-- [ ] Add indexes to support fast lookup of active reusable invite by family (`familyId`, `isReusable`, `status`)
-- [ ] Create and apply migration for new fields/indexes
-- [ ] Confirm existing invite and claim queries remain compatible
+- [x] Add `isReusable` boolean (default false)
+- [x] Add `rotatedFromInviteId` nullable self-reference (recommended)
+- [x] Add `useCount` integer default 0 (recommended)
+- [x] Add `lastUsedAt` nullable timestamp (recommended)
+- [x] Add optional `createdAt`-based rotation reminder support (for example UI threshold at 90 days)
+- [x] Add indexes to support fast lookup of active reusable invite by family (`familyId`, `isReusable`, `status`)
+- [x] Create and apply migration for new fields/indexes
+- [x] Confirm existing invite and claim queries remain compatible
 
 ### Phase 2: Shared Validation and Lifecycle Helpers
 

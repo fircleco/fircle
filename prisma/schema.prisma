@@ -189,31 +189,39 @@ model FamilyMember {
 }
 
 model Invite {
-  id           String       @id @default(cuid())
-  code         String       @unique
-  type         InviteType   @default(OPEN)
-  status       InviteStatus @default(PENDING)
-  familyId     String
-  invitedEmail String?
-  createdById  String
-  expiresAt    DateTime
-  claimedAt    DateTime?
-  claimedById  String?
-  claimMemberId String?
-  revokedAt    DateTime?
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  id                  String       @id @default(cuid())
+  code                String       @unique
+  type                InviteType   @default(OPEN)
+  status              InviteStatus @default(PENDING)
+  familyId            String
+  invitedEmail        String?
+  createdById         String
+  expiresAt           DateTime
+  claimedAt           DateTime?
+  claimedById         String?
+  claimMemberId       String?
+  isReusable          Boolean      @default(false)
+  rotatedFromInviteId String?
+  useCount            Int          @default(0)
+  lastUsedAt          DateTime?
+  revokedAt           DateTime?
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
 
-  family    Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
-  createdBy User   @relation("UserCreatedInvites", fields: [createdById], references: [id], onDelete: Cascade)
-  claimedBy User?  @relation("UserClaimedInvites", fields: [claimedById], references: [id], onDelete: SetNull)
-  claimMember FamilyMember? @relation("ClaimMemberInvites", fields: [claimMemberId], references: [id], onDelete: SetNull)
+  family             Family        @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  createdBy          User          @relation("UserCreatedInvites", fields: [createdById], references: [id], onDelete: Cascade)
+  claimedBy          User?         @relation("UserClaimedInvites", fields: [claimedById], references: [id], onDelete: SetNull)
+  claimMember        FamilyMember? @relation("ClaimMemberInvites", fields: [claimMemberId], references: [id], onDelete: SetNull)
+  rotatedFromInvite  Invite?       @relation("InviteRotation", fields: [rotatedFromInviteId], references: [id], onDelete: SetNull)
+  rotatedToInvites   Invite[]      @relation("InviteRotation")
 
   @@index([familyId])
   @@index([status])
   @@index([expiresAt])
   @@index([invitedEmail])
   @@index([claimMemberId])
+  @@index([rotatedFromInviteId])
+  @@index([familyId, isReusable, status])
 }
 
 model Post {
