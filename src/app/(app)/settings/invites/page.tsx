@@ -301,7 +301,7 @@ export default function InvitesPage() {
     );
     return parsedReusableInvite.success ? parsedReusableInvite.data : null;
   }, [reusableInviteQuery.data]);
-  const familyLinkPanelVisible = showFamilyLinkPanel || reusableInvite !== null;
+  const familyLinkPanelVisible = showFamilyLinkPanel;
   const historyInvites = useMemo(
     () => invites.filter((invite) => !invite.isReusable && invite.lifecycleState !== "valid"),
     [invites],
@@ -448,7 +448,7 @@ export default function InvitesPage() {
                 <DropdownMenuItem
                   className="cursor-pointer items-start"
                   onSelect={() => {
-                    setShowFamilyLinkPanel((current) => !current || reusableInvite !== null);
+                    setShowFamilyLinkPanel(true);
                     setShowCreatePanel(false);
                   }}
                 >
