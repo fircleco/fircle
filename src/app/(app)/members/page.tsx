@@ -1,12 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { Users } from "~/components/ui/icons";
+import { More, Users, Plus } from "~/components/ui/icons";
 import { useMemo, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 
 import { MemberCard } from "~/components/members/member-card";
 import { Button } from "~/components/ui/button";
+import { ButtonGroup, ButtonGroupSeparator } from "~/components/ui/button-group";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
 import { Input } from "~/components/ui/input";
 import { Skeleton } from "~/components/ui/skeleton";
 import type { FamilyMemberStatus } from "~/lib/mocks/family-members";
@@ -101,9 +108,38 @@ export default function MembersPage() {
         </div>
 
         {canManageMembers ? (
-          <Button asChild>
-            <Link href="/members/new">Add family member</Link>
-          </Button>
+          <ButtonGroup aria-label="Member actions" className="w-full sm:w-auto">
+            <Button asChild>
+              <Link href="/members/new">
+                <Plus data-icon="inline-start" />
+                Add family member
+              </Link>
+            </Button>
+            <ButtonGroupSeparator />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  aria-label="More member actions"
+                  className="px-3"
+                >
+                  <More data-icon="inline-start" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-64 rounded-xl" align="end">
+                <DropdownMenuItem asChild className="cursor-pointer items-start">
+                  <Link href="/settings/invites">
+                    <div className="space-y-0.5">
+                      <p className="font-medium text-sm">Invite Members</p>
+                      <p className="text-muted-foreground text-xs">
+                        Add members through shareable invite links
+                      </p>
+                    </div>
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </ButtonGroup>
         ) : null}
       </header>
 

@@ -470,7 +470,6 @@ export default function InvitesPage() {
               <DropdownMenuTrigger asChild>
                 <Button
                   type="button"
-                  variant="outline"
                   disabled={!canManageInvites}
                   aria-label="More invite actions"
                   className="px-3"
