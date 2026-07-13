@@ -172,6 +172,10 @@ function formatDate(value: Date | string | null) {
   });
 }
 
+function formatActorName(name: string | null | undefined, email: string | null | undefined) {
+  return name ?? email ?? "Someone";
+}
+
 export default function InvitesPage() {
   const trpcUtils = api.useUtils();
   const [showCreatePanel, setShowCreatePanel] = useState(false);
@@ -320,13 +324,10 @@ export default function InvitesPage() {
       {
         id: `${reusableInvite.id}:history`,
         activityAt: reusableInvite.lastUsedAt ?? reusableInvite.createdAt,
-        title:
-          reusableInvite.useCount === 1
-            ? "Family Invite Link used once"
-            : `Family Invite Link used ${reusableInvite.useCount} times`,
+        title: "Someone joined via Family Invite Link",
         subtitle: reusableInvite.lastUsedAt
-          ? `Last used ${formatDate(reusableInvite.lastUsedAt)}`
-          : `Created ${formatDate(reusableInvite.createdAt)}`,
+          ? `Last used ${formatDate(reusableInvite.lastUsedAt)} · Total joins ${reusableInvite.useCount}`
+          : `Created ${formatDate(reusableInvite.createdAt)} · Total joins ${reusableInvite.useCount}`,
         status: reusableInvite.lifecycleState,
       },
     ];
@@ -344,6 +345,8 @@ export default function InvitesPage() {
     const inviteHistoryItems = visibleHistoryInvites.map((invite) => ({
       kind: "invite" as const,
       id: invite.id,
+      type: invite.type,
+      isClaimInvite: invite.isClaimInvite,
       invitedEmail: invite.invitedEmail,
       createdAt: invite.createdAt,
       claimedBy: invite.claimedBy,
@@ -972,7 +975,19 @@ export default function InvitesPage() {
                     className="flex flex-col gap-2 rounded-xl border bg-background p-4 sm:flex-row sm:items-center sm:justify-between"
                   >
                     <div className="space-y-1">
-                      <p className="text-sm">{item.invitedEmail ?? "No email specified"}</p>
+                      <p className="text-sm">
+                        {item.claimedBy ? (
+                          item.isClaimInvite ? (
+                            `${formatActorName(item.claimedBy.name, item.claimedBy.email)} claimed their member profile`
+                          ) : item.type === "OPEN" ? (
+                            `${formatActorName(item.claimedBy.name, item.claimedBy.email)} joined via open invite`
+                          ) : (
+                            `${formatActorName(item.claimedBy.name, item.claimedBy.email)} claimed their invite`
+                          )
+                        ) : (
+                          item.invitedEmail ?? "Invite updated"
+                        )}
+                      </p>
                       <p className="text-muted-foreground text-xs">
                         Created {formatDate(item.createdAt)}
                         {item.claimedBy
