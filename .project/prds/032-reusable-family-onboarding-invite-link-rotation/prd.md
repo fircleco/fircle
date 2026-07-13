@@ -11,6 +11,9 @@ references:
   - type: prd
     url: .project/prds/028-invite-email-delivery-status-and-retry/prd.md
     description: "Current invite email delivery contracts and retry behavior"
+  - type: pr
+    url: https://github.com/fircleco/fircle/pull/55
+    description: "Implementation pull request - feat(invite): introduce family invite link"
 ---
 
 > **Instructions for AI Agents:**
