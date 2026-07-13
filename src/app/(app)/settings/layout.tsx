@@ -116,7 +116,7 @@ export default function SettingsLayout({
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-semibold text-2xl tracking-tight">Settings</h1>
+        <h1 className="font-semibold text-3xl tracking-tight">Settings</h1>
         <LogoutButton variant="destructive" size="sm" className="gap-2">
           <Logout className="size-4" />
           <span>Log out</span>
@@ -154,7 +154,7 @@ export default function SettingsLayout({
           </DropdownMenu>
         </div>
 
-        <nav aria-label="Settings navigation" className="hidden shrink-0 md:block md:w-52">
+        <nav aria-label="Settings navigation" className="hidden shrink-0 md:block md:w-48">
           <ul className="flex gap-1 rounded-xl border bg-card/60 p-1 md:flex-col">
             {visibleSettingsNav.map((item) => {
               const active = isActivePath(pathname, item.href);

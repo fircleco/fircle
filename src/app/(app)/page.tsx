@@ -238,7 +238,7 @@ export default function FeedPage() {
 
   return (
     <>
-      <section className="px-4 pb-6 pt-5 sm:px-6 md:px-8">
+      <section className="w-full px-4 py-8 sm:px-6 lg:px-8">
         <div className="mx-auto w-full max-w-2xl space-y-4">
           <header className="space-y-1 mx-auto w-full max-w-2xl">
             <h1 className="text-3xl font-semibold tracking-tight">Feed</h1>
