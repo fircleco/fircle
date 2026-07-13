@@ -52,7 +52,7 @@ Out of scope:
 - Join invites only: Reusable behavior applies only to family join invites, not claim links.
 - Exactly one active reusable link per family: Reset is authoritative and revokes previous active reusable links.
 - Keep current single-use flow: Admins can still create one-off invites when needed.
-- Priority-first entry UX: Single-use "Create Invite" remains the primary visible action; "Family Link" is exposed as a secondary action in a dropdown menu to de-emphasize reusable-link usage.
+- Grouped action UX: Single-use "Create Invite" and reusable-link management are exposed through a shadcn `ButtonGroup`, with the second grouped control acting as a dropdown menu trigger.
 - Naming convention: The dropdown option label is "Family Link", its description text is "Invite via Family Invite Link", and the reusable section title is "Family Invite Link".
 - Reusable card persistence: The reusable-link card always displays the current/last created reusable link and its latest lifecycle state, even when it is no longer active.
 - First-run migration-safe state: Existing instances that predate this feature must show a clear empty state indicating no reusable link exists yet, with a CTA to create the first reusable link.
@@ -132,8 +132,9 @@ Out of scope:
 #### Tasks
 
 - [x] Keep the existing primary "Create Invite" button behavior unchanged in `src/app/(app)/settings/invites/page.tsx`
-- [x] Add a dropdown menu attached to the invite action area
-- [x] Add dropdown option labeled "Family Link" as a secondary action
+- [x] Add a shadcn `ButtonGroup` attached to the invite action area
+- [x] Add dropdown trigger as the second grouped control
+- [x] Add dropdown option labeled "Family Link"
 - [x] Add dropdown option description text: "Invite via Family Invite Link"
 - [x] Selecting "Family Link" opens/toggles the reusable-link management card (section title: "Family Invite Link")
 - [x] Add reusable-link card in `src/app/(app)/settings/invites/page.tsx` (section title: "Family Invite Link")
@@ -178,7 +179,7 @@ Out of scope:
 - [ ] Single-use invites still reject second acceptance
 - [ ] Non-admin cannot fetch/reset reusable link
 - [ ] Add or extend UI tests for reusable section rendering, reset action, and copy behavior
-- [ ] Add UI tests for primary/dropdown action behavior:
+- [ ] Add UI tests for button-group dropdown action behavior:
 - [ ] Primary "Create Invite" action opens current create-invite flow
 - [ ] Dropdown "Family Link" action opens reusable-link card
 - [ ] Add tests for first-run empty state in existing instances with no reusable link
@@ -191,7 +192,8 @@ Out of scope:
 ## Acceptance Criteria
 
 - [ ] Invite settings keeps single-use "Create Invite" as the primary visible action
-- [ ] "Family Link" appears as a secondary dropdown option and opens the "Family Invite Link" section
+- [ ] The second control in the shadcn `ButtonGroup` is a dropdown trigger
+- [ ] "Family Link" appears as a dropdown option and opens the "Family Invite Link" section
 - [ ] The "Family Link" dropdown option displays description text "Invite via Family Invite Link"
 - [ ] Owners/admins can view the current/last created reusable join invite link and its lifecycle state in the reusable-link card
 - [ ] Existing families with no reusable link see an explicit empty state and can create their first reusable link from the card

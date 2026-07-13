@@ -8,17 +8,18 @@ import {
   Copy,
   Link2,
   Loader,
-  More,
   Plus,
   Send,
   ShieldAlert,
   TriangleAlert,
   X,
+  More
 } from "~/components/ui/icons";
 import { z } from "zod";
 
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
+import { ButtonGroup, ButtonGroupSeparator } from "~/components/ui/button-group";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -417,38 +418,48 @@ export default function InvitesPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Button
-            type="button"
-            onClick={() => {
-              setShowCreatePanel(true);
-              setShowFamilyLinkPanel(false);
-            }}
-            disabled={!canManageInvites}
-          >
-            <Plus className="mr-1 size-4" />
-            Create Invite
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button type="button" variant="outline" disabled={!canManageInvites} aria-label="More invite actions">
-                <More className="size-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-64 rounded-xl" align="end">
-              <DropdownMenuItem
-                className="cursor-pointer items-start"
-                onSelect={() => {
-                  setShowFamilyLinkPanel((current) => !current || reusableInvite !== null);
-                  setShowCreatePanel(false);
-                }}
-              >
-                <div className="space-y-0.5">
-                  <p className="font-medium text-sm">Family Link</p>
-                  <p className="text-muted-foreground text-xs">Invite via Family Invite Link</p>
-                </div>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <ButtonGroup aria-label="Invite actions" className="w-full sm:w-auto">
+            <Button
+              type="button"
+              onClick={() => {
+                setShowCreatePanel(true);
+                setShowFamilyLinkPanel(false);
+              }}
+              disabled={!canManageInvites}
+              className="sm:min-w-32"
+            >
+              <Plus data-icon="inline-start" />
+              Create Invite
+            </Button>
+            <ButtonGroupSeparator />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={!canManageInvites}
+                  aria-label="More invite actions"
+                  className="px-3"
+                >
+                  <More data-icon="inline-start" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-64 rounded-xl" align="end">
+                <DropdownMenuItem
+                  className="cursor-pointer items-start"
+                  onSelect={() => {
+                    setShowFamilyLinkPanel((current) => !current || reusableInvite !== null);
+                    setShowCreatePanel(false);
+                  }}
+                >
+                  <div className="space-y-0.5">
+                    <p className="font-medium text-sm">Family Link</p>
+                    <p className="text-muted-foreground text-xs">Invite via Family Invite Link</p>
+                  </div>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </ButtonGroup>
         </div>
       </header>
 
