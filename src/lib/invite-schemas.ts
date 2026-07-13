@@ -1,7 +1,12 @@
 import { z } from "zod"
 
 import { normalizeEmail } from "~/lib/email"
-import { INVITE_DEFAULT_TTL_DAYS, INVITE_TYPES, CLAIM_DEFAULT_TTL_DAYS } from "~/lib/invite"
+import {
+  INVITE_DEFAULT_TTL_DAYS,
+  INVITE_TYPES,
+  INVITE_STATUSES,
+  CLAIM_DEFAULT_TTL_DAYS,
+} from "~/lib/invite"
 
 export const inviteCodeSchema = z
   .string()
@@ -61,6 +66,35 @@ export const retryEmailSendInputSchema = z.object({
 })
 
 export type RetryEmailSendInput = z.infer<typeof retryEmailSendInputSchema>
+
+export const reusableInviteLifecycleStateSchema = z.enum(["valid", "revoked", "invalid"])
+
+export const getActiveReusableInviteInputSchema = z.object({
+  familyId: z.string().cuid(),
+})
+
+export const resetReusableInviteInputSchema = z.object({
+  familyId: z.string().cuid(),
+})
+
+export const reusableInviteSummarySchema = z.object({
+  id: z.string(),
+  code: z.string(),
+  familyId: z.string(),
+  isReusable: z.literal(true),
+  status: z.enum(INVITE_STATUSES),
+  lifecycleState: reusableInviteLifecycleStateSchema,
+  createdAt: z.date(),
+  updatedAt: z.date(),
+  revokedAt: z.date().nullable(),
+  rotatedFromInviteId: z.string().nullable(),
+  useCount: z.number().int().nonnegative(),
+  lastUsedAt: z.date().nullable(),
+})
+
+export type GetActiveReusableInviteInput = z.infer<typeof getActiveReusableInviteInputSchema>
+export type ResetReusableInviteInput = z.infer<typeof resetReusableInviteInputSchema>
+export type ReusableInviteSummary = z.infer<typeof reusableInviteSummarySchema>
 
 // ─── Claim schemas ────────────────────────────────────────────────────────────
 

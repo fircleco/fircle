@@ -3,6 +3,9 @@ import {
   createUnclaimedMemberInputSchema,
   createClaimLinkInputSchema,
   claimMemberInputSchema,
+  getActiveReusableInviteInputSchema,
+  resetReusableInviteInputSchema,
+  reusableInviteSummarySchema,
 } from "~/lib/invite-schemas";
 import { CLAIM_DEFAULT_TTL_DAYS } from "~/lib/invite";
 
@@ -199,6 +202,87 @@ describe("claimMemberInputSchema", () => {
       email: "user@example.com",
       password: "strongpassword1",
       confirmPassword: "strongpassword1",
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+// ─── reusable invite schemas ──────────────────────────────────────────────────
+
+describe("getActiveReusableInviteInputSchema", () => {
+  it("accepts a valid familyId", () => {
+    const result = getActiveReusableInviteInputSchema.safeParse({
+      familyId: VALID_CUID,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects missing familyId", () => {
+    const result = getActiveReusableInviteInputSchema.safeParse({});
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("resetReusableInviteInputSchema", () => {
+  it("accepts a valid familyId", () => {
+    const result = resetReusableInviteInputSchema.safeParse({
+      familyId: VALID_CUID,
+    });
+    expect(result.success).toBe(true);
+  });
+});
+
+describe("reusableInviteSummarySchema", () => {
+  it("accepts valid reusable invite metadata for UI parsing", () => {
+    const result = reusableInviteSummarySchema.safeParse({
+      id: "invite-1",
+      code: "A".repeat(24),
+      familyId: VALID_CUID,
+      isReusable: true,
+      status: "PENDING",
+      lifecycleState: "valid",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      revokedAt: null,
+      rotatedFromInviteId: null,
+      useCount: 3,
+      lastUsedAt: new Date(),
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects non-reusable payloads", () => {
+    const result = reusableInviteSummarySchema.safeParse({
+      id: "invite-1",
+      code: "A".repeat(24),
+      familyId: VALID_CUID,
+      isReusable: false,
+      status: "PENDING",
+      lifecycleState: "valid",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      revokedAt: null,
+      rotatedFromInviteId: null,
+      useCount: 0,
+      lastUsedAt: null,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects negative useCount", () => {
+    const result = reusableInviteSummarySchema.safeParse({
+      id: "invite-1",
+      code: "A".repeat(24),
+      familyId: VALID_CUID,
+      isReusable: true,
+      status: "PENDING",
+      lifecycleState: "valid",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      revokedAt: null,
+      rotatedFromInviteId: null,
+      useCount: -1,
+      lastUsedAt: null,
     });
     expect(result.success).toBe(false);
   });

@@ -84,7 +84,7 @@ Out of scope:
 
 #### Tasks
 
-- [ ] Update Invite model in `prisma/schema.prisma` with reusable-link support fields:
+- [x] Update Invite model in `prisma/schema.prisma` with reusable-link support fields:
 - [x] Add `isReusable` boolean (default false)
 - [x] Add `rotatedFromInviteId` nullable self-reference (recommended)
 - [x] Add `useCount` integer default 0 (recommended)
@@ -100,11 +100,11 @@ Out of scope:
 
 #### Tasks
 
-- [ ] Extend lifecycle/usability helpers in `src/lib/invite.ts` to account for reusable invites
-- [ ] Ensure lifecycle state mapping for reusable links blocks only on revoked/invalid, not prior successful use
-- [ ] Keep claim invite helper behavior unchanged
-- [ ] Extend schema inputs in `src/lib/invite-schemas.ts` with reusable link fetch/reset inputs
-- [ ] Add or adjust response parsing schemas at UI boundaries for reusable metadata
+- [x] Extend lifecycle/usability helpers in `src/lib/invite.ts` to account for reusable invites
+- [x] Ensure lifecycle state mapping for reusable links blocks only on revoked/invalid, not prior successful use
+- [x] Keep claim invite helper behavior unchanged
+- [x] Extend schema inputs in `src/lib/invite-schemas.ts` with reusable link fetch/reset inputs
+- [x] Add or adjust response parsing schemas at UI boundaries for reusable metadata
 
 ### Phase 3: Invite Router API for Reusable Link and Rotation
 

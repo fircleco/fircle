@@ -1,8 +1,11 @@
 import { describe, it, expect } from "vitest";
 import {
+  isReusableInvite,
   isClaimInvite,
   isMemberAlreadyClaimed,
   getClaimLifecycleState,
+  getReusableInviteLifecycleState,
+  isReusableInviteUsable,
   validateClaimEmailBinding,
   generateClaimToken,
   getInviteExpiryDate,
@@ -35,6 +38,18 @@ describe("isClaimInvite", () => {
 
   it("returns false when claimMemberId is null", () => {
     expect(isClaimInvite({ claimMemberId: null })).toBe(false);
+  });
+});
+
+// ─── isReusableInvite ─────────────────────────────────────────────────────────
+
+describe("isReusableInvite", () => {
+  it("returns true when isReusable is true", () => {
+    expect(isReusableInvite({ isReusable: true })).toBe(true);
+  });
+
+  it("returns false when isReusable is false", () => {
+    expect(isReusableInvite({ isReusable: false })).toBe(false);
   });
 });
 
@@ -99,6 +114,86 @@ describe("getClaimLifecycleState", () => {
     });
     // expiresAt <= now → expired
     expect(getClaimLifecycleState(invite, justExpiredNow)).toBe("expired");
+  });
+});
+
+// ─── getReusableInviteLifecycleState ──────────────────────────────────────────
+
+describe("getReusableInviteLifecycleState", () => {
+  it('returns "invalid" when invite is null', () => {
+    expect(getReusableInviteLifecycleState(null)).toBe("invalid");
+  });
+
+  it('returns "invalid" when invite is not marked reusable', () => {
+    expect(
+      getReusableInviteLifecycleState({
+        isReusable: false,
+        status: "PENDING",
+        revokedAt: null,
+      }),
+    ).toBe("invalid");
+  });
+
+  it('returns "valid" for a pending reusable invite', () => {
+    expect(
+      getReusableInviteLifecycleState({
+        isReusable: true,
+        status: "PENDING",
+        revokedAt: null,
+      }),
+    ).toBe("valid");
+  });
+
+  it('returns "revoked" when revokedAt is set', () => {
+    expect(
+      getReusableInviteLifecycleState({
+        isReusable: true,
+        status: "PENDING",
+        revokedAt: new Date(),
+      }),
+    ).toBe("revoked");
+  });
+
+  it('returns "revoked" when status is REVOKED', () => {
+    expect(
+      getReusableInviteLifecycleState({
+        isReusable: true,
+        status: "REVOKED",
+        revokedAt: null,
+      }),
+    ).toBe("revoked");
+  });
+
+  it('returns "invalid" for non-pending reusable invite states', () => {
+    expect(
+      getReusableInviteLifecycleState({
+        isReusable: true,
+        status: "CLAIMED",
+        revokedAt: null,
+      }),
+    ).toBe("invalid");
+  });
+});
+
+describe("isReusableInviteUsable", () => {
+  it("returns true only for valid reusable invites", () => {
+    expect(
+      isReusableInviteUsable({
+        isReusable: true,
+        status: "PENDING",
+        revokedAt: null,
+      }),
+    ).toBe(true);
+  });
+
+  it("returns false for revoked reusable invites", () => {
+    expect(
+      isReusableInviteUsable({
+        isReusable: true,
+        status: "REVOKED",
+        revokedAt: null,
+      }),
+    ).toBe(false);
   });
 });
 
