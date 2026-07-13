@@ -27,12 +27,12 @@ function SectionEmptyState({
   description: string;
 }) {
   return (
-    <div className="rounded-2xl border border-dashed border-border/80 bg-card/70 px-4 py-10 text-center">
-      <div className="mx-auto flex size-10 items-center justify-center rounded-full border border-border bg-muted text-muted-foreground">
-        <Icon className="size-4" aria-hidden="true" />
+    <div className="px-2 py-8 text-center mx-auto max-w-2xl">
+      <div className="mx-auto grid size-10 place-items-center rounded-full text-muted-foreground">
+        <Icon className="size-5" aria-hidden="true" />
       </div>
       <p className="mt-3 font-medium text-sm">{title}</p>
-      <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">{description}</p>
+      <p className="mt-1 text-sm text-muted-foreground">{description}</p>
     </div>
   );
 }

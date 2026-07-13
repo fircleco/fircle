@@ -20,7 +20,7 @@ export function GalleryLoadingState() {
 
 export function GalleryEmptyState({ familyName }: { familyName?: string }) {
   return (
-    <section className="rounded-3xl border border-dashed border-border/80 bg-card/70 px-6 py-12 text-center">
+    <section className="mx-auto w-full max-w-2xl rounded-3xl border border-dashed border-border/80 bg-card/70 px-6 py-12 text-center">
       <div className="mx-auto flex size-12 items-center justify-center rounded-full border border-border bg-muted">
         <ImageOff className="size-5 text-muted-foreground" />
       </div>
