@@ -112,18 +112,18 @@ Out of scope:
 
 #### Tasks
 
-- [ ] Add protected query `getActiveReusableInvite` in `src/server/api/routers/invite.ts`
-- [ ] Validate owner/admin role in target family for reusable-link operations
-- [ ] Add protected mutation `resetReusableInvite` in `src/server/api/routers/invite.ts`
-- [ ] In reset flow, atomically revoke old active reusable invite(s), create new reusable invite with new code, and return full payload
-- [ ] Update `acceptInvite` in `src/server/api/routers/invite.ts`:
-- [ ] Reusable invite path: create user/member but do not set invite to claimed
-- [ ] Single-use path: keep current claim transition
-- [ ] Preserve duplicate-email and tenant constraints
-- [ ] Update `getByCode` logic so reusable invites do not return already-used after first successful acceptance
-- [ ] Ensure reusable invite validity does not depend on `expiresAt` checks (reset/revoke controls lifecycle)
-- [ ] Ensure `revokeInvite` remains valid for reusable and single-use records
-- [ ] Keep notification emissions consistent for reset and revoke events
+- [x] Add protected query `getActiveReusableInvite` in `src/server/api/routers/invite.ts`
+- [x] Validate owner/admin role in target family for reusable-link operations
+- [x] Add protected mutation `resetReusableInvite` in `src/server/api/routers/invite.ts`
+- [x] In reset flow, atomically revoke old active reusable invite(s), create new reusable invite with new code, and return full payload
+- [x] Update `acceptInvite` in `src/server/api/routers/invite.ts`:
+- [x] Reusable invite path: create user/member but do not set invite to claimed
+- [x] Single-use path: keep current claim transition
+- [x] Preserve duplicate-email and tenant constraints
+- [x] Update `getByCode` logic so reusable invites do not return already-used after first successful acceptance
+- [x] Ensure reusable invite validity does not depend on `expiresAt` checks (reset/revoke controls lifecycle)
+- [x] Ensure `revokeInvite` remains valid for reusable and single-use records
+- [x] Keep notification emissions consistent for reset and revoke events
 
 ### Phase 4: Settings UI for Reusable Link Management
 

@@ -13,14 +13,19 @@ import {
   generateInviteCode,
   getInviteExpiryDate,
   getInviteLifecycleState,
+  getReusableInviteLifecycleState,
   isInviteUsable,
+  isReusableInvite,
+  isReusableInviteUsable,
   validateInviteEmailBinding,
 } from "~/lib/invite"
 import {
+  getActiveReusableInviteInputSchema,
   inviteLookupInputSchema,
   inviteAcceptInputSchema,
   inviteCreateInputSchema,
   inviteRevokeInputSchema,
+  resetReusableInviteInputSchema,
   retryEmailSendInputSchema,
 } from "~/lib/invite-schemas"
 import { normalizeEmail } from "~/lib/email"
@@ -44,7 +49,88 @@ import {
   getClaimedAdminMemberIds,
 } from "~/server/notifications"
 
+const REUSABLE_INVITE_FUTURE_EXPIRY = new Date("2999-12-31T00:00:00.000Z")
+
+function buildReusableInviteSummary(invite: {
+  id: string
+  code: string
+  familyId: string
+  isReusable: boolean
+  status: "PENDING" | "CLAIMED" | "EXPIRED" | "REVOKED"
+  createdAt: Date
+  updatedAt: Date
+  revokedAt: Date | null
+  rotatedFromInviteId: string | null
+  useCount: number
+  lastUsedAt: Date | null
+}) {
+  return {
+    id: invite.id,
+    code: invite.code,
+    familyId: invite.familyId,
+    isReusable: true as const,
+    status: invite.status,
+    lifecycleState: getReusableInviteLifecycleState(invite),
+    createdAt: invite.createdAt,
+    updatedAt: invite.updatedAt,
+    revokedAt: invite.revokedAt,
+    rotatedFromInviteId: invite.rotatedFromInviteId,
+    useCount: invite.useCount,
+    lastUsedAt: invite.lastUsedAt,
+  }
+}
+
 export const inviteRouter = createTRPCRouter({
+  getActiveReusableInvite: protectedProcedure
+    .input(getActiveReusableInviteInputSchema)
+    .query(async ({ ctx, input }) => {
+      const membership = await ctx.db.familyMember.findUnique({
+        where: {
+          familyId_userId: {
+            familyId: input.familyId,
+            userId: ctx.session.user.id,
+          },
+        },
+      })
+
+      if (!membership || (membership.role !== "ADMIN" && membership.role !== "OWNER")) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You do not have permission to view family invite links for this family",
+        })
+      }
+
+      const activeReusableInvite = await ctx.db.invite.findFirst({
+        where: {
+          familyId: input.familyId,
+          isReusable: true,
+          claimMemberId: null,
+          status: "PENDING",
+          revokedAt: null,
+        },
+        orderBy: { createdAt: "desc" },
+      })
+
+      if (activeReusableInvite) {
+        return buildReusableInviteSummary(activeReusableInvite)
+      }
+
+      const latestReusableInvite = await ctx.db.invite.findFirst({
+        where: {
+          familyId: input.familyId,
+          isReusable: true,
+          claimMemberId: null,
+        },
+        orderBy: { createdAt: "desc" },
+      })
+
+      if (!latestReusableInvite) {
+        return null
+      }
+
+      return buildReusableInviteSummary(latestReusableInvite)
+    }),
+
   /**
    * Public query: Get invite details by code for pre-acceptance viewing.
    * Returns family info and invite metadata but no sensitive claim history.
@@ -74,12 +160,14 @@ export const inviteRouter = createTRPCRouter({
         })
       }
 
-      const state = getInviteLifecycleState({
-        status: invite.status,
-        expiresAt: invite.expiresAt,
-        claimedAt: invite.claimedAt,
-        revokedAt: invite.revokedAt,
-      })
+      const state = isReusableInvite(invite)
+        ? getReusableInviteLifecycleState(invite)
+        : getInviteLifecycleState({
+            status: invite.status,
+            expiresAt: invite.expiresAt,
+            claimedAt: invite.claimedAt,
+            revokedAt: invite.revokedAt,
+          })
 
       // Map lifecycle state to user-facing error codes
       if (state === "revoked") {
@@ -103,9 +191,17 @@ export const inviteRouter = createTRPCRouter({
         })
       }
 
+      if (state === "invalid") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "This invite is not valid",
+        })
+      }
+
       return {
         id: invite.id,
         code: invite.code,
+        isReusable: invite.isReusable,
         family: {
           id: invite.family.id,
           name: invite.family.name,
@@ -147,7 +243,22 @@ export const inviteRouter = createTRPCRouter({
       }
 
       // Check invite usability
-      if (!isInviteUsable(invite)) {
+      if (isReusableInvite(invite)) {
+        if (!isReusableInviteUsable(invite)) {
+          const state = getReusableInviteLifecycleState(invite)
+          if (state === "revoked") {
+            throw new TRPCError({
+              code: "FORBIDDEN",
+              message: "This invite has been revoked",
+            })
+          }
+
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "This invite is not valid",
+          })
+        }
+      } else if (!isInviteUsable(invite)) {
         const state = getInviteLifecycleState(invite)
         if (state === "revoked") {
           throw new TRPCError({
@@ -230,21 +341,35 @@ export const inviteRouter = createTRPCRouter({
 
           const claimedAt = new Date()
 
-          // Claim invite atomically - only succeeds if invite is still usable.
-          const claimResult = await tx.invite.updateMany({
-            where: {
-              id: invite.id,
-              status: "PENDING",
-              claimedAt: null,
-              revokedAt: null,
-              expiresAt: { gt: claimedAt },
-            },
-            data: {
-              status: "CLAIMED",
-              claimedById: user.id,
-              claimedAt,
-            },
-          })
+          const claimResult = isReusableInvite(invite)
+            ? await tx.invite.updateMany({
+                where: {
+                  id: invite.id,
+                  isReusable: true,
+                  status: "PENDING",
+                  revokedAt: null,
+                },
+                data: {
+                  useCount: {
+                    increment: 1,
+                  },
+                  lastUsedAt: claimedAt,
+                },
+              })
+            : await tx.invite.updateMany({
+                where: {
+                  id: invite.id,
+                  status: "PENDING",
+                  claimedAt: null,
+                  revokedAt: null,
+                  expiresAt: { gt: claimedAt },
+                },
+                data: {
+                  status: "CLAIMED",
+                  claimedById: user.id,
+                  claimedAt,
+                },
+              })
 
           if (claimResult.count === 0) {
             throw new TRPCError({
@@ -279,8 +404,12 @@ export const inviteRouter = createTRPCRouter({
                 eventType: "INVITE_STATUS_CHANGED" as const,
                 sourceType: "invite",
                 sourceId: invite.id,
-                title: "An invite was claimed",
-                body: "A pending invite has been claimed.",
+                title: isReusableInvite(invite)
+                  ? "A family invite link was used"
+                  : "An invite was claimed",
+                body: isReusableInvite(invite)
+                  ? "A reusable family invite link was used to join the family."
+                  : "A pending invite has been claimed.",
               })),
             )
           }
@@ -350,6 +479,131 @@ export const inviteRouter = createTRPCRouter({
         userId: result.id,
         email: result.email,
       }
+    }),
+
+  resetReusableInvite: protectedProcedure
+    .input(resetReusableInviteInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const membership = await ctx.db.familyMember.findUnique({
+        where: {
+          familyId_userId: {
+            familyId: input.familyId,
+            userId: ctx.session.user.id,
+          },
+        },
+      })
+
+      if (!membership || (membership.role !== "ADMIN" && membership.role !== "OWNER")) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You do not have permission to manage family invite links for this family",
+        })
+      }
+
+      const result = await ctx.db.$transaction(async (tx) => {
+        const activeReusableInvite = await tx.invite.findFirst({
+          where: {
+            familyId: input.familyId,
+            isReusable: true,
+            claimMemberId: null,
+            status: "PENDING",
+            revokedAt: null,
+          },
+          orderBy: { createdAt: "desc" },
+        })
+
+        const resetAt = new Date()
+
+        if (activeReusableInvite) {
+          await tx.invite.updateMany({
+            where: {
+              familyId: input.familyId,
+              isReusable: true,
+              claimMemberId: null,
+              status: "PENDING",
+              revokedAt: null,
+            },
+            data: {
+              status: "REVOKED",
+              revokedAt: resetAt,
+            },
+          })
+        }
+
+        let code: string | undefined
+
+        for (let attempt = 0; attempt < 3; attempt++) {
+          const candidate = generateInviteCode()
+          const conflict = await tx.invite.findUnique({ where: { code: candidate } })
+          if (!conflict) {
+            code = candidate
+            break
+          }
+        }
+
+        if (!code) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to generate unique invite code",
+          })
+        }
+
+        const createdInvite = await tx.invite.create({
+          data: {
+            code,
+            type: "OPEN",
+            invitedEmail: null,
+            familyId: input.familyId,
+            createdById: ctx.session.user.id,
+            expiresAt: REUSABLE_INVITE_FUTURE_EXPIRY,
+            status: "PENDING",
+            isReusable: true,
+            rotatedFromInviteId: activeReusableInvite?.id ?? null,
+          },
+        })
+
+        const adminRecipientIds = await getClaimedAdminMemberIds(tx, input.familyId, [membership.id])
+        if (adminRecipientIds.length > 0) {
+          const notifications = []
+
+          if (activeReusableInvite) {
+            notifications.push(
+              ...adminRecipientIds.map((recipientMemberId) => ({
+                familyId: input.familyId,
+                recipientMemberId,
+                actorMemberId: membership.id,
+                category: "INVITE" as const,
+                eventType: "INVITE_STATUS_CHANGED" as const,
+                sourceType: "invite",
+                sourceId: activeReusableInvite.id,
+                title: "A family invite link was reset",
+                body: "A family admin reset the reusable family invite link.",
+              })),
+            )
+          }
+
+          notifications.push(
+            ...adminRecipientIds.map((recipientMemberId) => ({
+              familyId: input.familyId,
+              recipientMemberId,
+              actorMemberId: membership.id,
+              category: "INVITE" as const,
+              eventType: "INVITE_CREATED" as const,
+              sourceType: "invite",
+              sourceId: createdInvite.id,
+              title: "A new family invite link was created",
+              body: "A family admin created a reusable family invite link.",
+            })),
+          )
+
+          const createdNotifications = await createNotifications(tx, notifications)
+          void dispatchPushForNotifications(createdNotifications)
+        }
+
+        return createdInvite
+      })
+
+      return buildReusableInviteSummary(result)
     }),
 
   /**

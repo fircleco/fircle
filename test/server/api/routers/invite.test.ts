@@ -332,6 +332,251 @@ describe("inviteRouter notification producers", () => {
   });
 });
 
+describe("inviteRouter reusable family links", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    vi.clearAllMocks();
+    vi.spyOn(console, "log").mockImplementation(() => undefined);
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    vi.spyOn(console, "info").mockImplementation(() => undefined);
+  });
+
+  const familyId = "clh0000000000000000007001";
+  const actorMemberId = "clh0000000000000000007002";
+
+  it("returns the active reusable invite for a family", async () => {
+    const reusableInvite = {
+      id: "clh0000000000000000007010",
+      code: "REUSABLE_ACTIVE_CODE",
+      familyId,
+      isReusable: true,
+      status: "PENDING",
+      createdAt: new Date("2030-01-01T00:00:00.000Z"),
+      updatedAt: new Date("2030-01-01T00:00:00.000Z"),
+      revokedAt: null,
+      rotatedFromInviteId: null,
+      useCount: 2,
+      lastUsedAt: new Date("2030-01-02T00:00:00.000Z"),
+      claimMemberId: null,
+    };
+
+    const db = {
+      familyMember: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: actorMemberId,
+          familyId,
+          role: "ADMIN",
+        }),
+      },
+      invite: {
+        findFirst: vi.fn().mockResolvedValue(reusableInvite),
+      },
+    } as never;
+
+    const result = await createCaller(db).getActiveReusableInvite({ familyId });
+
+    expect(result).toMatchObject({
+      id: reusableInvite.id,
+      code: reusableInvite.code,
+      isReusable: true,
+      lifecycleState: "valid",
+      useCount: 2,
+    });
+  });
+
+  it("returns null when no reusable invite exists", async () => {
+    const db = {
+      familyMember: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: actorMemberId,
+          familyId,
+          role: "OWNER",
+        }),
+      },
+      invite: {
+        findFirst: vi.fn().mockResolvedValue(null),
+      },
+    } as never;
+
+    const result = await createCaller(db).getActiveReusableInvite({ familyId });
+    expect(result).toBeNull();
+  });
+
+  it("resetReusableInvite revokes the previous active link and creates a new reusable link", async () => {
+    const activeReusableInvite = {
+      id: "clh0000000000000000007020",
+      code: "OLD_REUSABLE_CODE",
+      familyId,
+      isReusable: true,
+      status: "PENDING",
+      revokedAt: null,
+      createdAt: new Date("2030-01-01T00:00:00.000Z"),
+      updatedAt: new Date("2030-01-01T00:00:00.000Z"),
+      rotatedFromInviteId: null,
+      useCount: 4,
+      lastUsedAt: null,
+      claimMemberId: null,
+    };
+    const newReusableInvite = {
+      id: "clh0000000000000000007021",
+      code: "NEW_REUSABLE_CODE",
+      familyId,
+      isReusable: true,
+      status: "PENDING",
+      revokedAt: null,
+      createdAt: new Date("2030-01-02T00:00:00.000Z"),
+      updatedAt: new Date("2030-01-02T00:00:00.000Z"),
+      rotatedFromInviteId: activeReusableInvite.id,
+      useCount: 0,
+      lastUsedAt: null,
+    };
+
+    const tx = {
+      invite: {
+        findFirst: vi.fn().mockResolvedValue(activeReusableInvite),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+        findUnique: vi.fn().mockResolvedValue(null),
+        create: vi.fn().mockResolvedValue(newReusableInvite),
+      },
+    };
+
+    const db = {
+      familyMember: {
+        findUnique: vi.fn().mockResolvedValue({ id: actorMemberId, familyId, role: "ADMIN" }),
+      },
+      $transaction: vi.fn(async (cb: (txArg: typeof tx) => Promise<unknown>) => cb(tx)),
+    } as never;
+
+    const result = await createCaller(db).resetReusableInvite({ familyId });
+
+    expect(tx.invite.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ familyId, isReusable: true, status: "PENDING" }),
+        data: expect.objectContaining({ status: "REVOKED" }),
+      }),
+    );
+    expect(tx.invite.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          familyId,
+          isReusable: true,
+          type: "OPEN",
+          rotatedFromInviteId: activeReusableInvite.id,
+        }),
+      }),
+    );
+    expect(result).toMatchObject({
+      id: newReusableInvite.id,
+      code: newReusableInvite.code,
+      isReusable: true,
+      lifecycleState: "valid",
+    });
+  });
+
+  it("acceptInvite allows reusable invites even when expiresAt is in the past and increments usage", async () => {
+    const reusableInvite = {
+      id: "clh0000000000000000007030",
+      code: "REUSABLE_JOIN_CODE",
+      type: "OPEN",
+      status: "PENDING",
+      familyId,
+      invitedEmail: null,
+      createdById: "creator-1",
+      expiresAt: new Date("2020-01-01T00:00:00.000Z"),
+      claimedAt: null,
+      claimedById: null,
+      claimMemberId: null,
+      revokedAt: null,
+      isReusable: true,
+      useCount: 0,
+      lastUsedAt: null,
+    };
+    const tx = {
+      user: {
+        create: vi.fn().mockResolvedValue({ id: "user-new", email: "new@example.com" }),
+      },
+      invite: {
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      familyMember: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        create: vi.fn().mockResolvedValue({ id: "member-new" }),
+      },
+    };
+    const db = {
+      invite: {
+        findUnique: vi.fn().mockResolvedValue(reusableInvite),
+      },
+      user: {
+        findFirst: vi.fn().mockResolvedValue(null),
+      },
+      $transaction: vi.fn(async (cb: (txArg: typeof tx) => Promise<unknown>) => cb(tx)),
+    } as never;
+
+    const result = await inviteRouter.createCaller({
+      db,
+      session: null,
+      headers: new Headers(),
+    } as never).acceptInvite({
+      code: reusableInvite.code,
+      email: "new@example.com",
+      password: "password123",
+      name: "New User",
+    });
+
+    expect(result).toMatchObject({ userId: "user-new", email: "new@example.com" });
+    expect(tx.invite.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ id: reusableInvite.id, isReusable: true, status: "PENDING" }),
+        data: expect.objectContaining({
+          useCount: { increment: 1 },
+        }),
+      }),
+    );
+  });
+
+  it("getByCode accepts reusable invites without treating past expiresAt as invalid", async () => {
+    const reusableInvite = {
+      id: "clh0000000000000000007040",
+      code: "REUSABLE_PUBLIC_CODE",
+      familyId,
+      type: "OPEN",
+      invitedEmail: null,
+      expiresAt: new Date("2020-01-01T00:00:00.000Z"),
+      status: "PENDING",
+      claimedAt: null,
+      revokedAt: null,
+      isReusable: true,
+      family: {
+        id: familyId,
+        name: "Ng",
+        description: "Family description",
+      },
+    };
+
+    const db = {
+      invite: {
+        findUnique: vi.fn().mockResolvedValue(reusableInvite),
+      },
+    } as never;
+
+    const result = await inviteRouter.createCaller({
+      db,
+      session: null,
+      headers: new Headers(),
+    } as never).getByCode({ code: reusableInvite.code });
+
+    expect(result).toMatchObject({
+      id: reusableInvite.id,
+      code: reusableInvite.code,
+      isReusable: true,
+      family: {
+        id: familyId,
+      },
+    });
+  });
+});
+
 describe("inviteRouter.createInvite email delivery status", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
