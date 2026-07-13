@@ -8,6 +8,7 @@ import {
   Copy,
   Link2,
   Loader,
+  More,
   Plus,
   Send,
   ShieldAlert,
@@ -18,11 +19,19 @@ import { z } from "zod";
 
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
 import { Input } from "~/components/ui/input";
+import { reusableInviteSummarySchema } from "~/lib/invite-schemas";
 import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
 
 type LifecycleState = "valid" | "expired" | "claimed" | "revoked";
+type ReusableLifecycleState = "valid" | "revoked" | "invalid";
 
 const managementContextSchema = z.object({
   family: z
@@ -39,6 +48,7 @@ const inviteListItemSchema = z.object({
   id: z.string(),
   code: z.string(),
   type: z.enum(["OPEN", "EMAIL_BOUND"]),
+  isReusable: z.boolean().optional().default(false),
   isClaimInvite: z.boolean(),
   claimMember: z
     .object({
@@ -89,6 +99,12 @@ const createdInviteSchema = z.object({
   emailDelivery: emailDeliveryResultSchema,
 });
 
+const reusableStatusBadgeStyles: Record<ReusableLifecycleState, string> = {
+  valid: "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+  revoked: "border-destructive/30 bg-destructive/10 text-destructive",
+  invalid: "border-muted-foreground/20 bg-muted text-muted-foreground",
+};
+
 const statusBadgeStyles: Record<LifecycleState, string> = {
   valid: "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300",
   claimed: "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
@@ -130,6 +146,18 @@ function formatStatus(status: LifecycleState) {
   return status[0]!.toUpperCase() + status.slice(1);
 }
 
+function formatReusableStatus(status: ReusableLifecycleState) {
+  if (status === "valid") {
+    return "Active";
+  }
+
+  if (status === "revoked") {
+    return "Revoked";
+  }
+
+  return "Unavailable";
+}
+
 function formatDate(value: Date | string | null) {
   if (!value) {
     return "Never";
@@ -146,6 +174,7 @@ function formatDate(value: Date | string | null) {
 export default function InvitesPage() {
   const trpcUtils = api.useUtils();
   const [showCreatePanel, setShowCreatePanel] = useState(false);
+  const [showFamilyLinkPanel, setShowFamilyLinkPanel] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [expiry, setExpiry] = useState<CreateExpiryOption>(14);
   const [generatedLink, setGeneratedLink] = useState<string | null>(null);
@@ -160,6 +189,8 @@ export default function InvitesPage() {
     message?: string;
   } | null>(null);
   const [createdInviteId, setCreatedInviteId] = useState<string | null>(null);
+  const [familyLinkError, setFamilyLinkError] = useState<string | null>(null);
+  const [familyLinkCopyKey, setFamilyLinkCopyKey] = useState<string | null>(null);
 
   const managementContext = api.family.getManagementContext.useQuery(undefined, {
     retry: false,
@@ -179,6 +210,15 @@ export default function InvitesPage() {
   const canManageInvites = managementContextData?.canManageInvites ?? false;
 
   const invitesQuery = api.invite.listInvites.useQuery(
+    { familyId: selectedFamilyId ?? "" },
+    {
+      enabled: Boolean(selectedFamilyId) && canManageInvites,
+      refetchOnWindowFocus: false,
+      retry: false,
+    },
+  );
+
+  const reusableInviteQuery = api.invite.getActiveReusableInvite.useQuery(
     { familyId: selectedFamilyId ?? "" },
     {
       enabled: Boolean(selectedFamilyId) && canManageInvites,
@@ -230,23 +270,73 @@ export default function InvitesPage() {
     },
   });
 
+  const resetReusableInvite = api.invite.resetReusableInvite.useMutation({
+    onSuccess: async (result) => {
+      const parsedReusableInvite = reusableInviteSummarySchema.safeParse(result);
+      if (!parsedReusableInvite.success) {
+        setFamilyLinkError("Family invite link was reset, but response parsing failed.");
+        return;
+      }
+
+      setFamilyLinkError(null);
+      setShowFamilyLinkPanel(true);
+      await Promise.all([
+        trpcUtils.invite.getActiveReusableInvite.invalidate(),
+        trpcUtils.invite.listInvites.invalidate(),
+      ]);
+    },
+    onError: (error) => {
+      setFamilyLinkError(error.message);
+    },
+  });
+
   const invites = useMemo(() => {
     const parsedInvites = inviteListSchema.safeParse(invitesQuery.data);
     return parsedInvites.success ? parsedInvites.data : [];
   }, [invitesQuery.data]);
+  const reusableInvite = useMemo(() => {
+    const parsedReusableInvite = reusableInviteSummarySchema.nullable().safeParse(
+      reusableInviteQuery.data ?? null,
+    );
+    return parsedReusableInvite.success ? parsedReusableInvite.data : null;
+  }, [reusableInviteQuery.data]);
+  const familyLinkPanelVisible = showFamilyLinkPanel || reusableInvite !== null;
   const historyInvites = useMemo(
-    () => invites.filter((invite) => invite.lifecycleState !== "valid"),
+    () => invites.filter((invite) => !invite.isReusable && invite.lifecycleState !== "valid"),
     [invites],
   );
   const pendingInvites = useMemo(
-    () => invites.filter((invite) => invite.lifecycleState === "valid"),
+    () => invites.filter((invite) => !invite.isReusable && invite.lifecycleState === "valid"),
     [invites],
   );
+
+  const reusableHistoryItems = useMemo(() => {
+    if (!reusableInvite || reusableInvite.useCount === 0) {
+      return [];
+    }
+
+    return [
+      {
+        id: `${reusableInvite.id}:history`,
+        title:
+          reusableInvite.useCount === 1
+            ? "Family Invite Link used once"
+            : `Family Invite Link used ${reusableInvite.useCount} times`,
+        subtitle: reusableInvite.lastUsedAt
+          ? `Last used ${formatDate(reusableInvite.lastUsedAt)}`
+          : `Created ${formatDate(reusableInvite.createdAt)}`,
+        status: reusableInvite.lifecycleState,
+      },
+    ];
+  }, [reusableInvite]);
 
   const visiblePendingInvites = pendingInvites;
   const visibleHistoryInvites = historyInvites;
   const showAllEmptyState =
-    visiblePendingInvites.length === 0 && visibleHistoryInvites.length === 0;
+    visiblePendingInvites.length === 0 &&
+    visibleHistoryInvites.length === 0 &&
+    reusableHistoryItems.length === 0 &&
+    reusableInvite === null;
 
   async function copyText(key: string, value: string) {
     try {
@@ -269,6 +359,11 @@ export default function InvitesPage() {
     setCreatedInviteId(null);
   }
 
+  function closeFamilyLinkPanel() {
+    setShowFamilyLinkPanel(false);
+    setFamilyLinkError(null);
+  }
+
   async function handleGenerateInvite(e: React.FormEvent) {
     e.preventDefault();
     if (!selectedFamilyId) {
@@ -286,6 +381,31 @@ export default function InvitesPage() {
     });
   }
 
+  async function handleResetFamilyLink() {
+    if (!selectedFamilyId) {
+      setFamilyLinkError("No family context was found for your account.");
+      return;
+    }
+
+    await resetReusableInvite.mutateAsync({ familyId: selectedFamilyId });
+  }
+
+  async function handleCopyFamilyLink(value: string) {
+    try {
+      await navigator.clipboard.writeText(value);
+      setFamilyLinkCopyKey(value);
+      window.setTimeout(() => setFamilyLinkCopyKey(null), 1200);
+    } catch {
+      setFamilyLinkCopyKey(null);
+    }
+  }
+
+  const familyInviteLinkUrl = reusableInvite ? buildInviteLink(reusableInvite.code) : null;
+  const familyLinkAgeDays = reusableInvite
+    ? Math.floor((Date.now() - new Date(reusableInvite.createdAt).getTime()) / (1000 * 60 * 60 * 24))
+    : 0;
+  const showFamilyLinkRotationReminder = Boolean(reusableInvite && reusableInvite.lifecycleState === "valid" && familyLinkAgeDays >= 90);
+
   return (
     <div className="space-y-6">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -299,12 +419,36 @@ export default function InvitesPage() {
         <div className="flex flex-wrap items-center gap-2">
           <Button
             type="button"
-            onClick={() => setShowCreatePanel(true)}
+            onClick={() => {
+              setShowCreatePanel(true);
+              setShowFamilyLinkPanel(false);
+            }}
             disabled={!canManageInvites}
           >
             <Plus className="mr-1 size-4" />
             Create Invite
           </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button type="button" variant="outline" disabled={!canManageInvites} aria-label="More invite actions">
+                <More className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-64 rounded-xl" align="end">
+              <DropdownMenuItem
+                className="cursor-pointer items-start"
+                onSelect={() => {
+                  setShowFamilyLinkPanel((current) => !current || reusableInvite !== null);
+                  setShowCreatePanel(false);
+                }}
+              >
+                <div className="space-y-0.5">
+                  <p className="font-medium text-sm">Family Link</p>
+                  <p className="text-muted-foreground text-xs">Invite via Family Invite Link</p>
+                </div>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
 
@@ -334,6 +478,132 @@ export default function InvitesPage() {
               Only owners and admins can create or revoke invites.
             </p>
           </div>
+        </section>
+      ) : null}
+
+      {canManageInvites && familyLinkPanelVisible ? (
+        <section className="space-y-4 rounded-2xl border bg-card/70 p-5">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="font-medium text-base">Family Invite Link</h3>
+              <p className="text-muted-foreground text-xs">
+                Keep one reusable family onboarding link active until you intentionally reset it.
+              </p>
+            </div>
+            <Button type="button" variant="ghost" size="icon" onClick={closeFamilyLinkPanel}>
+              <X className="size-4" />
+            </Button>
+          </div>
+
+          {reusableInviteQuery.isLoading ? (
+            <p className="flex items-center gap-2 text-muted-foreground text-sm">
+              <Loader className="size-4 animate-spin" />
+              Loading family invite link...
+            </p>
+          ) : reusableInvite ? (
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <span
+                  className={cn(
+                    "inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium",
+                    reusableStatusBadgeStyles[reusableInvite.lifecycleState],
+                  )}
+                >
+                  {formatReusableStatus(reusableInvite.lifecycleState)}
+                </span>
+                <Badge variant="outline" className="bg-muted text-muted-foreground">
+                  Family Link
+                </Badge>
+                <span className="text-muted-foreground text-xs">
+                  Created {formatDate(reusableInvite.createdAt)}
+                </span>
+              </div>
+
+              <div className="space-y-2 rounded-xl border bg-muted/20 p-4">
+                <p className="font-medium text-sm">Current or last created family invite link</p>
+                {familyInviteLinkUrl ? (
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <Input readOnly value={familyInviteLinkUrl} className="font-mono text-xs" />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => handleCopyFamilyLink(familyInviteLinkUrl)}
+                    >
+                      {familyLinkCopyKey === familyInviteLinkUrl ? (
+                        <>
+                          <Check className="mr-1 size-4" />
+                          Copied
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="mr-1 size-4" />
+                          Copy link
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                ) : null}
+                <p className="text-muted-foreground text-xs">
+                  {reusableInvite.lifecycleState === "valid"
+                    ? "Valid until reset"
+                    : "This family invite link is no longer active. Reset to create a new one."}
+                </p>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-xl border bg-background p-4">
+                  <p className="text-muted-foreground text-xs">Usage</p>
+                  <p className="mt-1 font-medium text-sm">
+                    {reusableInvite.useCount === 1 ? "Used 1 time" : `Used ${reusableInvite.useCount} times`}
+                  </p>
+                </div>
+                <div className="rounded-xl border bg-background p-4">
+                  <p className="text-muted-foreground text-xs">Last used</p>
+                  <p className="mt-1 font-medium text-sm">{formatDate(reusableInvite.lastUsedAt)}</p>
+                </div>
+              </div>
+
+              {showFamilyLinkRotationReminder ? (
+                <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3">
+                  <div className="flex items-start gap-2 text-amber-700 dark:text-amber-300">
+                    <TriangleAlert className="mt-0.5 size-4 shrink-0" />
+                    <div>
+                      <p className="font-medium text-sm">Consider rotating this link</p>
+                      <p className="text-xs">
+                        This family invite link is over 90 days old. Resetting it will invalidate older shares and create a fresh link.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="border-destructive/40 text-destructive hover:bg-destructive/10"
+                  onClick={handleResetFamilyLink}
+                  disabled={resetReusableInvite.isPending}
+                >
+                  {resetReusableInvite.isPending ? "Resetting..." : reusableInvite.lifecycleState === "valid" ? "Reset family link" : "Create new family link"}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-dashed bg-card/60 p-6 text-center">
+              <p className="font-medium text-sm">No family invite link yet.</p>
+              <p className="mt-1 text-muted-foreground text-xs">
+                Create your first reusable family invite link to onboard multiple people with one shareable link.
+              </p>
+              <div className="mt-4">
+                <Button type="button" onClick={handleResetFamilyLink} disabled={resetReusableInvite.isPending || !selectedFamilyId}>
+                  {resetReusableInvite.isPending ? "Creating..." : "Create family link"}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {familyLinkError ? <p className="text-destructive text-sm">{familyLinkError}</p> : null}
         </section>
       ) : null}
 
@@ -524,7 +794,11 @@ export default function InvitesPage() {
             {visiblePendingInvites.map((invite) => {
               const inviteLink = buildPendingInviteLink(invite.code, invite.isClaimInvite);
               const copyKey = `pending:${invite.id}`;
-              const purposeLabel = invite.isClaimInvite ? "Claim link" : "Open invite";
+              const purposeLabel = invite.isClaimInvite
+                ? "Claim link"
+                : invite.isReusable
+                  ? "Family Link"
+                  : "Open invite";
               const claimForLabel = invite.claimMember?.name ?? "Profile unavailable";
 
               return (
@@ -645,7 +919,7 @@ export default function InvitesPage() {
             <Loader className="size-4 animate-spin" />
             Loading invite history...
           </p>
-        ) : visibleHistoryInvites.length === 0 ? (
+        ) : visibleHistoryInvites.length === 0 && reusableHistoryItems.length === 0 ? (
           <p className="text-muted-foreground text-sm">No invite history yet.</p>
         ) : (
           <ul className="space-y-2">
@@ -673,6 +947,26 @@ export default function InvitesPage() {
                   )}
                 >
                   {formatStatus(invite.lifecycleState)}
+                </span>
+              </li>
+            ))}
+            {reusableHistoryItems.map((item) => (
+              <li
+                key={item.id}
+                className="flex flex-col gap-2 rounded-xl border bg-background p-4 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div className="space-y-1">
+                  <p className="text-sm">{item.title}</p>
+                  <p className="text-muted-foreground text-xs">{item.subtitle}</p>
+                </div>
+
+                <span
+                  className={cn(
+                    "inline-flex w-fit items-center rounded-full border px-2.5 py-1 text-xs font-medium",
+                    reusableStatusBadgeStyles[item.status],
+                  )}
+                >
+                  Family Link
                 </span>
               </li>
             ))}

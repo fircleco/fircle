@@ -840,6 +840,7 @@ export const inviteRouter = createTRPCRouter({
         id: inv.id,
         code: inv.code,
         type: inv.type,
+        isReusable: inv.isReusable,
         isClaimInvite: inv.claimMemberId !== null,
         claimMember: inv.claimMember
           ? {

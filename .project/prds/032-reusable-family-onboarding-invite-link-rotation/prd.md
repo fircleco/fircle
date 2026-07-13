@@ -131,25 +131,25 @@ Out of scope:
 
 #### Tasks
 
-- [ ] Keep the existing primary "Create Invite" button behavior unchanged in `src/app/(app)/settings/invites/page.tsx`
-- [ ] Add a dropdown menu attached to the invite action area
-- [ ] Add dropdown option labeled "Family Link" as a secondary action
-- [ ] Add dropdown option description text: "Invite via Family Invite Link"
-- [ ] Selecting "Family Link" opens/toggles the reusable-link management card (section title: "Family Invite Link")
-- [ ] Add reusable-link card in `src/app/(app)/settings/invites/page.tsx` (section title: "Family Invite Link")
-- [ ] Show active reusable link URL with copy action
-- [ ] Always show current/last created reusable link and lifecycle state metadata
-- [ ] Show "valid until reset" lifecycle messaging for active reusable links
-- [ ] Show usage indicators (`useCount`, `lastUsedAt`)
-- [ ] Show non-blocking rotation reminder for older links (for example, older than 90 days)
-- [ ] Add reset link action with confirmation and mutation wiring
-- [ ] Refresh queries on reset success and display new active link
-- [ ] Add first-run empty state when no reusable link has ever been created:
-- [ ] Message that reusable link is not created yet for this family
-- [ ] Primary CTA to create first reusable link
-- [ ] Add clear list badges for reusable, single-use, and claim invites
-- [ ] Update history rendering rules:
-- [ ] Exclude revoked reusable invite artifacts from invite history
+- [x] Keep the existing primary "Create Invite" button behavior unchanged in `src/app/(app)/settings/invites/page.tsx`
+- [x] Add a dropdown menu attached to the invite action area
+- [x] Add dropdown option labeled "Family Link" as a secondary action
+- [x] Add dropdown option description text: "Invite via Family Invite Link"
+- [x] Selecting "Family Link" opens/toggles the reusable-link management card (section title: "Family Invite Link")
+- [x] Add reusable-link card in `src/app/(app)/settings/invites/page.tsx` (section title: "Family Invite Link")
+- [x] Show active reusable link URL with copy action
+- [x] Always show current/last created reusable link and lifecycle state metadata
+- [x] Show "valid until reset" lifecycle messaging for active reusable links
+- [x] Show usage indicators (`useCount`, `lastUsedAt`)
+- [x] Show non-blocking rotation reminder for older links (for example, older than 90 days)
+- [x] Add reset link action with confirmation and mutation wiring
+- [x] Refresh queries on reset success and display new active link
+- [x] Add first-run empty state when no reusable link has ever been created:
+- [x] Message that reusable link is not created yet for this family
+- [x] Primary CTA to create first reusable link
+- [x] Add clear list badges for reusable, single-use, and claim invites
+- [x] Update history rendering rules:
+- [x] Exclude revoked reusable invite artifacts from invite history
 - [ ] Include successful registrations completed through reusable links as history entries
 
 ### Phase 5: Invite Acceptance UX and Error Messaging
