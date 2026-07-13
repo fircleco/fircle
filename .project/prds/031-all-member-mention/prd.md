@@ -11,6 +11,9 @@ references:
   - type: prd
     url: .project/prds/017-notifications-platform-foundation-and-unread-badge/prd.md
     description: "Notification event model, mention notification producers, and claimed-member delivery rules"
+  - type: pr
+    url: https://github.com/fircleco/fircle/pull/54
+    description: "Implementation pull request - feat: add support for @all member mention"
 ---
 
 > **Instructions for AI Agents:**
