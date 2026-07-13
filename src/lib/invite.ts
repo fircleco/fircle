@@ -105,7 +105,7 @@ export function isReusableInvite(invite: Pick<ReusableInviteLifecycleRecord, "is
 export function getReusableInviteLifecycleState(
   invite: ReusableInviteLifecycleRecord | null,
 ): ReusableInviteLifecycleState {
-  if (!invite || !invite.isReusable) {
+  if (!invite?.isReusable) {
     return "invalid"
   }
 

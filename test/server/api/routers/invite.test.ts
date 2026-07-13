@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unnecessary-type-assertion */
+
 const mockedEnv = vi.hoisted(() => ({
   DATABASE_URL: "postgresql://user:pass@localhost:5432/fircle_test",
   SELF_HOSTED: true,
@@ -402,6 +404,92 @@ describe("inviteRouter reusable family links", () => {
     expect(result).toBeNull();
   });
 
+  it("rejects getActiveReusableInvite for non-admin members", async () => {
+    const db = {
+      familyMember: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: actorMemberId,
+          familyId,
+          role: "MEMBER",
+        }),
+      },
+      invite: {
+        findFirst: vi.fn(),
+      },
+    } as never;
+
+    await expect(createCaller(db).getActiveReusableInvite({ familyId })).rejects.toMatchObject({
+      code: "FORBIDDEN",
+    });
+  });
+
+  it("creates the first reusable link when reset is called with no active reusable invite", async () => {
+    const newReusableInvite = {
+      id: "clh0000000000000000007025",
+      code: "FIRST_REUSABLE_CODE",
+      familyId,
+      isReusable: true,
+      status: "PENDING",
+      revokedAt: null,
+      createdAt: new Date("2030-01-03T00:00:00.000Z"),
+      updatedAt: new Date("2030-01-03T00:00:00.000Z"),
+      rotatedFromInviteId: null,
+      useCount: 0,
+      lastUsedAt: null,
+    };
+
+    const tx = {
+      invite: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        updateMany: vi.fn().mockResolvedValue({ count: 0 }),
+        findUnique: vi.fn().mockResolvedValue(null),
+        create: vi.fn().mockResolvedValue(newReusableInvite),
+      },
+    };
+
+    const db = {
+      familyMember: {
+        findUnique: vi.fn().mockResolvedValue({ id: actorMemberId, familyId, role: "OWNER" }),
+      },
+      $transaction: vi.fn(async (cb: (txArg: typeof tx) => Promise<unknown>) => cb(tx)),
+    } as never;
+
+    const result = await createCaller(db).resetReusableInvite({ familyId });
+
+    expect(tx.invite.updateMany).not.toHaveBeenCalled();
+    expect(tx.invite.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          familyId,
+          isReusable: true,
+          rotatedFromInviteId: null,
+          type: "OPEN",
+        }),
+      }),
+    );
+    expect(result).toMatchObject({
+      id: newReusableInvite.id,
+      code: newReusableInvite.code,
+      lifecycleState: "valid",
+    });
+  });
+
+  it("rejects resetReusableInvite for non-admin members", async () => {
+    const db = {
+      familyMember: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: actorMemberId,
+          familyId,
+          role: "MEMBER",
+        }),
+      },
+    } as never;
+
+    await expect(createCaller(db).resetReusableInvite({ familyId })).rejects.toMatchObject({
+      code: "FORBIDDEN",
+    });
+  });
+
   it("resetReusableInvite revokes the previous active link and creates a new reusable link", async () => {
     const activeReusableInvite = {
       id: "clh0000000000000000007020",
@@ -533,6 +621,161 @@ describe("inviteRouter reusable family links", () => {
         }),
       }),
     );
+  });
+
+  it("allows multiple unique users to accept the same reusable code", async () => {
+    const reusableInvite = {
+      id: "clh0000000000000000007035",
+      code: "REUSABLE_MULTI_CODE",
+      type: "OPEN",
+      status: "PENDING",
+      familyId,
+      invitedEmail: null,
+      createdById: "creator-1",
+      expiresAt: new Date("2020-01-01T00:00:00.000Z"),
+      claimedAt: null,
+      claimedById: null,
+      claimMemberId: null,
+      revokedAt: null,
+      isReusable: true,
+      useCount: 0,
+      lastUsedAt: null,
+    };
+
+    let userCounter = 0;
+    const tx = {
+      user: {
+        create: vi.fn().mockImplementation(async (data: { data: { email: string } }) => {
+          userCounter += 1;
+          return { id: `user-${userCounter}`, email: data.data.email };
+        }),
+      },
+      invite: {
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      familyMember: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        create: vi.fn().mockResolvedValue({ id: "member-new" }),
+      },
+    };
+
+    const db = {
+      invite: {
+        findUnique: vi.fn().mockResolvedValue(reusableInvite),
+      },
+      user: {
+        findFirst: vi.fn().mockResolvedValue(null),
+      },
+      $transaction: vi.fn(async (cb: (txArg: typeof tx) => Promise<unknown>) => cb(tx)),
+    } as never;
+
+    const publicCaller = inviteRouter.createCaller({
+      db,
+      session: null,
+      headers: new Headers(),
+    } as never);
+
+    await expect(
+      publicCaller.acceptInvite({
+        code: reusableInvite.code,
+        email: "first@example.com",
+        password: "password123",
+        name: "First User",
+      }),
+    ).resolves.toMatchObject({ email: "first@example.com" });
+
+    await expect(
+      publicCaller.acceptInvite({
+        code: reusableInvite.code,
+        email: "second@example.com",
+        password: "password123",
+        name: "Second User",
+      }),
+    ).resolves.toMatchObject({ email: "second@example.com" });
+
+    expect(tx.invite.updateMany).toHaveBeenCalledTimes(2);
+    expect(tx.invite.updateMany).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        where: expect.objectContaining({ id: reusableInvite.id, isReusable: true, status: "PENDING" }),
+      }),
+    );
+    expect(tx.invite.updateMany).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        where: expect.objectContaining({ id: reusableInvite.id, isReusable: true, status: "PENDING" }),
+      }),
+    );
+  });
+
+  it("rejects single-use invite on second acceptance", async () => {
+    const singleUseInvite = {
+      id: "clh0000000000000000007036",
+      code: "SINGLE_USE_ONCE_16",
+      type: "OPEN",
+      status: "PENDING",
+      familyId,
+      invitedEmail: null,
+      createdById: "creator-1",
+      expiresAt: new Date("2099-01-01T00:00:00.000Z"),
+      claimedAt: null,
+      claimedById: null,
+      claimMemberId: null,
+      revokedAt: null,
+      isReusable: false,
+      useCount: 0,
+      lastUsedAt: null,
+    };
+
+    const tx = {
+      user: {
+        create: vi.fn().mockResolvedValue({ id: "user-1", email: "single@example.com" }),
+      },
+      invite: {
+        updateMany: vi
+          .fn()
+          .mockResolvedValueOnce({ count: 1 })
+          .mockResolvedValueOnce({ count: 0 }),
+      },
+      familyMember: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        create: vi.fn().mockResolvedValue({ id: "member-single" }),
+      },
+    };
+
+    const db = {
+      invite: {
+        findUnique: vi.fn().mockResolvedValue(singleUseInvite),
+      },
+      user: {
+        findFirst: vi.fn().mockResolvedValue(null),
+      },
+      $transaction: vi.fn(async (cb: (txArg: typeof tx) => Promise<unknown>) => cb(tx)),
+    } as never;
+
+    const publicCaller = inviteRouter.createCaller({
+      db,
+      session: null,
+      headers: new Headers(),
+    } as never);
+
+    await expect(
+      publicCaller.acceptInvite({
+        code: singleUseInvite.code,
+        email: "first.single@example.com",
+        password: "password123",
+        name: "First Single",
+      }),
+    ).resolves.toMatchObject({ email: "single@example.com" });
+
+    await expect(
+      publicCaller.acceptInvite({
+        code: singleUseInvite.code,
+        email: "second.single@example.com",
+        password: "password123",
+        name: "Second Single",
+      }),
+    ).rejects.toMatchObject({ code: "CONFLICT" });
   });
 
   it("getByCode accepts reusable invites without treating past expiresAt as invalid", async () => {

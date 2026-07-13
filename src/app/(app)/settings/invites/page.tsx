@@ -438,7 +438,8 @@ export default function InvitesPage() {
   const familyLinkAgeDays = reusableInvite
     ? Math.floor((Date.now() - new Date(reusableInvite.createdAt).getTime()) / (1000 * 60 * 60 * 24))
     : 0;
-  const showFamilyLinkRotationReminder = Boolean(reusableInvite && reusableInvite.lifecycleState === "valid" && familyLinkAgeDays >= 90);
+  const showFamilyLinkRotationReminder =
+    reusableInvite?.lifecycleState === "valid" && familyLinkAgeDays >= 90;
 
   return (
     <div className="space-y-6">

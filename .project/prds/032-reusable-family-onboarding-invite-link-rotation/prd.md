@@ -171,13 +171,13 @@ Out of scope:
 
 #### Tasks
 
-- [ ] Extend invite helper tests in `test/lib/invite-claim.test.ts` or new invite helper test file for reusable lifecycle
-- [ ] Extend router tests in `test/server/api/routers/invite.test.ts`:
-- [ ] Create first reusable link
-- [ ] Reset rotates and invalidates old code
-- [ ] Multiple unique users can accept same reusable code
-- [ ] Single-use invites still reject second acceptance
-- [ ] Non-admin cannot fetch/reset reusable link
+- [x] Extend invite helper tests in `test/lib/invite-claim.test.ts` or new invite helper test file for reusable lifecycle
+- [x] Extend router tests in `test/server/api/routers/invite.test.ts`:
+- [x] Create first reusable link
+- [x] Reset rotates and invalidates old code
+- [x] Multiple unique users can accept same reusable code
+- [x] Single-use invites still reject second acceptance
+- [x] Non-admin cannot fetch/reset reusable link
 - [ ] Add or extend UI tests for reusable section rendering, reset action, and copy behavior
 - [ ] Add UI tests for button-group dropdown action behavior:
 - [ ] Primary "Create Invite" action opens current create-invite flow
@@ -186,8 +186,12 @@ Out of scope:
 - [ ] Add history tests for reusable-link behavior:
 - [ ] Revoked reusable invite artifacts are not listed
 - [ ] Successful registrations through reusable links are listed
-- [ ] Run lint, typecheck, and targeted invite test suites
+- [x] Run lint, typecheck, and targeted invite test suites
 - [ ] Perform manual QA across settings and auth routes
+
+Notes:
+- UI tests were intentionally skipped per request.
+- `pnpm lint` currently reports pre-existing baseline issues outside this PRD scope (`src/components/ui/toggle-group.tsx`, `src/components/feed/media-viewer-dialog.tsx`, and `src/lib/media-compression.ts`).
 
 ## Acceptance Criteria
 
