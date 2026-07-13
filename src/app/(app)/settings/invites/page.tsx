@@ -319,6 +319,7 @@ export default function InvitesPage() {
     return [
       {
         id: `${reusableInvite.id}:history`,
+        activityAt: reusableInvite.lastUsedAt ?? reusableInvite.createdAt,
         title:
           reusableInvite.useCount === 1
             ? "Family Invite Link used once"
@@ -332,11 +333,40 @@ export default function InvitesPage() {
   }, [reusableInvite]);
 
   const visiblePendingInvites = pendingInvites;
-  const visibleHistoryInvites = historyInvites;
+  const visibleHistoryInvites = useMemo(() => {
+    return [...historyInvites].sort((a, b) => {
+      const aTimestamp = (a.claimedAt ?? a.createdAt).getTime();
+      const bTimestamp = (b.claimedAt ?? b.createdAt).getTime();
+      return bTimestamp - aTimestamp;
+    });
+  }, [historyInvites]);
+  const combinedHistoryItems = useMemo(() => {
+    const inviteHistoryItems = visibleHistoryInvites.map((invite) => ({
+      kind: "invite" as const,
+      id: invite.id,
+      invitedEmail: invite.invitedEmail,
+      createdAt: invite.createdAt,
+      claimedBy: invite.claimedBy,
+      lifecycleState: invite.lifecycleState,
+      activityAt: invite.claimedAt ?? invite.createdAt,
+    }));
+
+    const familyLinkHistoryItems = reusableHistoryItems.map((item) => ({
+      kind: "family-link" as const,
+      id: item.id,
+      title: item.title,
+      subtitle: item.subtitle,
+      status: item.status,
+      activityAt: item.activityAt,
+    }));
+
+    return [...inviteHistoryItems, ...familyLinkHistoryItems].sort(
+      (a, b) => b.activityAt.getTime() - a.activityAt.getTime(),
+    );
+  }, [reusableHistoryItems, visibleHistoryInvites]);
   const showAllEmptyState =
     visiblePendingInvites.length === 0 &&
-    visibleHistoryInvites.length === 0 &&
-    reusableHistoryItems.length === 0 &&
+    combinedHistoryItems.length === 0 &&
     reusableInvite === null;
 
   async function copyText(key: string, value: string) {
@@ -930,57 +960,60 @@ export default function InvitesPage() {
             <Loader className="size-4 animate-spin" />
             Loading invite history...
           </p>
-        ) : visibleHistoryInvites.length === 0 && reusableHistoryItems.length === 0 ? (
+        ) : combinedHistoryItems.length === 0 ? (
           <p className="text-muted-foreground text-sm">No invite history yet.</p>
         ) : (
           <ul className="space-y-2">
-            {visibleHistoryInvites.map((invite) => (
-              <li
-                key={invite.id}
-                className="flex flex-col gap-2 rounded-xl border bg-background p-4 sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div className="space-y-1">
-                  <p className="text-sm">
-                    {invite.invitedEmail ?? "No email specified"}
-                  </p>
-                  <p className="text-muted-foreground text-xs">
-                    Created {formatDate(invite.createdAt)}
-                    {invite.claimedBy
-                      ? ` · Accepted by ${invite.claimedBy.name ?? invite.claimedBy.email ?? "Unknown"}`
-                      : ""}
-                  </p>
-                </div>
+            {combinedHistoryItems.map((item) => {
+              if (item.kind === "invite") {
+                return (
+                  <li
+                    key={item.id}
+                    className="flex flex-col gap-2 rounded-xl border bg-background p-4 sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <div className="space-y-1">
+                      <p className="text-sm">{item.invitedEmail ?? "No email specified"}</p>
+                      <p className="text-muted-foreground text-xs">
+                        Created {formatDate(item.createdAt)}
+                        {item.claimedBy
+                          ? ` · Accepted by ${item.claimedBy.name ?? item.claimedBy.email ?? "Unknown"}`
+                          : ""}
+                      </p>
+                    </div>
 
-                <span
-                  className={cn(
-                    "inline-flex w-fit items-center rounded-full border px-2.5 py-1 text-xs font-medium",
-                    statusBadgeStyles[invite.lifecycleState],
-                  )}
-                >
-                  {formatStatus(invite.lifecycleState)}
-                </span>
-              </li>
-            ))}
-            {reusableHistoryItems.map((item) => (
-              <li
-                key={item.id}
-                className="flex flex-col gap-2 rounded-xl border bg-background p-4 sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div className="space-y-1">
-                  <p className="text-sm">{item.title}</p>
-                  <p className="text-muted-foreground text-xs">{item.subtitle}</p>
-                </div>
+                    <span
+                      className={cn(
+                        "inline-flex w-fit items-center rounded-full border px-2.5 py-1 text-xs font-medium",
+                        statusBadgeStyles[item.lifecycleState],
+                      )}
+                    >
+                      {formatStatus(item.lifecycleState)}
+                    </span>
+                  </li>
+                );
+              }
 
-                <span
-                  className={cn(
-                    "inline-flex w-fit items-center rounded-full border px-2.5 py-1 text-xs font-medium",
-                    reusableStatusBadgeStyles[item.status],
-                  )}
+              return (
+                <li
+                  key={item.id}
+                  className="flex flex-col gap-2 rounded-xl border bg-background p-4 sm:flex-row sm:items-center sm:justify-between"
                 >
-                  Family Link
-                </span>
-              </li>
-            ))}
+                  <div className="space-y-1">
+                    <p className="text-sm">{item.title}</p>
+                    <p className="text-muted-foreground text-xs">{item.subtitle}</p>
+                  </div>
+
+                  <span
+                    className={cn(
+                      "inline-flex w-fit items-center rounded-full border px-2.5 py-1 text-xs font-medium",
+                      reusableStatusBadgeStyles[item.status],
+                    )}
+                  >
+                    Family Link
+                  </span>
+                </li>
+              );
+            })}
           </ul>
         )}
         </section>
