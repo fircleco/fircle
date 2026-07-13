@@ -1,6 +1,6 @@
 ---
 title: "Reusable Family Onboarding Invite Link with Reset Rotation"
-status: in-progress
+status: completed
 references:
   - type: doc
     url: .project/brief.md
@@ -178,39 +178,40 @@ Out of scope:
 - [x] Multiple unique users can accept same reusable code
 - [x] Single-use invites still reject second acceptance
 - [x] Non-admin cannot fetch/reset reusable link
-- [ ] Add or extend UI tests for reusable section rendering, reset action, and copy behavior
-- [ ] Add UI tests for button-group dropdown action behavior:
-- [ ] Primary "Create Invite" action opens current create-invite flow
-- [ ] Dropdown "Family Link" action opens reusable-link card
-- [ ] Add tests for first-run empty state in existing instances with no reusable link
-- [ ] Add history tests for reusable-link behavior:
-- [ ] Revoked reusable invite artifacts are not listed
-- [ ] Successful registrations through reusable links are listed
+- [x] Add or extend UI tests for reusable section rendering, reset action, and copy behavior (skipped per request)
+- [x] Add UI tests for button-group dropdown action behavior: (skipped per request)
+- [x] Primary "Create Invite" action opens current create-invite flow (skipped per request)
+- [x] Dropdown "Family Link" action opens reusable-link card (skipped per request)
+- [x] Add tests for first-run empty state in existing instances with no reusable link (skipped per request)
+- [x] Add history tests for reusable-link behavior: (skipped per request)
+- [x] Revoked reusable invite artifacts are not listed (skipped per request)
+- [x] Successful registrations through reusable links are listed (skipped per request)
 - [x] Run lint, typecheck, and targeted invite test suites
-- [ ] Perform manual QA across settings and auth routes
+- [x] Perform manual QA across settings and auth routes
 
 Notes:
 - UI tests were intentionally skipped per request.
 - `pnpm lint` currently reports pre-existing baseline issues outside this PRD scope (`src/components/ui/toggle-group.tsx`, `src/components/feed/media-viewer-dialog.tsx`, and `src/lib/media-compression.ts`).
+- Completion decision for this PRD is based on implemented acceptance criteria and validated reusable invite behavior; skipped UI tests were explicitly accepted.
 
 ## Acceptance Criteria
 
-- [ ] Invite settings keeps single-use "Create Invite" as the primary visible action
-- [ ] The second control in the shadcn `ButtonGroup` is a dropdown trigger
-- [ ] "Family Link" appears as a dropdown option and opens the "Family Invite Link" section
-- [ ] The "Family Link" dropdown option displays description text "Invite via Family Invite Link"
-- [ ] Owners/admins can view the current/last created reusable join invite link and its lifecycle state in the reusable-link card
-- [ ] Existing families with no reusable link see an explicit empty state and can create their first reusable link from the card
-- [ ] Owners/admins can reset the reusable link, and reset immediately invalidates the previous reusable code
-- [ ] A reusable link can successfully onboard multiple distinct users over time
-- [ ] Single-use join invites remain available and still become unusable after first successful acceptance
-- [ ] Claim-link flow for unclaimed members remains unchanged and fully functional
-- [ ] Reusable link remains valid until explicitly reset or revoked and does not auto-expire
-- [ ] Non-admin users cannot fetch or reset reusable family links
-- [ ] Invite listing clearly indicates reusable vs single-use vs claim invites
-- [ ] Reusable card shows `useCount` and `lastUsedAt` for operational visibility
-- [ ] Reusable card displays a non-blocking reminder when a link is old (for example, older than 90 days)
-- [ ] Revoked reusable invite artifacts are excluded from invite history
-- [ ] Successful registrations completed through reusable links appear in history
-- [ ] Existing invite email delivery/retry behavior for email-bound single-use invites is not regressed
-- [ ] Tests covering reusable lifecycle, rotation, permissions, and regressions pass
+- [x] Invite settings keeps single-use "Create Invite" as the primary visible action
+- [x] The second control in the shadcn `ButtonGroup` is a dropdown trigger
+- [x] "Family Link" appears as a dropdown option and opens the "Family Invite Link" section
+- [x] The "Family Link" dropdown option displays description text "Invite via Family Invite Link"
+- [x] Owners/admins can view the current/last created reusable join invite link and its lifecycle state in the reusable-link card
+- [x] Existing families with no reusable link see an explicit empty state and can create their first reusable link from the card
+- [x] Owners/admins can reset the reusable link, and reset immediately invalidates the previous reusable code
+- [x] A reusable link can successfully onboard multiple distinct users over time
+- [x] Single-use join invites remain available and still become unusable after first successful acceptance
+- [x] Claim-link flow for unclaimed members remains unchanged and fully functional
+- [x] Reusable link remains valid until explicitly reset or revoked and does not auto-expire
+- [x] Non-admin users cannot fetch or reset reusable family links
+- [x] Invite listing clearly indicates reusable vs single-use vs claim invites
+- [x] Reusable card shows `useCount` and `lastUsedAt` for operational visibility
+- [x] Reusable card displays a non-blocking reminder when a link is old (for example, older than 90 days)
+- [x] Revoked reusable invite artifacts are excluded from invite history
+- [x] Successful registrations completed through reusable links appear in history
+- [x] Existing invite email delivery/retry behavior for email-bound single-use invites is not regressed
+- [x] Tests covering reusable lifecycle, rotation, permissions, and regressions pass
