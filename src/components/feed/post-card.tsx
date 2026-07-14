@@ -111,6 +111,9 @@ export function PostCard({
   const [optimisticReactionCount, setOptimisticReactionCount] = useState<number | undefined>(
     undefined,
   );
+  const [isSharing, setIsSharing] = useState(false);
+  const [shareFeedback, setShareFeedback] = useState<"idle" | "copied" | "shared" | "error">("idle");
+  const shareFeedbackTimeoutRef = useRef<number | null>(null);
 
   const toggleLikeMutation = api.post.toggleLike.useMutation({
     onSuccess: async () => {
@@ -126,6 +129,24 @@ export function PostCard({
     setOptimisticLikedByCurrentUser(undefined);
     setOptimisticReactionCount(undefined);
   }, [post.id, post.likedByCurrentUser, post.reactionCount]);
+
+  useEffect(() => {
+    setIsSharing(false);
+    setShareFeedback("idle");
+
+    if (shareFeedbackTimeoutRef.current !== null) {
+      window.clearTimeout(shareFeedbackTimeoutRef.current);
+      shareFeedbackTimeoutRef.current = null;
+    }
+  }, [post.id]);
+
+  useEffect(() => {
+    return () => {
+      if (shareFeedbackTimeoutRef.current !== null) {
+        window.clearTimeout(shareFeedbackTimeoutRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!highlightedMediaTagId) {
@@ -250,6 +271,82 @@ export function PostCard({
     beginNavigationProgress();
     router.push(`/post/${post.id}#comments`);
   }
+
+  function buildPostShareUrl() {
+    if (typeof window === "undefined") {
+      return `/post/${post.id}`;
+    }
+
+    return new URL(`/post/${post.id}`, window.location.origin).toString();
+  }
+
+  function scheduleShareFeedbackReset() {
+    if (shareFeedbackTimeoutRef.current !== null) {
+      window.clearTimeout(shareFeedbackTimeoutRef.current);
+    }
+
+    shareFeedbackTimeoutRef.current = window.setTimeout(() => {
+      setShareFeedback("idle");
+      shareFeedbackTimeoutRef.current = null;
+    }, 1600);
+  }
+
+  async function copyShareUrl(url: string) {
+    if (typeof navigator === "undefined" || !navigator.clipboard?.writeText) {
+      throw new Error("Clipboard is unavailable");
+    }
+
+    await navigator.clipboard.writeText(url);
+  }
+
+  async function handleSharePost() {
+    if (isSharing) {
+      return;
+    }
+
+    setIsSharing(true);
+    const shareUrl = buildPostShareUrl();
+    const shareTargetType =
+      post.type === "photo" ? "photo" : post.type === "video" ? "video" : "post";
+
+    try {
+      if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
+        await navigator.share({
+          title: `${post.author.name} shared a ${shareTargetType}`,
+          text: `Check out this ${shareTargetType}.`,
+          url: shareUrl,
+        });
+
+        setShareFeedback("shared");
+        scheduleShareFeedbackReset();
+        return;
+      }
+
+      await copyShareUrl(shareUrl);
+      setShareFeedback("copied");
+      scheduleShareFeedbackReset();
+      return;
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        return;
+      }
+
+      try {
+        await copyShareUrl(shareUrl);
+        setShareFeedback("copied");
+        scheduleShareFeedbackReset();
+        return;
+      } catch {
+        setShareFeedback("error");
+        scheduleShareFeedbackReset();
+      }
+    } finally {
+      setIsSharing(false);
+    }
+  }
+
+  const shareButtonText =
+    shareFeedback === "copied" ? "Copied!" : shareFeedback === "shared" ? "Shared" : "Share";
 
   return (
     <article
@@ -397,15 +494,29 @@ export function PostCard({
             {post.commentCount}
           </span>
         </Button>
-        <Button type="button" variant="ghost" size="sm" className="ml-auto rounded-2xl px-3">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="ml-auto rounded-2xl px-3"
+          onClick={() => void handleSharePost()}
+          disabled={isSharing}
+          aria-label={shareFeedback === "copied" ? "Post link copied" : "Share this post"}
+        >
           <Share className="size-5" />
-          Share
+          {shareButtonText}
         </Button>
       </div>
 
       {toggleLikeMutation.error ? (
         <p className="mt-2 text-xs text-destructive" role="status" aria-live="polite">
           {toggleLikeMutation.error.message}
+        </p>
+      ) : null}
+
+      {shareFeedback === "error" ? (
+        <p className="mt-2 text-xs text-destructive" role="status" aria-live="polite">
+          Unable to share this post right now. Please try again.
         </p>
       ) : null}
 
