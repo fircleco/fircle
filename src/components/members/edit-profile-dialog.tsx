@@ -1,10 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
-import { Camera, Loader, User, X } from "~/components/ui/icons";
+import { Camera, Loader, User, X, Settings } from "~/components/ui/icons";
 import { Input } from "~/components/ui/input";
 import type { FamilyMemberProfile } from "~/lib/mocks/family-members";
 import { compressImage, createInstantPreviewUrl, resolveMediaMimeType } from "~/lib/media-compression";
@@ -17,6 +18,7 @@ type EditProfileDialogProps = {
   triggerVariant?: React.ComponentProps<typeof Button>["variant"];
   triggerSize?: React.ComponentProps<typeof Button>["size"];
   triggerClassName?: string;
+  isCurrentUser?: boolean;
 };
 
 type EditProfileFormState = {
@@ -114,6 +116,7 @@ export function EditProfileDialog({
   triggerVariant = "outline",
   triggerSize = "sm",
   triggerClassName,
+  isCurrentUser = false,
 }: EditProfileDialogProps) {
   const [open, setOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -355,8 +358,7 @@ export function EditProfileDialog({
             <header className="flex items-start justify-between gap-4">
               <div>
                 <h2 className="font-semibold text-xl tracking-tight">Edit profile</h2>
-                <p className="mt-1 text-muted-foreground text-sm">Update the member name and avatar.</p>
-              </div>
+                <p className="mt-1 text-muted-foreground text-sm">Update the member name and avatar.</p>              </div>
 
               <Button
                 type="button"
@@ -462,24 +464,35 @@ export function EditProfileDialog({
                 </p>
               ) : null}
 
-              <div className="flex items-center justify-end gap-2 mt-4">
-                <Button type="button" variant="ghost" onClick={closeDialog}>
-                  Cancel
-                </Button>
-                <Button
-                  type="button"
-                  onClick={handleSave}
-                  disabled={isSaving || form.name.trim().length === 0}
-                >
-                  {isSaving ? (
-                    <>
-                      <Loader className="size-4 animate-spin" aria-hidden="true" />
-                      Saving...
-                    </>
-                  ) : (
-                    "Save changes"
-                  )}
-                </Button>
+              <div className="flex items-center mt-6">
+                {isCurrentUser ? (
+                  <Link
+                    href="/settings"
+                    className="mr-auto flex items-center gap-1.5 text-sm text-primary hover:underline"
+                  >
+                    <Settings className="size-4.5" aria-hidden="true" />
+                    Account Settings
+                  </Link>
+                ) : null}
+                <div className="flex items-center ml-auto gap-2">
+                  <Button type="button" variant="ghost" onClick={closeDialog}>
+                    Cancel
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={handleSave}
+                    disabled={isSaving || form.name.trim().length === 0}
+                  >
+                    {isSaving ? (
+                      <>
+                        <Loader className="size-4 animate-spin" aria-hidden="true" />
+                        Saving...
+                      </>
+                    ) : (
+                      "Save changes"
+                    )}
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
