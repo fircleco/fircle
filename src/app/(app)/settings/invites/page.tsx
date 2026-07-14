@@ -460,7 +460,7 @@ export default function InvitesPage() {
                 setShowFamilyLinkPanel(false);
               }}
               disabled={!canManageInvites}
-              className="sm:min-w-32"
+              className="flex-1 sm:flex-none sm:min-w-32"
             >
               <Plus data-icon="inline-start" />
               Create Invite

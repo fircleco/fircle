@@ -160,7 +160,7 @@ export default function SettingsLayout({
           </DropdownMenu>
         </div>
 
-        <nav aria-label="Settings navigation" className="hidden shrink-0 md:block md:w-48">
+        <nav aria-label="Settings navigation" className="hidden shrink-0 md:block md:w-44">
           <ul className="flex gap-1 rounded-xl border bg-card/60 p-1 md:flex-col">
             {visibleSettingsNav.map((item) => {
               const active = isActivePath(pathname, item.href);

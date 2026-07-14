@@ -109,7 +109,7 @@ export default function MembersPage() {
 
         {canManageMembers ? (
           <ButtonGroup aria-label="Member actions" className="w-full sm:w-auto">
-            <Button asChild>
+            <Button asChild className="flex-1 sm:flex-none">
               <Link href="/members/new">
                 <Plus data-icon="inline-start" />
                 Add family member
